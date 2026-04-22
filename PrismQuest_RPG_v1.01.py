@@ -8,6 +8,7 @@ import copy
 import hashlib
 import html
 import json
+import logging
 import math
 import os
 import random
@@ -32,6 +33,7 @@ except Exception:
     create_client = None
 APP_TITLE = 'Prismatic Quest'
 COMMUNITY_DISCORD_URL = 'https://discord.gg/5MtzdPkTW'
+LOGGER = logging.getLogger('prismquest.runtime')
 ITEM_BUCKETS = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45]
 CHAT_MESSAGE_RETENTION_DAYS = 3
 SCENE_TUTORIAL_KEYS = ['arena', 'inventory', 'bazaar', 'marketplace', 'transmute', 'well', 'ladder']
@@ -8999,11 +9001,31 @@ class SessionState:
         finally:
             self._cloud_sync_task = None
 
-    def _stored_runtime_session(self) -> Dict[str, object]:
+    def _legacy_stored_runtime_session(self) -> Dict[str, object]:
         try:
             stored = app.storage.user.get('runtime_session', {})
         except Exception:
             stored = {}
+        return stored if isinstance(stored, dict) else {}
+
+    def _stored_runtime_session(self) -> Dict[str, object]:
+        source = ''
+        try:
+            stored = app.storage.browser.get('runtime_session', {})
+        except Exception:
+            stored = {}
+        if isinstance(stored, dict) and stored:
+            source = 'browser'
+        else:
+            stored = self._legacy_stored_runtime_session()
+            if isinstance(stored, dict) and stored:
+                source = 'user'
+                try:
+                    app.storage.browser['runtime_session'] = dict(stored)
+                    app.storage.user.pop('runtime_session', None)
+                    source = 'browser'
+                except Exception as exc:
+                    LOGGER.warning('Runtime session migration to browser storage failed: %s', exc)
         if not isinstance(stored, dict):
             return {}
         active_slot_index = stored.get('active_slot_index')
@@ -9031,6 +9053,7 @@ class SessionState:
             'screen': screen,
             'game_tab': game_tab,
             'guest_mode': guest_mode,
+            '_storage_source': source,
         }
 
     def persist_runtime_session(self) -> None:
@@ -9043,11 +9066,22 @@ class SessionState:
         payload_hash = _stable_payload_hash(payload)
         if payload_hash == str(getattr(self, '_last_runtime_session_hash', '') or ''):
             return
+        runtime_payload = {
+            **payload,
+            'saved_at': time.time(),
+        }
         try:
-            app.storage.user['runtime_session'] = {
-                **payload,
-                'saved_at': time.time(),
-            }
+            app.storage.browser['runtime_session'] = runtime_payload
+            try:
+                app.storage.user.pop('runtime_session', None)
+            except Exception:
+                pass
+            self._last_runtime_session_hash = payload_hash
+            return
+        except Exception as exc:
+            LOGGER.warning('Browser runtime session write failed; falling back to user storage: %s', exc)
+        try:
+            app.storage.user['runtime_session'] = runtime_payload
             self._last_runtime_session_hash = payload_hash
         except Exception:
             pass
@@ -9076,9 +9110,64 @@ class SessionState:
 
     def clear_runtime_session_storage(self) -> None:
         try:
+            app.storage.browser.pop('runtime_session', None)
+        except Exception:
+            pass
+        try:
             app.storage.user.pop('runtime_session', None)
         except Exception:
             pass
+
+    def _recover_runtime_restore(self, reason: str, stored: Optional[Dict[str, object]] = None, exc: Optional[Exception] = None) -> bool:
+        slot_index = stored.get('active_slot_index') if isinstance(stored, dict) else None
+        slot_label = ''
+        try:
+            if slot_index is not None:
+                slot_label = slot_title_for_index(int(slot_index))
+        except Exception:
+            slot_label = ''
+        message = (
+            f'Connection recovered, but {slot_label} could not be reopened automatically. '
+            'Your chronicle slots are still intact.'
+            if slot_label
+            else 'Connection recovered, but the last scene could not be reopened automatically. Your chronicle slots are still intact.'
+        )
+        self.player = None
+        self.current_monster = None
+        self.current_monster_xp = 0
+        self.current_run_started_at = 0.0
+        self.current_run_start_wall_time = 0.0
+        self.monster_chain_combo = 0
+        self.current_run_kills = 0
+        self.mana_regen_progress = 0.0
+        self.life_regen_progress = 0.0
+        self.fight_in_progress = False
+        self.arena_flee_requested = False
+        self.page_turn_previous_monster = None
+        self.monster_page_turn_active = False
+        self.monster_page_turn_progress = 0.0
+        self.clear_arena_monster_art(True)
+        self.active_slot_index = None
+        self.game_tab = 'arena'
+        self.class_compendium_open = False
+        self.town_tutorial_open = False
+        self.scene_tutorial_open_key = ''
+        self.screen = 'chronicle'
+        self.set_auth_status(message, 'warning')
+        self.persist_runtime_session()
+        storage_source = str((stored or {}).get('_storage_source') or 'unknown')
+        desired_screen = str((stored or {}).get('screen') or '').strip().lower()
+        desired_tab = str((stored or {}).get('game_tab') or '').strip().lower()
+        LOGGER.warning(
+            'Runtime session restore recovered to chronicle: reason=%s source=%s stored_screen=%s stored_tab=%s stored_slot=%s error=%s',
+            reason,
+            storage_source,
+            desired_screen or '-',
+            desired_tab or '-',
+            slot_index if slot_index is not None else '-',
+            exc if exc is not None else '-',
+        )
+        return True
 
     def _stored_cloud_slot_backup(self) -> Dict[str, object]:
         try:
@@ -9148,55 +9237,58 @@ class SessionState:
             return False
         try:
             slot_index = int(active_slot_index)
-        except Exception:
-            return False
+        except Exception as exc:
+            return self._recover_runtime_restore('invalid active slot index', stored, exc)
         if not (0 <= slot_index < len(self.slots)):
-            return False
+            return self._recover_runtime_restore('stored active slot index out of range', stored)
         try:
             self.open_slot(slot_index)
-        except Exception:
-            return False
+        except Exception as exc:
+            return self._recover_runtime_restore('open_slot failed during runtime restore', stored, exc)
         desired_screen = str(stored.get('screen') or '').strip().lower()
         desired_tab = str(stored.get('game_tab') or '').strip().lower()
         safe_tab = desired_tab if desired_tab in {
             'arena', 'inventory', 'bazaar', 'marketplace', 'transmute', 'inn', 'well',
             'masterquest', 'guild_hall', 'ladder', 'glossary', 'settings', 'donate', 'stats'
         } else 'arena'
-        if self.player is None:
-            if desired_screen == 'class_select':
-                self.screen = 'class_select'
-            elif self.is_authenticated() or self.guest_mode:
-                self.screen = 'chronicle'
+        try:
+            if self.player is None:
+                if desired_screen == 'class_select':
+                    self.screen = 'class_select'
+                elif self.is_authenticated() or self.guest_mode:
+                    self.screen = 'chronicle'
+                else:
+                    self.screen = 'title'
+                self.persist_runtime_session()
+                return True
+            if desired_screen == 'town':
+                self.screen = 'town'
+            elif desired_screen == 'game':
+                self.screen = 'game'
+                self.game_tab = safe_tab
+                if safe_tab == 'inn':
+                    self.ensure_inn_scene_state(False)
+                elif safe_tab == 'well':
+                    self.ensure_well_scene_state(False)
+                elif safe_tab == 'transmute':
+                    self.ensure_transmute_scene_state(False)
+                elif safe_tab == 'masterquest':
+                    self.ensure_masterquest_scene_state(False)
+                elif safe_tab == 'ladder':
+                    self.ensure_ladder_scene_state(False, allow_cached=True)
+                elif safe_tab == 'marketplace':
+                    self.ensure_marketplace_offers(False, allow_cached=True)
+                elif safe_tab == 'bazaar':
+                    self.refresh_bazaar_listings(force=False, allow_cached=True)
+                elif safe_tab == 'guild_hall':
+                    self.refresh_guild_hall_state(allow_cached=True)
+                    self.refresh_guild_leaderboard(force=False, allow_cached=True)
             else:
-                self.screen = 'title'
+                self.screen = 'town'
             self.persist_runtime_session()
             return True
-        if desired_screen == 'town':
-            self.screen = 'town'
-        elif desired_screen == 'game':
-            self.screen = 'game'
-            self.game_tab = safe_tab
-            if safe_tab == 'inn':
-                self.ensure_inn_scene_state(False)
-            elif safe_tab == 'well':
-                self.ensure_well_scene_state(False)
-            elif safe_tab == 'transmute':
-                self.ensure_transmute_scene_state(False)
-            elif safe_tab == 'masterquest':
-                self.ensure_masterquest_scene_state(False)
-            elif safe_tab == 'ladder':
-                self.ensure_ladder_scene_state(False, allow_cached=True)
-            elif safe_tab == 'marketplace':
-                self.ensure_marketplace_offers(False, allow_cached=True)
-            elif safe_tab == 'bazaar':
-                self.refresh_bazaar_listings(force=False, allow_cached=True)
-            elif safe_tab == 'guild_hall':
-                self.refresh_guild_hall_state(allow_cached=True)
-                self.refresh_guild_leaderboard(force=False, allow_cached=True)
-        else:
-            self.screen = 'town'
-        self.persist_runtime_session()
-        return True
+        except Exception as exc:
+            return self._recover_runtime_restore('scene restore failed after slot reopen', stored, exc)
 
     def restore_auth_session(self) -> bool:
         if self.supabase is None:
@@ -16230,6 +16322,8 @@ def main_page(request: Request) -> None:
                                 ui.label('Open a guest chronicle record. These three records are stored only on this browser until you claim an account.').classes('text-slate-300 mt-2 leading-6')
                             else:
                                 ui.label('Open a local chronicle record.').classes('text-slate-300 mt-2 leading-6')
+                            if state.auth_status and state.auth_status_tone in {'warning', 'danger'}:
+                                ui.html(f"<div class='mq-state-banner {state.auth_status_tone}'>{html.escape(state.auth_status)}</div>")
                             with ui.row().classes('w-full gap-3 mt-4 max-[640px]:flex-wrap'):
                                 ui.button('Back to Title', on_click=lambda: (state.return_to_title(), request_render_refresh())).classes('flex-1 font-semibold tracking-wide rounded-xl py-3 mq-btn-secondary max-[640px]:w-full')
                                 if state.is_authenticated():
@@ -18424,5 +18518,6 @@ ui.run(
     host='0.0.0.0',
     port=int(os.environ.get('PORT', 8080)),
     reload=False,
+    reconnect_timeout=15.0,
     storage_secret=os.environ.get('NICEGUI_STORAGE_SECRET', 'prismquest-discord-oauth-storage-secret'),
 )
