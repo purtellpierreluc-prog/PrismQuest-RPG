@@ -15735,9 +15735,13 @@ def main_page(request: Request) -> None:
     def filtered_inn_vault_storage_entries() -> List[Tuple[int, Item]]:
         return [(idx, item) for idx, item in enumerate(state.vault_items) if inn_vault_item_matches_filters(item)]
 
-    def refresh_inn_vault_views(*, preserve_scroll: bool = True) -> None:
+    def inn_vault_selected_flag_html(selected: bool) -> str:
+        visibility = 'visible' if selected else 'hidden'
+        return f"<span class='mq-manifest-flag selected' style='visibility:{visibility}; min-width: 7.25rem;'>Selected</span>"
+
+    def refresh_inn_vault_views(*, preserve_scroll: bool = True, remember_scroll: bool = True) -> None:
         sync_inn_vault_selection()
-        if preserve_scroll:
+        if preserve_scroll and remember_scroll:
             remember_inn_vault_scroll()
         render_inn_vault_dialog.refresh()
         if preserve_scroll:
@@ -15765,9 +15769,17 @@ def main_page(request: Request) -> None:
         restore_inn_vault_scroll()
 
     def buy_inn_vault_slots() -> None:
-        state.buy_vault_slots()
-        request_render_refresh()
-        refresh_inn_vault_views(preserve_scroll=False)
+        if state.player is None:
+            return
+        current_capacity = max(int(getattr(state, 'vault_capacity', 0) or 0), len(state.vault_items))
+        open_inventory_confirmation(
+            'Confirm Vault Expansion',
+            f'Buy {VAULT_SLOT_BUNDLE_SIZE} more Inn Vault slots for {VAULT_SLOT_BUNDLE_COST} gold?',
+            f'Current capacity: {current_capacity} slots. Current storage: {len(state.vault_items)} item(s). This purchase is permanent for this slot.',
+            'Buy Slots',
+            'mq-btn-gold',
+            lambda: (state.buy_vault_slots(), request_render_refresh(), refresh_inn_vault_views(preserve_scroll=False)),
+        )
 
     def store_selected_inn_vault_item() -> None:
         if state.player is None:
@@ -15803,12 +15815,12 @@ def main_page(request: Request) -> None:
     def select_inn_vault_inventory(index: int) -> None:
         state.inn_vault_inventory_selected_index = int(index)
         state.inn_vault_selected_index = -1
-        refresh_inn_vault_views()
+        refresh_inn_vault_views(preserve_scroll=True, remember_scroll=False)
 
     def select_inn_vault_item(index: int) -> None:
         state.inn_vault_selected_index = int(index)
         state.inn_vault_inventory_selected_index = -1
-        refresh_inn_vault_views()
+        refresh_inn_vault_views(preserve_scroll=True, remember_scroll=False)
 
     with inn_vault_dialog:
         @ui.refreshable
@@ -15861,8 +15873,7 @@ def main_page(request: Request) -> None:
                                                     ui.label(f'{saved_item_type_label(item)} • Tier {item_required_level(item)}').classes('mq-detail-text')
                                                     ui.label(safe_item_base_stat_text(item)).classes('mq-inv-entry-base')
                                                     ui.label(safe_item_affix_preview_text(item)).classes('mq-inv-entry-affix')
-                                                if selected:
-                                                    ui.html("<span class='mq-manifest-flag selected'>Selected</span>")
+                                                ui.html(inn_vault_selected_flag_html(selected))
                     with ui.column().classes('w-full max-w-[280px] gap-4 items-stretch justify-center'):
                         with ui.card().classes('mq-card p-4'):
                             ui.label('Vault Actions').classes('mq-inv-section-title mb-3 text-center')
@@ -15898,8 +15909,7 @@ def main_page(request: Request) -> None:
                                                     ui.label(f'{saved_item_type_label(item)} • Tier {item_required_level(item)}').classes('mq-detail-text')
                                                     ui.label(safe_item_base_stat_text(item)).classes('mq-inv-entry-base')
                                                     ui.label(safe_item_affix_preview_text(item)).classes('mq-inv-entry-affix')
-                                                if selected:
-                                                    ui.html("<span class='mq-manifest-flag selected'>Selected</span>")
+                                                ui.html(inn_vault_selected_flag_html(selected))
 
         render_inn_vault_dialog()
 
