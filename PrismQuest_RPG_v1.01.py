@@ -515,7 +515,8 @@ def class_run_drop_debuff_step(player_class: str) -> int:
 
 
 def class_run_drop_debuff_threshold_multiplier(has_attempted_masterquest: bool) -> float:
-    return 2.0 if has_attempted_masterquest else 5.0
+    base_multiplier = 2.0 if has_attempted_masterquest else 5.0
+    return base_multiplier * 2.5
 
 
 def class_run_drop_debuff_thresholds(player_class: str, has_attempted_masterquest: bool = True) -> Tuple[int, int]:
@@ -2769,6 +2770,71 @@ body {
   54% { opacity: 0.72; }
   100% { transform: translateX(210%); opacity: 0; }
 }
+@keyframes mqMeterLevelUpTrackPulse {
+  0% {
+    border-color: rgba(255,255,255,0.12);
+    box-shadow:
+      inset 0 2px 10px rgba(255,255,255,0.05),
+      inset 0 -10px 18px rgba(0,0,0,0.36),
+      0 14px 28px rgba(0,0,0,0.22);
+  }
+  22% {
+    border-color: rgba(255,235,176,0.58);
+    box-shadow:
+      inset 0 2px 14px rgba(255,248,224,0.22),
+      inset 0 -8px 16px rgba(0,0,0,0.24),
+      0 0 0 1px rgba(255,232,170,0.28),
+      0 0 52px rgba(255,210,108,0.34);
+  }
+  58% {
+    border-color: rgba(255,231,168,0.46);
+    box-shadow:
+      inset 0 2px 13px rgba(255,246,219,0.18),
+      inset 0 -9px 17px rgba(0,0,0,0.26),
+      0 0 0 1px rgba(255,229,162,0.24),
+      0 0 44px rgba(240,196,90,0.26);
+  }
+  100% {
+    border-color: rgba(255,255,255,0.12);
+    box-shadow:
+      inset 0 2px 10px rgba(255,255,255,0.05),
+      inset 0 -10px 18px rgba(0,0,0,0.36),
+      0 14px 28px rgba(0,0,0,0.22);
+  }
+}
+@keyframes mqMeterLevelUpFillPulse {
+  0% {
+    filter: saturate(1) brightness(1);
+    transform: scaleY(1);
+    box-shadow: inset 0 1px 0 rgba(255,244,214,0.34), 0 0 24px rgba(228, 191, 91, 0.24), inset 0 -10px 16px rgba(52, 32, 6, 0.30);
+  }
+  20% {
+    filter: saturate(1.18) brightness(1.30);
+    transform: scaleY(1.07);
+    box-shadow:
+      inset 0 1px 0 rgba(255,251,236,0.72),
+      0 0 62px rgba(255, 224, 131, 0.54),
+      0 0 18px rgba(255, 243, 206, 0.26),
+      inset 0 -10px 16px rgba(52, 32, 6, 0.18);
+  }
+  56% {
+    filter: saturate(1.12) brightness(1.18);
+    transform: scaleY(1.04);
+    box-shadow:
+      inset 0 1px 0 rgba(255,249,229,0.58),
+      0 0 48px rgba(255, 221, 123, 0.42),
+      0 0 14px rgba(255, 244, 210, 0.20),
+      inset 0 -10px 16px rgba(52, 32, 6, 0.22);
+  }
+  100% {
+    filter: saturate(1) brightness(1);
+    transform: scaleY(1);
+    box-shadow: inset 0 1px 0 rgba(255,244,214,0.34), 0 0 24px rgba(228, 191, 91, 0.24), inset 0 -10px 16px rgba(52, 32, 6, 0.30);
+  }
+}
+.mq-meter-fill.mq-meter-fill-pending {
+  opacity: 0;
+}
 .mq-meter-fill.hp::after,
 .mq-meter-fill.mana::after,
 .mq-meter-fill.exp::after {
@@ -2790,11 +2856,117 @@ body {
 .mq-meter-fill.exp {
   background: linear-gradient(90deg, #4e3410 0%, #90621a 22%, #d8b24d 58%, #f6e5ad 100%);
   transition-duration: 3600ms;
+  transition-timing-function: cubic-bezier(0.2, 0.92, 0.22, 1);
+  transform-origin: center;
   box-shadow: inset 0 1px 0 rgba(255,244,214,0.34), 0 0 24px rgba(228, 191, 91, 0.24), inset 0 -10px 16px rgba(52, 32, 6, 0.30);
+}
+.mq-meter-track.mq-meter-track-levelup {
+  animation: mqMeterLevelUpTrackPulse 980ms cubic-bezier(0.18, 0.92, 0.24, 1) 1;
+}
+.mq-meter-fill.exp.mq-meter-fill-levelup {
+  animation: mqMeterLevelUpFillPulse 980ms cubic-bezier(0.18, 0.92, 0.24, 1) 1;
 }
 .mq-meter-shell {
   position: relative;
   width: 100%;
+}
+.mq-scene-arena .mq-arena-card {
+  position: relative;
+  overflow: visible;
+  border-width: 2px;
+  border-style: solid;
+  border-color: rgba(228,233,240,0.34);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 14%, rgba(255,255,255,0) 30%),
+    linear-gradient(180deg, rgba(16, 18, 23, 0.98) 0%, rgba(6, 7, 10, 0.995) 100%);
+  box-shadow:
+    0 24px 44px rgba(0,0,0,0.36),
+    inset 0 1px 0 rgba(255,255,255,0.07),
+    inset 0 -24px 46px rgba(0,0,0,0.20),
+    0 0 0 1px rgba(255,255,255,0.03);
+}
+.mq-scene-arena .mq-arena-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  border: 1px solid rgba(248,250,252,0.44);
+  box-shadow: none;
+  pointer-events: none;
+}
+.mq-scene-arena .mq-arena-card::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 20px;
+  border: 1px solid rgba(120,128,138,0.26);
+  pointer-events: none;
+}
+.mq-scene-arena .mq-panel-frame {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 20%, rgba(255,255,255,0) 42%),
+    rgba(6, 8, 11, 0.90);
+  border-color: rgba(255,255,255,0.09);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    inset 0 -18px 34px rgba(0,0,0,0.20),
+    0 14px 26px rgba(0,0,0,0.16);
+}
+.mq-scene-arena .mq-arena-card:hover,
+.mq-scene-arena .mq-panel-frame:hover {
+  border-color: rgba(241,245,250,0.42);
+}
+.mq-scene-arena .mq-transition,
+.mq-scene-arena .mq-combat-log {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.01) 100%),
+    rgba(5, 7, 10, 0.88);
+  border-color: rgba(255,255,255,0.08);
+}
+.mq-scene-arena .mq-arena-options .q-field__control {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.012) 100%),
+    rgba(7, 9, 12, 0.92) !important;
+  border-color: rgba(255,255,255,0.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 12px 20px rgba(0,0,0,0.15);
+}
+.mq-scene-arena .mq-arena-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.mq-scene-arena .mq-arena-buttons-primary,
+.mq-scene-arena .mq-arena-buttons-utility {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.mq-scene-arena .mq-arena-buttons-primary {
+  flex: 1 1 220px;
+}
+.mq-scene-arena .mq-arena-buttons-utility {
+  flex: 1 1 420px;
+  justify-content: flex-end;
+}
+@media (max-width: 860px) {
+  .mq-scene-arena .mq-arena-buttons-utility {
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 680px) {
+  .mq-scene-arena .mq-arena-buttons-primary,
+  .mq-scene-arena .mq-arena-buttons-utility {
+    width: 100%;
+  }
+  .mq-scene-arena .mq-arena-buttons-primary .mq-arena-btn,
+  .mq-scene-arena .mq-arena-buttons-utility .mq-arena-btn {
+    flex: 1 1 160px;
+  }
 }
 .mq-damage-float {
   position: absolute;
@@ -3618,9 +3790,18 @@ body {
   transition: opacity 140ms ease, transform 140ms ease;
   z-index: 9900;
 }
+.mq-prof-tooltip-panel.mq-prof-tooltip-panel-down {
+  top: calc(100% + 14px);
+  bottom: auto;
+  transform: translateX(-50%) translateY(-8px);
+}
 .mq-prof-tooltip-wrap:hover .mq-prof-tooltip-panel,
 .mq-prof-tooltip-wrap:focus-within .mq-prof-tooltip-panel {
   opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.mq-prof-tooltip-wrap:hover .mq-prof-tooltip-panel.mq-prof-tooltip-panel-down,
+.mq-prof-tooltip-wrap:focus-within .mq-prof-tooltip-panel.mq-prof-tooltip-panel-down {
   transform: translateX(-50%) translateY(0);
 }
 .mq-prof-tooltip-card,
@@ -3637,6 +3818,18 @@ body {
   backdrop-filter: none;
   opacity: 1;
   padding: 16px 18px;
+}
+.mq-core-stat-tooltip-card .mq-prof-title {
+  font-size: 1.22rem;
+}
+.mq-core-stat-tooltip-card .mq-prof-sub {
+  font-size: 1.08rem;
+}
+.mq-core-stat-tooltip-card .mq-prof-active-label {
+  font-size: 0.96rem;
+}
+.mq-core-stat-tooltip-card .mq-prof-active-value {
+  font-size: 1.08rem;
 }
 .mq-prof-title {
   font-size: 1.10rem;
@@ -3895,58 +4088,379 @@ window.mqRestoreScroll = function(id) {
 };
 window.__mqMeterState = window.__mqMeterState || {};
 window.__mqMeterMeta = window.__mqMeterMeta || {};
+window.__mqMeterAnimations = window.__mqMeterAnimations || {};
+window.__mqMeterRunTokens = window.__mqMeterRunTokens || {};
+window.__mqMeterFrameLoops = window.__mqMeterFrameLoops || {};
+window.mqClampUnit = function(value) {
+  return Math.max(0, Math.min(1, Number(value) || 0));
+};
+window.mqEaseOutMeter = function(value) {
+  const t = window.mqClampUnit(value);
+  return 1 - Math.pow(1 - t, 3);
+};
+window.mqMeterPlanFill = function(plan, atTime) {
+  if (!plan || !Array.isArray(plan.phases) || !plan.phases.length) return null;
+  const now = typeof atTime === 'number' ? atTime : Date.now();
+  const elapsed = now - (plan.createdAt || now);
+  for (let index = 0; index < plan.phases.length; index += 1) {
+    const phase = plan.phases[index] || {};
+    const phaseDelay = Math.max(0, Number(phase.delay) || 0);
+    const phaseDuration = Math.max(0, Number(phase.duration) || 0);
+    const startAt = phaseDelay;
+    const endAt = phaseDelay + phaseDuration;
+    if (elapsed < startAt) {
+      return Number(phase.from || 0);
+    }
+    if (elapsed <= endAt) {
+      if ((phase.kind || '') === 'hold' || phaseDuration <= 0) {
+        return Number(phase.to || phase.from || 0);
+      }
+      const progress = window.mqEaseOutMeter((elapsed - startAt) / Math.max(1, phaseDuration));
+      return Number(phase.from || 0) + ((Number(phase.to || 0) - Number(phase.from || 0)) * progress);
+    }
+  }
+  const lastPhase = plan.phases[plan.phases.length - 1] || {};
+  return Number(lastPhase.to || 0);
+};
+window.mqMeterRemainingPlan = function(plan, atTime) {
+  if (!plan || !Array.isArray(plan.phases) || !plan.phases.length) {
+    return {active: false, fill: null, phases: []};
+  }
+  const now = typeof atTime === 'number' ? atTime : Date.now();
+  const elapsed = now - (plan.createdAt || now);
+  const fill = window.mqMeterPlanFill(plan, now);
+  const remainingPhases = [];
+  for (let index = 0; index < plan.phases.length; index += 1) {
+    const phase = plan.phases[index] || {};
+    const phaseDelay = Math.max(0, Number(phase.delay) || 0);
+    const phaseDuration = Math.max(0, Number(phase.duration) || 0);
+    const startAt = phaseDelay;
+    const endAt = phaseDelay + phaseDuration;
+    if (elapsed < startAt) {
+      remainingPhases.push({
+        from: Number(phase.from || 0),
+        to: Number(phase.to || 0),
+        delay: startAt - elapsed,
+        duration: phaseDuration,
+        kind: phase.kind || 'ease',
+        jumpToStart: !!phase.jumpToStart,
+      });
+    } else if (elapsed < endAt) {
+      const currentFill = (phase.kind || '') === 'hold' || phaseDuration <= 0
+        ? Number(phase.to || phase.from || 0)
+        : Number(phase.from || 0) + ((Number(phase.to || 0) - Number(phase.from || 0)) * window.mqEaseOutMeter((elapsed - startAt) / Math.max(1, phaseDuration)));
+      remainingPhases.push({
+        from: currentFill,
+        to: Number(phase.to || 0),
+        delay: 0,
+        duration: Math.max(0, endAt - elapsed),
+        kind: phase.kind || 'ease',
+        jumpToStart: false,
+      });
+    }
+  }
+  if (!remainingPhases.length) {
+    return {
+      active: false,
+      fill: fill,
+      phases: [],
+      signature: String(plan.signature || ''),
+      finalFill: Number(plan.finalFill || fill || 0),
+    };
+  }
+  const remaining = {
+    active: true,
+    fill: fill,
+    phases: remainingPhases,
+    signature: String(plan.signature || ''),
+    finalFill: Number(plan.finalFill || fill || 0),
+  };
+  if (typeof plan.beatDelay === 'number' && Number(plan.beatDuration || 0) > 0) {
+    const beatStart = Math.max(0, Number(plan.beatDelay) || 0);
+    const beatEnd = beatStart + Math.max(0, Number(plan.beatDuration) || 0);
+    if (elapsed < beatStart) {
+      remaining.beatDelay = beatStart - elapsed;
+      remaining.beatDuration = Math.max(0, Number(plan.beatDuration) || 0);
+    } else if (elapsed < beatEnd) {
+      remaining.beatDelay = 0;
+      remaining.beatDuration = Math.max(0, beatEnd - elapsed);
+    }
+  }
+  return remaining;
+};
+window.mqBuildMeterPlan = function(options) {
+  const start = Number(options && options.start) || 0;
+  const target = Number(options && options.target) || 0;
+  const startDelay = Math.max(0, Number(options && options.startDelay) || 0);
+  const plan = {
+    createdAt: Date.now(),
+    signature: String((options && options.signature) || ''),
+    finalFill: target,
+    phases: [],
+  };
+  if (options && options.rollover) {
+    const toCapMs = Math.max(0, Number(options.toCapMs) || 0);
+    const holdMs = Math.max(0, Number(options.holdMs) || 0);
+    const toTargetMs = Math.max(0, Number(options.toTargetMs) || 0);
+    plan.beatDelay = startDelay + toCapMs;
+    plan.beatDuration = Math.max(0, Number(options.beatDuration) || 0);
+    plan.phases.push({from: start, to: 100, delay: startDelay, duration: toCapMs, kind: 'ease', jumpToStart: false});
+    plan.phases.push({from: 100, to: 100, delay: startDelay + toCapMs, duration: holdMs, kind: 'hold', jumpToStart: false});
+    plan.phases.push({from: 0, to: target, delay: startDelay + toCapMs + holdMs, duration: toTargetMs, kind: 'ease', jumpToStart: true});
+    return plan;
+  }
+  plan.phases.push({
+    from: start,
+    to: target,
+    delay: startDelay,
+    duration: Math.max(0, Number(options && options.duration) || 0),
+    kind: 'ease',
+    jumpToStart: false,
+  });
+  return plan;
+};
+window.mqTrackMeterFill = function(meterId, fill, track, runIsCurrent) {
+  const existingFrame = window.__mqMeterFrameLoops[meterId];
+  if (existingFrame) {
+    try {
+      cancelAnimationFrame(existingFrame);
+    } catch (_err) {}
+    delete window.__mqMeterFrameLoops[meterId];
+  }
+  const sample = function() {
+    if (typeof runIsCurrent === 'function' && !runIsCurrent()) {
+      delete window.__mqMeterFrameLoops[meterId];
+      return;
+    }
+    if (!fill || !track || !fill.isConnected || !track.isConnected) {
+      delete window.__mqMeterFrameLoops[meterId];
+      return;
+    }
+    const trackWidth = (track.getBoundingClientRect && track.getBoundingClientRect().width) || track.clientWidth || 0;
+    const fillWidth = (fill.getBoundingClientRect && fill.getBoundingClientRect().width) || fill.clientWidth || 0;
+    if (trackWidth > 0) {
+      window.__mqMeterState[meterId] = Math.max(0, Math.min(100, (fillWidth / trackWidth) * 100));
+    }
+    window.__mqMeterFrameLoops[meterId] = requestAnimationFrame(sample);
+  };
+  window.__mqMeterFrameLoops[meterId] = requestAnimationFrame(sample);
+};
+window.mqStopMeterTracking = function(meterId) {
+  const frame = window.__mqMeterFrameLoops[meterId];
+  if (frame) {
+    try {
+      cancelAnimationFrame(frame);
+    } catch (_err) {}
+    delete window.__mqMeterFrameLoops[meterId];
+  }
+};
 window.mqBindMeters = function(root) {
   const scope = root && root.querySelectorAll ? root : document;
   scope.querySelectorAll('.mq-meter').forEach(function(meter) {
     const fill = meter.querySelector('.mq-meter-fill');
+    const track = meter.querySelector('.mq-meter-track');
     if (!fill) return;
     const meterId = meter.id || meter.dataset.meterId || ('mq-meter-' + Math.random().toString(36).slice(2));
     const target = Math.max(0, Math.min(100, parseFloat(meter.dataset.fill || '0') || 0));
-    const previous = Object.prototype.hasOwnProperty.call(window.__mqMeterState, meterId)
-      ? window.__mqMeterState[meterId]
-      : target;
     const duration = Math.max(0, parseInt(meter.dataset.duration || '720', 10) || 720);
+    const isExpMeter = fill.classList.contains('exp');
+    const transitionMs = isExpMeter ? Math.max(duration, 6200) : duration;
+    const startDelayMs = isExpMeter ? 160 : 0;
     const cycle = meter.dataset.cycle || '';
     const allowRollover = meter.dataset.rollover === '1';
+    const currentSignature = meter.dataset.mqMeterSignature || '';
+    const signature = [target.toFixed(4), duration, cycle, allowRollover ? '1' : '0'].join('|');
+    if (currentSignature === signature) {
+      return;
+    }
     const previousMeta = window.__mqMeterMeta[meterId] || {};
     const previousCycle = previousMeta.cycle || '';
-    const previousFill = typeof previousMeta.fill === 'number' ? previousMeta.fill : previous;
-    const signature = [target.toFixed(4), duration, cycle, allowRollover ? '1' : '0'].join('|');
-    if (meter.dataset.mqMeterSignature === signature && Math.abs(previousFill - target) < 0.0001) return;
-    meter.dataset.mqMeterSignature = signature;
+    const existingPlan = window.__mqMeterAnimations[meterId] || null;
+    const existingStatus = existingPlan ? window.mqMeterRemainingPlan(existingPlan, Date.now()) : null;
+    const sampledPrevious = Object.prototype.hasOwnProperty.call(window.__mqMeterState, meterId)
+      ? Number(window.__mqMeterState[meterId] || 0)
+      : null;
+    const previous = sampledPrevious !== null
+      ? sampledPrevious
+      : (existingStatus && typeof existingStatus.fill === 'number' ? existingStatus.fill : target);
 
-    const animateToTarget = function(startWidth, endWidth, transitionMs) {
-      fill.style.transitionDuration = Math.max(0, parseInt(transitionMs || 0, 10)) + 'ms';
-      fill.style.width = startWidth.toFixed(4) + '%';
-      requestAnimationFrame(function() {
+    meter.dataset.mqMeterSignature = signature;
+    const runToken = String((parseInt(window.__mqMeterRunTokens[meterId] || '0', 10) || 0) + 1);
+    window.__mqMeterRunTokens[meterId] = runToken;
+    window.mqStopMeterTracking(meterId);
+
+    const runIsCurrent = function() {
+      return window.__mqMeterRunTokens[meterId] === runToken;
+    };
+
+    const showFillAt = function(fillPct) {
+      fill.style.transitionDuration = '0ms';
+      fill.style.width = Math.max(0, Math.min(100, Number(fillPct) || 0)).toFixed(4) + '%';
+      fill.classList.remove('mq-meter-fill-pending');
+      window.__mqMeterState[meterId] = Math.max(0, Math.min(100, Number(fillPct) || 0));
+    };
+
+    const triggerLevelUpBeat = function(durationMs) {
+      if (!isExpMeter || !runIsCurrent() || Number(durationMs || 0) <= 0) return;
+      meter.classList.remove('mq-meter-levelup');
+      fill.classList.remove('mq-meter-fill-levelup');
+      if (track) {
+        track.classList.remove('mq-meter-track-levelup');
+      }
+      void fill.offsetWidth;
+      meter.classList.add('mq-meter-levelup');
+      fill.classList.add('mq-meter-fill-levelup');
+      if (track) {
+        track.classList.add('mq-meter-track-levelup');
+      }
+      setTimeout(function() {
+        if (!runIsCurrent()) return;
+        meter.classList.remove('mq-meter-levelup');
+        fill.classList.remove('mq-meter-fill-levelup');
+        if (track) {
+          track.classList.remove('mq-meter-track-levelup');
+        }
+      }, Math.max(0, parseInt(durationMs, 10) || 0));
+    };
+
+    const runPhase = function(phase) {
+      if (!runIsCurrent()) return;
+      const phaseDuration = Math.max(0, parseInt(phase.duration || 0, 10) || 0);
+      const from = Math.max(0, Math.min(100, Number(phase.from) || 0));
+      const to = Math.max(0, Math.min(100, Number(phase.to) || 0));
+      if ((phase.kind || '') === 'hold') {
+        fill.style.transitionDuration = '0ms';
+        fill.style.width = to.toFixed(4) + '%';
+        window.__mqMeterState[meterId] = to;
+        return;
+      }
+      if (phase.jumpToStart) {
+        fill.style.transitionDuration = '0ms';
+        fill.style.width = from.toFixed(4) + '%';
+        window.__mqMeterState[meterId] = from;
         requestAnimationFrame(function() {
-          fill.style.width = endWidth.toFixed(4) + '%';
+          if (!runIsCurrent()) return;
+          requestAnimationFrame(function() {
+            if (!runIsCurrent()) return;
+            fill.style.transitionDuration = phaseDuration + 'ms';
+            fill.style.width = to.toFixed(4) + '%';
+            window.__mqMeterState[meterId] = to;
+          });
+        });
+        return;
+      }
+      fill.style.transitionDuration = phaseDuration + 'ms';
+      fill.style.width = from.toFixed(4) + '%';
+      window.__mqMeterState[meterId] = from;
+      requestAnimationFrame(function() {
+        if (!runIsCurrent()) return;
+        requestAnimationFrame(function() {
+          if (!runIsCurrent()) return;
+          fill.style.width = to.toFixed(4) + '%';
+          window.__mqMeterState[meterId] = to;
         });
       });
     };
 
-    const shouldRollover = allowRollover && target < previous && (previousCycle !== cycle || previous - target > 0.5);
-
-    if (shouldRollover) {
-      const toCapMs = Math.max(220, Math.round(duration * 0.30));
-      const toTargetMs = Math.max(320, duration - toCapMs);
-      animateToTarget(previous, 100, toCapMs);
-      window.__mqMeterState[meterId] = 100;
+    const applyPlan = function(plan) {
+      if (!plan || !Array.isArray(plan.phases) || !plan.phases.length) {
+        showFillAt(target);
+        delete window.__mqMeterAnimations[meterId];
+        return;
+      }
+      const normalizedPlan = {
+        createdAt: Date.now(),
+        signature: signature,
+        finalFill: target,
+        phases: plan.phases.map(function(phase) {
+          return {
+            from: Number(phase.from || 0),
+            to: Number(phase.to || 0),
+            delay: Math.max(0, Number(phase.delay) || 0),
+            duration: Math.max(0, Number(phase.duration) || 0),
+            kind: phase.kind || 'ease',
+            jumpToStart: !!phase.jumpToStart,
+          };
+        }),
+        beatDelay: typeof plan.beatDelay === 'number' ? Math.max(0, Number(plan.beatDelay) || 0) : undefined,
+        beatDuration: Math.max(0, Number(plan.beatDuration) || 0),
+      };
+      window.__mqMeterAnimations[meterId] = normalizedPlan;
+      showFillAt(normalizedPlan.phases[0].from);
+      window.mqTrackMeterFill(meterId, fill, track, runIsCurrent);
+      if (typeof normalizedPlan.beatDelay === 'number' && normalizedPlan.beatDuration > 0) {
+        setTimeout(function() {
+          if (!runIsCurrent()) return;
+          triggerLevelUpBeat(normalizedPlan.beatDuration);
+        }, normalizedPlan.beatDelay);
+      }
+      normalizedPlan.phases.forEach(function(phase) {
+        setTimeout(function() {
+          runPhase(phase);
+        }, phase.delay);
+      });
+      const finishAfterMs = normalizedPlan.phases.reduce(function(maxDelay, phase) {
+        return Math.max(maxDelay, phase.delay + phase.duration);
+      }, 0);
       setTimeout(function() {
+        if (!runIsCurrent()) return;
         fill.style.transitionDuration = '0ms';
-        fill.style.width = '0%';
-        window.__mqMeterState[meterId] = 0;
-        requestAnimationFrame(function() {
-          requestAnimationFrame(function() {
-            fill.style.transitionDuration = toTargetMs + 'ms';
-            fill.style.width = target.toFixed(4) + '%';
-            window.__mqMeterState[meterId] = target;
-          });
-        });
-      }, toCapMs + 34);
+        fill.style.width = target.toFixed(4) + '%';
+        fill.classList.remove('mq-meter-fill-pending');
+        window.__mqMeterState[meterId] = target;
+        window.mqStopMeterTracking(meterId);
+        delete window.__mqMeterAnimations[meterId];
+      }, finishAfterMs + 34);
+    };
+
+    if (existingStatus && existingPlan && existingPlan.signature === signature && existingStatus.active) {
+      const continuedPhases = existingStatus.phases.map(function(phase, index) {
+        if (index === 0 && sampledPrevious !== null) {
+          return {
+            from: sampledPrevious,
+            to: Number(phase.to || 0),
+            delay: Math.max(0, Number(phase.delay) || 0),
+            duration: Math.max(0, Number(phase.duration) || 0),
+            kind: phase.kind || 'ease',
+            jumpToStart: !!phase.jumpToStart,
+          };
+        }
+        return phase;
+      });
+      applyPlan({
+        phases: continuedPhases,
+        beatDelay: existingStatus.beatDelay,
+        beatDuration: existingStatus.beatDuration,
+      });
+      window.__mqMeterMeta[meterId] = {cycle: cycle, fill: target};
+      return;
+    }
+
+    const shouldRollover = allowRollover && target < previous && (previousCycle !== cycle || previous - target > 0.5);
+    if (shouldRollover) {
+      const beatDurationMs = isExpMeter ? 980 : 0;
+      const holdMs = isExpMeter ? 1120 : 34;
+      const toCapMs = isExpMeter ? Math.max(2300, Math.round(transitionMs * 0.36)) : Math.max(220, Math.round(duration * 0.30));
+      const toTargetMs = isExpMeter ? Math.max(2800, Math.round(transitionMs * 0.46)) : Math.max(320, duration - toCapMs);
+      applyPlan(window.mqBuildMeterPlan({
+        signature: signature,
+        start: previous,
+        target: target,
+        startDelay: startDelayMs,
+        rollover: true,
+        toCapMs: toCapMs,
+        holdMs: holdMs,
+        toTargetMs: toTargetMs,
+        beatDuration: beatDurationMs,
+      }));
     } else {
-      animateToTarget(previous, target, duration);
-      window.__mqMeterState[meterId] = target;
+      applyPlan(window.mqBuildMeterPlan({
+        signature: signature,
+        start: previous,
+        target: target,
+        startDelay: startDelayMs,
+        duration: transitionMs,
+      }));
     }
     window.__mqMeterMeta[meterId] = {cycle: cycle, fill: target};
   });
@@ -6279,7 +6793,7 @@ def tooltip_title_text(text: str) -> str:
 def core_stat_help_text(stat_key: str) -> str:
     descriptions = {
         'strength': 'Raises physical weapon damage. Axes benefit the most, daggers get a smaller share, and staves still gain some value from it.',
-        'dexterity': 'Raises finesse weapon damage. Daggers benefit the most, axes get a smaller share, and it also helps accuracy and evasive builds feel smoother.',
+        'dexterity': 'Raises finesse weapon damage. Daggers benefit the most and axes get a smaller share.',
         'intelligence': 'Raises charm and spell damage, improves mana growth, and strengthens your arcane side of combat.',
         'vitality': 'Raises survivability with more maximum health and sturdier defenses for longer arena runs.',
     }
@@ -6292,7 +6806,7 @@ def build_core_stat_tooltip_html(player: Optional['Player'], stat_key: str) -> s
     unspent = int(getattr(player, 'unspent_stat_points', 0) or 0) if player is not None else 0
     click_hint = 'Click to spend 1 point. Shift-click spends every unspent point into this stat.' if unspent > 0 else 'No unspent stat points are available right now.'
     return (
-        "<div class='mq-prof-tooltip-card'>"
+        "<div class='mq-prof-tooltip-card mq-core-stat-tooltip-card'>"
         f"<div class='mq-prof-title'>{label}</div>"
         f"<div class='mq-prof-sub'>{help_text}</div>"
         f"<div class='mq-prof-active'><span class='mq-prof-active-label'>Unspent Points</span><span class='mq-prof-active-value'>{unspent}</span></div>"
@@ -11603,7 +12117,8 @@ async def _finish_arena_fight_async(self, refresh) -> None:
                 if penalty_pct >= 100:
                     self.add_log('Feeder fatigue has choked the loot stream entirely. Attempt Prismatic Quest to clear the debuff.', 'warning')
                 else:
-                    threshold_text = '5x farther out' if not has_attempted_mq else '2x farther out'
+                    threshold_scale = class_run_drop_debuff_threshold_multiplier(has_attempted_mq)
+                    threshold_text = f'{threshold_scale:g}x farther out'
                     self.add_log(f'Feeder fatigue weighs on the run: item drops are reduced by {penalty_pct}% at {self.current_run_kills} kills ({threshold_text}).', 'warning')
             drop_chance = clamp(base_drop_chance * (1.0 - drop_penalty), 0.0, 0.60)
             if drop_chance > 0 and random.random() < drop_chance:
@@ -14877,12 +15392,13 @@ def animated_meter_html(meter_id: str, label: str, value: int, maximum: int, ton
     label_html = html.escape(str(label))
     value_html = f"{safe_value} / {safe_max}"
     tone_class = html.escape(str(tone or ''))
+    fill_classes = f"mq-meter-fill {tone_class} mq-meter-fill-pending".strip()
     cycle_attr = '' if cycle is None else f" data-cycle='{html.escape(str(cycle), quote=True)}'"
     rollover_attr = " data-rollover='1'" if rollover else ''
     return (
         f"<div class='mq-meter' id='mq-meter-{safe_id}' data-meter-id='mq-meter-{safe_id}' data-fill='{fill_pct:.4f}' data-duration='{int(duration_ms)}'{cycle_attr}{rollover_attr}>"
         f"<div class='mq-meter-row'><span class='mq-meter-label'>{label_html}</span><span class='mq-meter-value'>{value_html}</span></div>"
-        f"<div class='mq-meter-track {tone_class}'><div class='mq-meter-fill {tone_class}' style='width:{fill_pct:.4f}%'></div></div>"
+        f"<div class='mq-meter-track {tone_class}'><div class='{fill_classes}' style='width:{fill_pct:.4f}%'></div></div>"
         f"</div>"
     )
 
@@ -18258,7 +18774,7 @@ def main_page(request: Request) -> None:
                                                 ui.label(label).classes('mq-stat-chip-label')
                                                 with ui.element('div').classes('mq-stat-chip-slot'):
                                                     ui.label(str(value)).classes('mq-stat-chip-value')
-                                            ui.html(tooltip_html).classes('mq-prof-tooltip-panel')
+                                            ui.html(tooltip_html).classes('mq-prof-tooltip-panel mq-prof-tooltip-panel-down')
                                     else:
                                         chip = ui.element('div').classes(chip_classes)
                                         with chip:
@@ -18385,22 +18901,24 @@ def main_page(request: Request) -> None:
                             penalty_text = f'Lv {current_target} ({level_penalty}% lower-level XP penalty)'
                         ui.label(f'Target {penalty_text}').classes('text-slate-400 text-sm')
                     with ui.row().classes('mq-arena-buttons w-full mt-4'):
-                        fight_btn = ui.button('Fight', on_click=handle_fight).classes('mq-arena-btn')
-                        if state.fight_in_progress:
-                            fight_btn.disable()
-                        flee_btn = ui.button('Flee', on_click=lambda: (state.request_arena_flee(), request_render_refresh())).classes('mq-arena-btn secondary')
-                        if (not state.fight_in_progress) or state.current_monster is None or state.arena_flee_requested or state.monster_page_turn_active:
-                            flee_btn.disable()
-                        status_btn = ui.button('Status', on_click=handle_status).classes('mq-arena-btn secondary')
-                        inventory_btn = ui.button('Inventory', on_click=lambda: open_inventory_scene()).classes('mq-arena-btn secondary')
-                        if state.fight_in_progress:
-                            inventory_btn.disable()
-                        with ui.element('div').classes('mq-prof-tooltip-wrap'):
-                            proficiency_btn = ui.button('Proficiency', on_click=lambda: None).classes('mq-arena-btn secondary')
-                            ui.html(build_proficiency_tooltip_html(player)).classes('mq-prof-tooltip-panel')
-                        return_town = ui.button('Return to Town', on_click=lambda: (state.enter_town('You return to town to choose your next route.'), request_render_refresh())).classes('mq-arena-btn secondary')
-                        if state.fight_in_progress:
-                            return_town.disable()
+                        with ui.row().classes('mq-arena-buttons-primary'):
+                            fight_btn = ui.button('Fight', on_click=handle_fight).classes('mq-arena-btn')
+                            if state.fight_in_progress:
+                                fight_btn.disable()
+                            flee_btn = ui.button('Flee', on_click=lambda: (state.request_arena_flee(), request_render_refresh())).classes('mq-arena-btn secondary')
+                            if (not state.fight_in_progress) or state.current_monster is None or state.arena_flee_requested or state.monster_page_turn_active:
+                                flee_btn.disable()
+                        with ui.row().classes('mq-arena-buttons-utility'):
+                            status_btn = ui.button('Status', on_click=handle_status).classes('mq-arena-btn secondary')
+                            inventory_btn = ui.button('Inventory', on_click=lambda: open_inventory_scene()).classes('mq-arena-btn secondary')
+                            if state.fight_in_progress:
+                                inventory_btn.disable()
+                            with ui.element('div').classes('mq-prof-tooltip-wrap'):
+                                proficiency_btn = ui.button('Proficiency', on_click=lambda: None).classes('mq-arena-btn secondary')
+                                ui.html(build_proficiency_tooltip_html(player)).classes('mq-prof-tooltip-panel')
+                            return_town = ui.button('Return to Town', on_click=lambda: (state.enter_town('You return to town to choose your next route.'), request_render_refresh())).classes('mq-arena-btn secondary')
+                            if state.fight_in_progress:
+                                return_town.disable()
                     ui.label(state.arena_transition_text or '').classes(f'mq-transition {transition_class} mt-3')
                 with ui.card().classes('mq-arena-card w-full p-5'):
                     with ui.row().classes('w-full items-center justify-between gap-3 mb-3 max-[640px]:flex-wrap'):
