@@ -13,6 +13,7 @@ import math
 import os
 import random
 import time
+from logging.handlers import RotatingFileHandler
 from urllib.parse import urlencode
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -34,6 +35,135 @@ except Exception:
 APP_TITLE = 'Prismatic Quest'
 COMMUNITY_DISCORD_URL = 'https://discord.gg/5MtzdPkTW'
 LOGGER = logging.getLogger('prismquest.runtime')
+DISCONNECT_LOGGER = logging.getLogger('prismquest.disconnect')
+DISCONNECT_LOG_DIR = os.path.join(SCRIPT_DIR, 'logs')
+DISCONNECT_LOG_PATH = os.path.join(DISCONNECT_LOG_DIR, 'disconnect_events.log')
+DISCONNECT_LOG_MAX_BYTES = 1_024_000
+DISCONNECT_LOG_BACKUP_COUNT = 5
+_DISCONNECT_LOGGER_READY = False
+
+
+def _ensure_disconnect_logger() -> None:
+    global _DISCONNECT_LOGGER_READY
+    if _DISCONNECT_LOGGER_READY:
+        return
+    try:
+        os.makedirs(DISCONNECT_LOG_DIR, exist_ok=True)
+        disconnect_log_path = os.path.abspath(DISCONNECT_LOG_PATH)
+        existing_handler = False
+        for handler in list(DISCONNECT_LOGGER.handlers):
+            base_filename = os.path.abspath(str(getattr(handler, 'baseFilename', '') or ''))
+            if base_filename == disconnect_log_path:
+                existing_handler = True
+                break
+        if not existing_handler:
+            handler = RotatingFileHandler(
+                disconnect_log_path,
+                maxBytes=DISCONNECT_LOG_MAX_BYTES,
+                backupCount=DISCONNECT_LOG_BACKUP_COUNT,
+                encoding='utf-8',
+            )
+            handler.setFormatter(logging.Formatter('%(message)s'))
+            DISCONNECT_LOGGER.addHandler(handler)
+        DISCONNECT_LOGGER.setLevel(logging.INFO)
+        DISCONNECT_LOGGER.propagate = False
+    except Exception as exc:
+        try:
+            LOGGER.warning('Disconnect logger initialization failed: %s', exc)
+        except Exception:
+            pass
+    finally:
+        _DISCONNECT_LOGGER_READY = True
+
+
+def _redact_disconnect_user_id(raw_value: object) -> str:
+    text = str(raw_value or '').strip()
+    if not text:
+        return ''
+    if len(text) <= 8:
+        return text
+    return f'{text[:4]}...{text[-4:]}'
+
+
+def _redact_disconnect_email(raw_value: object) -> str:
+    text = str(raw_value or '').strip()
+    if not text:
+        return ''
+    if '@' not in text:
+        return text[:64]
+    local, _, domain = text.partition('@')
+    if not local:
+        return f'***@{domain}'
+    return f'{local[:1]}***@{domain}'
+
+
+def _disconnect_state_snapshot(state: Optional['SessionState'] = None) -> Dict[str, object]:
+    if state is None:
+        return {}
+    snapshot: Dict[str, object] = {
+        'screen': str(getattr(state, 'screen', '') or ''),
+        'game_tab': str(getattr(state, 'game_tab', '') or ''),
+        'active_slot_index': getattr(state, 'active_slot_index', None),
+        'fight_in_progress': bool(getattr(state, 'fight_in_progress', False)),
+        'monster_page_turn_active': bool(getattr(state, 'monster_page_turn_active', False)),
+        'guest_mode': bool(getattr(state, 'guest_mode', False)),
+        'current_run_kills': int(getattr(state, 'current_run_kills', 0) or 0),
+        'auth_user_id': _redact_disconnect_user_id(getattr(state, 'auth_user_id', '')),
+        'auth_user_email': _redact_disconnect_email(getattr(state, 'auth_user_email', '')),
+    }
+    player = getattr(state, 'player', None)
+    if player is not None:
+        snapshot['player_class'] = str(getattr(player, 'player_class', '') or '')
+        snapshot['player_level'] = int(getattr(player, 'level', 0) or 0)
+    remaining_fn = getattr(state, '_auth_reconnect_remaining_seconds', None)
+    active_fn = getattr(state, '_auth_reconnect_active', None)
+    if callable(active_fn):
+        try:
+            snapshot['reconnect_active'] = bool(active_fn())
+        except Exception:
+            snapshot['reconnect_active'] = False
+    if callable(remaining_fn):
+        try:
+            snapshot['reconnect_remaining_s'] = round(float(remaining_fn() or 0.0), 3)
+        except Exception:
+            snapshot['reconnect_remaining_s'] = 0.0
+    return snapshot
+
+
+def log_disconnect_event(event: str, state: Optional['SessionState'] = None, level: int = logging.INFO, **extra: object) -> None:
+    _ensure_disconnect_logger()
+    payload: Dict[str, object] = {
+        'logged_at': datetime.now(timezone.utc).isoformat(),
+        'event': str(event or '').strip() or 'unknown',
+    }
+    payload.update(_disconnect_state_snapshot(state))
+    for key, value in extra.items():
+        if value is None:
+            continue
+        if key in {'user_id', 'known_user_id', 'auth_user_id'}:
+            payload[key] = _redact_disconnect_user_id(value)
+            continue
+        if key in {'user_email', 'known_user_email', 'auth_user_email'}:
+            payload[key] = _redact_disconnect_email(value)
+            continue
+        if isinstance(value, Exception):
+            payload[key] = f'{type(value).__name__}: {value}'
+            continue
+        if isinstance(value, float):
+            payload[key] = round(value, 6)
+            continue
+        if isinstance(value, (int, bool)):
+            payload[key] = value
+            continue
+        payload[key] = str(value)[:240]
+    try:
+        DISCONNECT_LOGGER.log(level, json.dumps(payload, sort_keys=True))
+    except Exception as exc:
+        try:
+            LOGGER.warning('Disconnect event logging failed for %s: %s', event, exc)
+        except Exception:
+            pass
+
 ITEM_BUCKETS = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45]
 CHAT_MESSAGE_RETENTION_DAYS = 3
 SCENE_TUTORIAL_KEYS = ['arena', 'inventory', 'bazaar', 'marketplace', 'transmute', 'well', 'ladder']
@@ -2734,9 +2864,8 @@ body {
   border-radius: 999px;
   overflow: hidden;
   width: 0%;
-  transition-property: width;
-  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  transition-duration: 1400ms;
+  transition-property: none;
+  transition-duration: 0ms;
   will-change: width;
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.32),
@@ -2873,33 +3002,33 @@ body {
 .mq-scene-arena .mq-arena-card {
   position: relative;
   overflow: visible;
-  border-width: 2px;
+  border-width: 1px;
   border-style: solid;
-  border-color: rgba(228,233,240,0.34);
+  border-color: rgba(225,231,239,0.18);
   background:
     linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 14%, rgba(255,255,255,0) 30%),
     linear-gradient(180deg, rgba(16, 18, 23, 0.98) 0%, rgba(6, 7, 10, 0.995) 100%);
   box-shadow:
-    0 24px 44px rgba(0,0,0,0.36),
-    inset 0 1px 0 rgba(255,255,255,0.07),
-    inset 0 -24px 46px rgba(0,0,0,0.20),
-    0 0 0 1px rgba(255,255,255,0.03);
+    0 20px 38px rgba(0,0,0,0.32),
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    inset 0 -18px 34px rgba(0,0,0,0.18),
+    0 0 0 1px rgba(255,255,255,0.02);
 }
 .mq-scene-arena .mq-arena-card::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 22px;
-  border: 1px solid rgba(248,250,252,0.44);
+  border: 1px solid rgba(244,247,250,0.22);
   box-shadow: none;
   pointer-events: none;
 }
 .mq-scene-arena .mq-arena-card::after {
   content: '';
   position: absolute;
-  inset: 2px;
-  border-radius: 20px;
-  border: 1px solid rgba(120,128,138,0.26);
+  inset: 1px;
+  border-radius: 21px;
+  border: 1px solid rgba(116,124,134,0.12);
   pointer-events: none;
 }
 .mq-scene-arena .mq-panel-frame {
@@ -2914,7 +3043,7 @@ body {
 }
 .mq-scene-arena .mq-arena-card:hover,
 .mq-scene-arena .mq-panel-frame:hover {
-  border-color: rgba(241,245,250,0.42);
+  border-color: rgba(238,242,247,0.24);
 }
 .mq-scene-arena .mq-transition,
 .mq-scene-arena .mq-combat-log {
@@ -4086,11 +4215,7 @@ window.mqRestoreScroll = function(id) {
     setTimeout(apply, 700);
   });
 };
-window.__mqMeterState = window.__mqMeterState || {};
-window.__mqMeterMeta = window.__mqMeterMeta || {};
-window.__mqMeterAnimations = window.__mqMeterAnimations || {};
-window.__mqMeterRunTokens = window.__mqMeterRunTokens || {};
-window.__mqMeterFrameLoops = window.__mqMeterFrameLoops || {};
+window.__mqMeterControllers = window.__mqMeterControllers || {};
 window.mqClampUnit = function(value) {
   return Math.max(0, Math.min(1, Number(value) || 0));
 };
@@ -4098,371 +4223,281 @@ window.mqEaseOutMeter = function(value) {
   const t = window.mqClampUnit(value);
   return 1 - Math.pow(1 - t, 3);
 };
-window.mqMeterPlanFill = function(plan, atTime) {
-  if (!plan || !Array.isArray(plan.phases) || !plan.phases.length) return null;
-  const now = typeof atTime === 'number' ? atTime : Date.now();
-  const elapsed = now - (plan.createdAt || now);
-  for (let index = 0; index < plan.phases.length; index += 1) {
-    const phase = plan.phases[index] || {};
-    const phaseDelay = Math.max(0, Number(phase.delay) || 0);
-    const phaseDuration = Math.max(0, Number(phase.duration) || 0);
-    const startAt = phaseDelay;
-    const endAt = phaseDelay + phaseDuration;
-    if (elapsed < startAt) {
-      return Number(phase.from || 0);
-    }
-    if (elapsed <= endAt) {
-      if ((phase.kind || '') === 'hold' || phaseDuration <= 0) {
-        return Number(phase.to || phase.from || 0);
-      }
-      const progress = window.mqEaseOutMeter((elapsed - startAt) / Math.max(1, phaseDuration));
-      return Number(phase.from || 0) + ((Number(phase.to || 0) - Number(phase.from || 0)) * progress);
-    }
-  }
-  const lastPhase = plan.phases[plan.phases.length - 1] || {};
-  return Number(lastPhase.to || 0);
+window.mqClampMeterFill = function(value) {
+  return Math.max(0, Math.min(100, Number(value) || 0));
 };
-window.mqMeterRemainingPlan = function(plan, atTime) {
-  if (!plan || !Array.isArray(plan.phases) || !plan.phases.length) {
-    return {active: false, fill: null, phases: []};
-  }
-  const now = typeof atTime === 'number' ? atTime : Date.now();
-  const elapsed = now - (plan.createdAt || now);
-  const fill = window.mqMeterPlanFill(plan, now);
-  const remainingPhases = [];
-  for (let index = 0; index < plan.phases.length; index += 1) {
-    const phase = plan.phases[index] || {};
-    const phaseDelay = Math.max(0, Number(phase.delay) || 0);
-    const phaseDuration = Math.max(0, Number(phase.duration) || 0);
-    const startAt = phaseDelay;
-    const endAt = phaseDelay + phaseDuration;
-    if (elapsed < startAt) {
-      remainingPhases.push({
-        from: Number(phase.from || 0),
-        to: Number(phase.to || 0),
-        delay: startAt - elapsed,
-        duration: phaseDuration,
-        kind: phase.kind || 'ease',
-        jumpToStart: !!phase.jumpToStart,
-      });
-    } else if (elapsed < endAt) {
-      const currentFill = (phase.kind || '') === 'hold' || phaseDuration <= 0
-        ? Number(phase.to || phase.from || 0)
-        : Number(phase.from || 0) + ((Number(phase.to || 0) - Number(phase.from || 0)) * window.mqEaseOutMeter((elapsed - startAt) / Math.max(1, phaseDuration)));
-      remainingPhases.push({
-        from: currentFill,
-        to: Number(phase.to || 0),
-        delay: 0,
-        duration: Math.max(0, endAt - elapsed),
-        kind: phase.kind || 'ease',
-        jumpToStart: false,
-      });
-    }
-  }
-  if (!remainingPhases.length) {
-    return {
-      active: false,
-      fill: fill,
-      phases: [],
-      signature: String(plan.signature || ''),
-      finalFill: Number(plan.finalFill || fill || 0),
+window.mqGetMeterController = function(meterId) {
+  if (!window.__mqMeterControllers[meterId]) {
+    window.__mqMeterControllers[meterId] = {
+      meterId: meterId,
+      meterEl: null,
+      fillEl: null,
+      trackEl: null,
+      initialized: false,
+      signature: '',
+      cycle: '',
+      targetFill: 0,
+      currentFill: 0,
+      animation: null,
+      rafId: 0,
+      holdTimer: 0,
+      beatTimer: 0,
+      beatUntil: 0,
+      sequence: null,
+      sequenceIndex: 0,
+      sequenceToken: 0,
     };
   }
-  const remaining = {
-    active: true,
-    fill: fill,
-    phases: remainingPhases,
-    signature: String(plan.signature || ''),
-    finalFill: Number(plan.finalFill || fill || 0),
-  };
-  if (typeof plan.beatDelay === 'number' && Number(plan.beatDuration || 0) > 0) {
-    const beatStart = Math.max(0, Number(plan.beatDelay) || 0);
-    const beatEnd = beatStart + Math.max(0, Number(plan.beatDuration) || 0);
-    if (elapsed < beatStart) {
-      remaining.beatDelay = beatStart - elapsed;
-      remaining.beatDuration = Math.max(0, Number(plan.beatDuration) || 0);
-    } else if (elapsed < beatEnd) {
-      remaining.beatDelay = 0;
-      remaining.beatDuration = Math.max(0, beatEnd - elapsed);
-    }
-  }
-  return remaining;
+  return window.__mqMeterControllers[meterId];
 };
-window.mqBuildMeterPlan = function(options) {
-  const start = Number(options && options.start) || 0;
-  const target = Number(options && options.target) || 0;
-  const startDelay = Math.max(0, Number(options && options.startDelay) || 0);
-  const plan = {
-    createdAt: Date.now(),
-    signature: String((options && options.signature) || ''),
-    finalFill: target,
-    phases: [],
-  };
-  if (options && options.rollover) {
-    const toCapMs = Math.max(0, Number(options.toCapMs) || 0);
-    const holdMs = Math.max(0, Number(options.holdMs) || 0);
-    const toTargetMs = Math.max(0, Number(options.toTargetMs) || 0);
-    plan.beatDelay = startDelay + toCapMs;
-    plan.beatDuration = Math.max(0, Number(options.beatDuration) || 0);
-    plan.phases.push({from: start, to: 100, delay: startDelay, duration: toCapMs, kind: 'ease', jumpToStart: false});
-    plan.phases.push({from: 100, to: 100, delay: startDelay + toCapMs, duration: holdMs, kind: 'hold', jumpToStart: false});
-    plan.phases.push({from: 0, to: target, delay: startDelay + toCapMs + holdMs, duration: toTargetMs, kind: 'ease', jumpToStart: true});
-    return plan;
+window.mqSetMeterBeatClasses = function(controller, active) {
+  const meter = controller && controller.meterEl;
+  const fill = controller && controller.fillEl;
+  const track = controller && controller.trackEl;
+  if (!meter || !fill) return;
+  meter.classList.toggle('mq-meter-levelup', !!active);
+  fill.classList.toggle('mq-meter-fill-levelup', !!active);
+  if (track) {
+    track.classList.toggle('mq-meter-track-levelup', !!active);
   }
-  plan.phases.push({
-    from: start,
-    to: target,
-    delay: startDelay,
-    duration: Math.max(0, Number(options && options.duration) || 0),
-    kind: 'ease',
-    jumpToStart: false,
-  });
-  return plan;
 };
-window.mqTrackMeterFill = function(meterId, fill, track, runIsCurrent) {
-  const existingFrame = window.__mqMeterFrameLoops[meterId];
-  if (existingFrame) {
+window.mqApplyMeterVisual = function(controller, fillPct) {
+  const pct = window.mqClampMeterFill(fillPct);
+  controller.currentFill = pct;
+  const fill = controller && controller.fillEl;
+  if (!fill) return;
+  fill.style.transitionProperty = 'none';
+  fill.style.transitionDuration = '0ms';
+  fill.style.width = pct.toFixed(4) + '%';
+  fill.classList.remove('mq-meter-fill-pending');
+};
+window.mqSyncMeterBeat = function(controller) {
+  const remaining = Math.max(0, Number(controller && controller.beatUntil) - performance.now());
+  window.mqSetMeterBeatClasses(controller, remaining > 0);
+  if (remaining > 0 && !controller.beatTimer) {
+    controller.beatTimer = setTimeout(function() {
+      controller.beatTimer = 0;
+      window.mqSyncMeterBeat(controller);
+    }, remaining + 20);
+  }
+};
+window.mqTriggerMeterBeat = function(controller, durationMs) {
+  const duration = Math.max(0, parseInt(durationMs || 0, 10) || 0);
+  if (duration <= 0) return;
+  controller.beatUntil = performance.now() + duration;
+  if (controller.beatTimer) {
+    clearTimeout(controller.beatTimer);
+    controller.beatTimer = 0;
+  }
+  window.mqSetMeterBeatClasses(controller, false);
+  if (controller.fillEl) {
+    void controller.fillEl.offsetWidth;
+  }
+  window.mqSetMeterBeatClasses(controller, true);
+  controller.beatTimer = setTimeout(function() {
+    controller.beatTimer = 0;
+    window.mqSyncMeterBeat(controller);
+  }, duration + 20);
+};
+window.mqStopMeterWork = function(controller) {
+  if (controller.rafId) {
     try {
-      cancelAnimationFrame(existingFrame);
+      cancelAnimationFrame(controller.rafId);
     } catch (_err) {}
-    delete window.__mqMeterFrameLoops[meterId];
+    controller.rafId = 0;
   }
-  const sample = function() {
-    if (typeof runIsCurrent === 'function' && !runIsCurrent()) {
-      delete window.__mqMeterFrameLoops[meterId];
+  if (controller.holdTimer) {
+    clearTimeout(controller.holdTimer);
+    controller.holdTimer = 0;
+  }
+  if (controller.beatTimer) {
+    clearTimeout(controller.beatTimer);
+    controller.beatTimer = 0;
+  }
+  controller.animation = null;
+  controller.sequence = null;
+  controller.sequenceIndex = 0;
+  controller.beatUntil = 0;
+  window.mqSetMeterBeatClasses(controller, false);
+};
+window.mqStartMeterAnimation = function(controller, fromFill, toFill, durationMs, delayMs, onComplete) {
+  const from = window.mqClampMeterFill(fromFill);
+  const to = window.mqClampMeterFill(toFill);
+  const duration = Math.max(0, Number(durationMs) || 0);
+  const delay = Math.max(0, Number(delayMs) || 0);
+  controller.animation = {
+    from: from,
+    to: to,
+    startAt: performance.now() + delay,
+    duration: duration,
+    onComplete: onComplete,
+  };
+  window.mqApplyMeterVisual(controller, from);
+  if (controller.rafId) {
+    try {
+      cancelAnimationFrame(controller.rafId);
+    } catch (_err) {}
+    controller.rafId = 0;
+  }
+  const tick = function(now) {
+    controller.rafId = 0;
+    const animation = controller.animation;
+    if (!animation) {
+      window.mqSyncMeterBeat(controller);
       return;
     }
-    if (!fill || !track || !fill.isConnected || !track.isConnected) {
-      delete window.__mqMeterFrameLoops[meterId];
+    if (now < animation.startAt) {
+      window.mqApplyMeterVisual(controller, animation.from);
+      controller.rafId = requestAnimationFrame(tick);
       return;
     }
-    const trackWidth = (track.getBoundingClientRect && track.getBoundingClientRect().width) || track.clientWidth || 0;
-    const fillWidth = (fill.getBoundingClientRect && fill.getBoundingClientRect().width) || fill.clientWidth || 0;
-    if (trackWidth > 0) {
-      window.__mqMeterState[meterId] = Math.max(0, Math.min(100, (fillWidth / trackWidth) * 100));
+    const progress = animation.duration <= 0 ? 1 : window.mqClampUnit((now - animation.startAt) / Math.max(1, animation.duration));
+    const eased = window.mqEaseOutMeter(progress);
+    const current = animation.from + ((animation.to - animation.from) * eased);
+    window.mqApplyMeterVisual(controller, current);
+    if (progress >= 1) {
+      const done = animation.onComplete;
+      controller.animation = null;
+      window.mqApplyMeterVisual(controller, animation.to);
+      if (typeof done === 'function') {
+        done();
+      } else {
+        window.mqSyncMeterBeat(controller);
+      }
+      if (controller.animation) {
+        controller.rafId = requestAnimationFrame(tick);
+      }
+      return;
     }
-    window.__mqMeterFrameLoops[meterId] = requestAnimationFrame(sample);
+    controller.rafId = requestAnimationFrame(tick);
   };
-  window.__mqMeterFrameLoops[meterId] = requestAnimationFrame(sample);
+  controller.rafId = requestAnimationFrame(tick);
 };
-window.mqStopMeterTracking = function(meterId) {
-  const frame = window.__mqMeterFrameLoops[meterId];
-  if (frame) {
-    try {
-      cancelAnimationFrame(frame);
-    } catch (_err) {}
-    delete window.__mqMeterFrameLoops[meterId];
+window.mqRunMeterSequence = function(controller, steps, signature, targetFill, cycle) {
+  window.mqStopMeterWork(controller);
+  controller.signature = String(signature || '');
+  controller.targetFill = window.mqClampMeterFill(targetFill);
+  controller.cycle = String(cycle || '');
+  controller.sequence = Array.isArray(steps) ? steps.slice() : [];
+  controller.sequenceIndex = 0;
+  controller.sequenceToken = (parseInt(controller.sequenceToken || '0', 10) || 0) + 1;
+  const token = controller.sequenceToken;
+  const finish = function() {
+    if (controller.sequenceToken !== token) return;
+    controller.sequence = null;
+    controller.sequenceIndex = 0;
+    controller.animation = null;
+    window.mqApplyMeterVisual(controller, controller.targetFill);
+    window.mqSyncMeterBeat(controller);
+  };
+  const advance = function() {
+    if (controller.sequenceToken !== token) return;
+    if (!controller.sequence || controller.sequenceIndex >= controller.sequence.length) {
+      finish();
+      return;
+    }
+    const step = controller.sequence[controller.sequenceIndex] || null;
+    controller.sequenceIndex += 1;
+    if (!step) {
+      advance();
+      return;
+    }
+    if (step.kind === 'hold') {
+      window.mqApplyMeterVisual(controller, step.fill);
+      if (Number(step.beatDuration || 0) > 0) {
+        window.mqTriggerMeterBeat(controller, step.beatDuration);
+      }
+      controller.holdTimer = setTimeout(function() {
+        controller.holdTimer = 0;
+        if (typeof step.onComplete === 'function') {
+          step.onComplete();
+        }
+        advance();
+      }, Math.max(0, Number(step.duration) || 0));
+      return;
+    }
+    if (step.kind === 'jump') {
+      window.mqApplyMeterVisual(controller, step.to);
+      requestAnimationFrame(function() {
+        if (controller.sequenceToken !== token) return;
+        if (typeof step.onComplete === 'function') {
+          step.onComplete();
+        }
+        advance();
+      });
+      return;
+    }
+    window.mqStartMeterAnimation(controller, step.from, step.to, step.duration, step.delay, function() {
+      if (controller.sequenceToken !== token) return;
+      if (typeof step.onComplete === 'function') {
+        step.onComplete();
+      }
+      advance();
+    });
+  };
+  advance();
+};
+window.mqBindMeter = function(meter) {
+  if (!meter || !meter.querySelector) return;
+  const fill = meter.querySelector('.mq-meter-fill');
+  const track = meter.querySelector('.mq-meter-track');
+  if (!fill) return;
+  const meterId = meter.id || meter.dataset.meterId || ('mq-meter-' + Math.random().toString(36).slice(2));
+  if (!meter.id) {
+    meter.id = meterId;
   }
+  const target = window.mqClampMeterFill(parseFloat(meter.dataset.fill || '0') || 0);
+  const duration = Math.max(0, parseInt(meter.dataset.duration || '720', 10) || 720);
+  const isExpMeter = fill.classList.contains('exp');
+  const transitionMs = isExpMeter ? Math.max(duration, 6200) : duration;
+  const startDelayMs = isExpMeter ? 160 : 0;
+  const cycle = String(meter.dataset.cycle || '');
+  const allowRollover = meter.dataset.rollover === '1';
+  const signature = [target.toFixed(4), duration, cycle, allowRollover ? '1' : '0'].join('|');
+  const controller = window.mqGetMeterController(meterId);
+  controller.meterEl = meter;
+  controller.fillEl = fill;
+  controller.trackEl = track;
+  meter.dataset.mqMeterSignature = signature;
+  if (!controller.initialized) {
+    controller.initialized = true;
+    controller.signature = signature;
+    controller.cycle = cycle;
+    controller.targetFill = target;
+    controller.currentFill = target;
+    window.mqApplyMeterVisual(controller, target);
+    window.mqSyncMeterBeat(controller);
+    return;
+  }
+  if (controller.signature === signature) {
+    window.mqApplyMeterVisual(controller, controller.currentFill);
+    window.mqSyncMeterBeat(controller);
+    return;
+  }
+  const previousFill = window.mqClampMeterFill(controller.currentFill);
+  const previousCycle = String(controller.cycle || '');
+  const shouldRollover = isExpMeter && allowRollover && cycle !== previousCycle && target < previousFill - 0.5;
+  if (shouldRollover) {
+    const beatDurationMs = 980;
+    const holdMs = 1120;
+    const toCapMs = Math.max(2300, Math.round(transitionMs * 0.36));
+    const toTargetMs = Math.max(2800, Math.round(transitionMs * 0.46));
+    window.mqRunMeterSequence(controller, [
+      {kind: 'animate', from: previousFill, to: 100, duration: toCapMs, delay: startDelayMs},
+      {kind: 'hold', fill: 100, duration: holdMs, beatDuration: beatDurationMs},
+      {kind: 'jump', to: 0},
+      {kind: 'animate', from: 0, to: target, duration: toTargetMs, delay: 0},
+    ], signature, target, cycle);
+    return;
+  }
+  window.mqRunMeterSequence(controller, [
+    {kind: 'animate', from: previousFill, to: target, duration: transitionMs, delay: startDelayMs},
+  ], signature, target, cycle);
 };
 window.mqBindMeters = function(root) {
   const scope = root && root.querySelectorAll ? root : document;
   scope.querySelectorAll('.mq-meter').forEach(function(meter) {
-    const fill = meter.querySelector('.mq-meter-fill');
-    const track = meter.querySelector('.mq-meter-track');
-    if (!fill) return;
-    const meterId = meter.id || meter.dataset.meterId || ('mq-meter-' + Math.random().toString(36).slice(2));
-    const target = Math.max(0, Math.min(100, parseFloat(meter.dataset.fill || '0') || 0));
-    const duration = Math.max(0, parseInt(meter.dataset.duration || '720', 10) || 720);
-    const isExpMeter = fill.classList.contains('exp');
-    const transitionMs = isExpMeter ? Math.max(duration, 6200) : duration;
-    const startDelayMs = isExpMeter ? 160 : 0;
-    const cycle = meter.dataset.cycle || '';
-    const allowRollover = meter.dataset.rollover === '1';
-    const currentSignature = meter.dataset.mqMeterSignature || '';
-    const signature = [target.toFixed(4), duration, cycle, allowRollover ? '1' : '0'].join('|');
-    if (currentSignature === signature) {
-      return;
-    }
-    const previousMeta = window.__mqMeterMeta[meterId] || {};
-    const previousCycle = previousMeta.cycle || '';
-    const existingPlan = window.__mqMeterAnimations[meterId] || null;
-    const existingStatus = existingPlan ? window.mqMeterRemainingPlan(existingPlan, Date.now()) : null;
-    const sampledPrevious = Object.prototype.hasOwnProperty.call(window.__mqMeterState, meterId)
-      ? Number(window.__mqMeterState[meterId] || 0)
-      : null;
-    const previous = sampledPrevious !== null
-      ? sampledPrevious
-      : (existingStatus && typeof existingStatus.fill === 'number' ? existingStatus.fill : target);
-
-    meter.dataset.mqMeterSignature = signature;
-    const runToken = String((parseInt(window.__mqMeterRunTokens[meterId] || '0', 10) || 0) + 1);
-    window.__mqMeterRunTokens[meterId] = runToken;
-    window.mqStopMeterTracking(meterId);
-
-    const runIsCurrent = function() {
-      return window.__mqMeterRunTokens[meterId] === runToken;
-    };
-
-    const showFillAt = function(fillPct) {
-      fill.style.transitionDuration = '0ms';
-      fill.style.width = Math.max(0, Math.min(100, Number(fillPct) || 0)).toFixed(4) + '%';
-      fill.classList.remove('mq-meter-fill-pending');
-      window.__mqMeterState[meterId] = Math.max(0, Math.min(100, Number(fillPct) || 0));
-    };
-
-    const triggerLevelUpBeat = function(durationMs) {
-      if (!isExpMeter || !runIsCurrent() || Number(durationMs || 0) <= 0) return;
-      meter.classList.remove('mq-meter-levelup');
-      fill.classList.remove('mq-meter-fill-levelup');
-      if (track) {
-        track.classList.remove('mq-meter-track-levelup');
-      }
-      void fill.offsetWidth;
-      meter.classList.add('mq-meter-levelup');
-      fill.classList.add('mq-meter-fill-levelup');
-      if (track) {
-        track.classList.add('mq-meter-track-levelup');
-      }
-      setTimeout(function() {
-        if (!runIsCurrent()) return;
-        meter.classList.remove('mq-meter-levelup');
-        fill.classList.remove('mq-meter-fill-levelup');
-        if (track) {
-          track.classList.remove('mq-meter-track-levelup');
-        }
-      }, Math.max(0, parseInt(durationMs, 10) || 0));
-    };
-
-    const runPhase = function(phase) {
-      if (!runIsCurrent()) return;
-      const phaseDuration = Math.max(0, parseInt(phase.duration || 0, 10) || 0);
-      const from = Math.max(0, Math.min(100, Number(phase.from) || 0));
-      const to = Math.max(0, Math.min(100, Number(phase.to) || 0));
-      if ((phase.kind || '') === 'hold') {
-        fill.style.transitionDuration = '0ms';
-        fill.style.width = to.toFixed(4) + '%';
-        window.__mqMeterState[meterId] = to;
-        return;
-      }
-      if (phase.jumpToStart) {
-        fill.style.transitionDuration = '0ms';
-        fill.style.width = from.toFixed(4) + '%';
-        window.__mqMeterState[meterId] = from;
-        requestAnimationFrame(function() {
-          if (!runIsCurrent()) return;
-          requestAnimationFrame(function() {
-            if (!runIsCurrent()) return;
-            fill.style.transitionDuration = phaseDuration + 'ms';
-            fill.style.width = to.toFixed(4) + '%';
-            window.__mqMeterState[meterId] = to;
-          });
-        });
-        return;
-      }
-      fill.style.transitionDuration = phaseDuration + 'ms';
-      fill.style.width = from.toFixed(4) + '%';
-      window.__mqMeterState[meterId] = from;
-      requestAnimationFrame(function() {
-        if (!runIsCurrent()) return;
-        requestAnimationFrame(function() {
-          if (!runIsCurrent()) return;
-          fill.style.width = to.toFixed(4) + '%';
-          window.__mqMeterState[meterId] = to;
-        });
-      });
-    };
-
-    const applyPlan = function(plan) {
-      if (!plan || !Array.isArray(plan.phases) || !plan.phases.length) {
-        showFillAt(target);
-        delete window.__mqMeterAnimations[meterId];
-        return;
-      }
-      const normalizedPlan = {
-        createdAt: Date.now(),
-        signature: signature,
-        finalFill: target,
-        phases: plan.phases.map(function(phase) {
-          return {
-            from: Number(phase.from || 0),
-            to: Number(phase.to || 0),
-            delay: Math.max(0, Number(phase.delay) || 0),
-            duration: Math.max(0, Number(phase.duration) || 0),
-            kind: phase.kind || 'ease',
-            jumpToStart: !!phase.jumpToStart,
-          };
-        }),
-        beatDelay: typeof plan.beatDelay === 'number' ? Math.max(0, Number(plan.beatDelay) || 0) : undefined,
-        beatDuration: Math.max(0, Number(plan.beatDuration) || 0),
-      };
-      window.__mqMeterAnimations[meterId] = normalizedPlan;
-      showFillAt(normalizedPlan.phases[0].from);
-      window.mqTrackMeterFill(meterId, fill, track, runIsCurrent);
-      if (typeof normalizedPlan.beatDelay === 'number' && normalizedPlan.beatDuration > 0) {
-        setTimeout(function() {
-          if (!runIsCurrent()) return;
-          triggerLevelUpBeat(normalizedPlan.beatDuration);
-        }, normalizedPlan.beatDelay);
-      }
-      normalizedPlan.phases.forEach(function(phase) {
-        setTimeout(function() {
-          runPhase(phase);
-        }, phase.delay);
-      });
-      const finishAfterMs = normalizedPlan.phases.reduce(function(maxDelay, phase) {
-        return Math.max(maxDelay, phase.delay + phase.duration);
-      }, 0);
-      setTimeout(function() {
-        if (!runIsCurrent()) return;
-        fill.style.transitionDuration = '0ms';
-        fill.style.width = target.toFixed(4) + '%';
-        fill.classList.remove('mq-meter-fill-pending');
-        window.__mqMeterState[meterId] = target;
-        window.mqStopMeterTracking(meterId);
-        delete window.__mqMeterAnimations[meterId];
-      }, finishAfterMs + 34);
-    };
-
-    if (existingStatus && existingPlan && existingPlan.signature === signature && existingStatus.active) {
-      const continuedPhases = existingStatus.phases.map(function(phase, index) {
-        if (index === 0 && sampledPrevious !== null) {
-          return {
-            from: sampledPrevious,
-            to: Number(phase.to || 0),
-            delay: Math.max(0, Number(phase.delay) || 0),
-            duration: Math.max(0, Number(phase.duration) || 0),
-            kind: phase.kind || 'ease',
-            jumpToStart: !!phase.jumpToStart,
-          };
-        }
-        return phase;
-      });
-      applyPlan({
-        phases: continuedPhases,
-        beatDelay: existingStatus.beatDelay,
-        beatDuration: existingStatus.beatDuration,
-      });
-      window.__mqMeterMeta[meterId] = {cycle: cycle, fill: target};
-      return;
-    }
-
-    const shouldRollover = allowRollover && target < previous && (previousCycle !== cycle || previous - target > 0.5);
-    if (shouldRollover) {
-      const beatDurationMs = isExpMeter ? 980 : 0;
-      const holdMs = isExpMeter ? 1120 : 34;
-      const toCapMs = isExpMeter ? Math.max(2300, Math.round(transitionMs * 0.36)) : Math.max(220, Math.round(duration * 0.30));
-      const toTargetMs = isExpMeter ? Math.max(2800, Math.round(transitionMs * 0.46)) : Math.max(320, duration - toCapMs);
-      applyPlan(window.mqBuildMeterPlan({
-        signature: signature,
-        start: previous,
-        target: target,
-        startDelay: startDelayMs,
-        rollover: true,
-        toCapMs: toCapMs,
-        holdMs: holdMs,
-        toTargetMs: toTargetMs,
-        beatDuration: beatDurationMs,
-      }));
-    } else {
-      applyPlan(window.mqBuildMeterPlan({
-        signature: signature,
-        start: previous,
-        target: target,
-        startDelay: startDelayMs,
-        duration: transitionMs,
-      }));
-    }
-    window.__mqMeterMeta[meterId] = {cycle: cycle, fill: target};
+    window.mqBindMeter(meter);
   });
 };
 window.mqSetMeterValue = function(meterId, value, maximum, duration, cycle, rollover) {
@@ -4471,21 +4506,32 @@ window.mqSetMeterValue = function(meterId, value, maximum, duration, cycle, roll
   const safeMax = Math.max(1, parseInt(maximum || 1, 10) || 1);
   const safeValue = Math.max(0, Math.min(parseInt(value || 0, 10) || 0, safeMax));
   const pct = Math.max(0, Math.min(100, (safeValue / safeMax) * 100));
-  el.dataset.fill = pct.toFixed(4);
-  if (duration !== undefined && duration !== null) {
-    el.dataset.duration = String(Math.max(0, parseInt(duration, 10) || 0));
-  }
-  if (cycle !== undefined && cycle !== null) {
-    el.dataset.cycle = String(cycle);
-  }
-  if (rollover) {
-    el.dataset.rollover = '1';
-  }
+  const fillText = pct.toFixed(4);
+  const durationText = (duration !== undefined && duration !== null)
+    ? String(Math.max(0, parseInt(duration, 10) || 0))
+    : String(el.dataset.duration || '720');
+  const cycleText = (cycle !== undefined && cycle !== null)
+    ? String(cycle)
+    : String(el.dataset.cycle || '');
+  const rolloverText = rollover ? '1' : '0';
+  const nextSignature = [fillText, durationText, cycleText, rolloverText].join('|');
   const valueRow = el.querySelector('.mq-meter-row span:last-child');
-  if (valueRow) {
-    valueRow.textContent = safeValue + ' / ' + safeMax;
+  const valueText = safeValue + ' / ' + safeMax;
+  if ((el.dataset.mqMeterSignature || '') === nextSignature && valueRow && valueRow.textContent === valueText) {
+    return true;
   }
-  window.mqBindMeters(el.parentElement || el);
+  el.dataset.fill = fillText;
+  el.dataset.duration = durationText;
+  if (cycleText) {
+    el.dataset.cycle = cycleText;
+  } else {
+    delete el.dataset.cycle;
+  }
+  el.dataset.rollover = rolloverText;
+  if (valueRow) {
+    valueRow.textContent = valueText;
+  }
+  window.mqBindMeter(el);
   return true;
 };
 document.addEventListener('DOMContentLoaded', function() {
@@ -9334,8 +9380,14 @@ class SessionState:
             if self.refresh_authenticated_user(persist_session=False):
                 self.persist_auth_session()
                 return True
-        except Exception:
-            pass
+        except Exception as exc:
+            log_disconnect_event(
+                'auth_refresh_session_exception',
+                self,
+                logging.WARNING,
+                has_refresh_token=bool(str(refresh_token or '').strip()),
+                error=exc,
+            )
         return False
 
     def _auth_reconnect_remaining_seconds(self) -> float:
@@ -9348,11 +9400,26 @@ class SessionState:
         return self._auth_reconnect_remaining_seconds() > 0.0
 
     def _clear_auth_reconnect_grace(self) -> None:
+        previous_active = False
+        previous_remaining = 0.0
+        try:
+            previous_active = bool(self._auth_reconnect_active())
+            previous_remaining = float(self._auth_reconnect_remaining_seconds())
+        except Exception:
+            previous_active = False
+            previous_remaining = 0.0
         self._auth_reconnect_started_at = 0.0
         self._auth_reconnect_grace_until = 0.0
         self._auth_reconnect_known_user_id = ''
         self._auth_reconnect_known_user_email = ''
         self._auth_reconnect_last_error = ''
+        if previous_active:
+            log_disconnect_event(
+                'auth_reconnect_grace_cleared',
+                self,
+                logging.INFO,
+                previous_remaining_s=previous_remaining,
+            )
 
     def _begin_auth_reconnect_grace(self, user_id: str = '', user_email: str = '', error_text: str = '') -> bool:
         if self.supabase is None:
@@ -9373,15 +9440,34 @@ class SessionState:
             or str(getattr(self, '_auth_reconnect_known_user_email', '') or '').strip()
         )
         if not known_user_id:
+            log_disconnect_event(
+                'auth_reconnect_grace_skipped_no_user',
+                self,
+                logging.WARNING,
+                error_text=str(error_text or '')[:180],
+                has_stored_auth=bool(tokens),
+                has_cloud_backup=bool(backup),
+            )
             return False
         now = time.monotonic()
         started_at = float(getattr(self, '_auth_reconnect_started_at', 0.0) or 0.0)
         grace_until = float(getattr(self, '_auth_reconnect_grace_until', 0.0) or 0.0)
+        is_new_grace = started_at <= 0.0 or grace_until <= 0.0
         if started_at > 0.0 and grace_until <= now:
             self._auth_reconnect_last_error = str(error_text or self._auth_reconnect_last_error or '')[:180]
             self.set_auth_status('Cloud reconnect timed out. Please sign in again if the account does not recover automatically.', 'warning')
+            log_disconnect_event(
+                'auth_reconnect_grace_timed_out',
+                self,
+                logging.WARNING,
+                error_text=self._auth_reconnect_last_error,
+                known_user_id=known_user_id,
+                known_user_email=known_user_email,
+                grace_started_at=started_at,
+                grace_expired_at=grace_until,
+            )
             return False
-        if started_at <= 0.0 or grace_until <= 0.0:
+        if is_new_grace:
             self._auth_reconnect_started_at = now
             self._auth_reconnect_grace_until = now + AUTH_RECONNECT_GRACE_SECONDS
         self._auth_reconnect_known_user_id = known_user_id
@@ -9392,6 +9478,18 @@ class SessionState:
             self.auth_user_email = known_user_email
         remaining = int(math.ceil(self._auth_reconnect_remaining_seconds()))
         self.set_auth_status(f'Connection hiccup detected. Keeping your cloud chronicle open while reconnecting for {remaining}s.', 'warning')
+        if is_new_grace:
+            log_disconnect_event(
+                'auth_reconnect_grace_started',
+                self,
+                logging.WARNING,
+                error_text=self._auth_reconnect_last_error,
+                known_user_id=known_user_id,
+                known_user_email=known_user_email,
+                remaining_s=self._auth_reconnect_remaining_seconds(),
+                has_stored_auth=bool(tokens),
+                has_cloud_backup=bool(backup),
+            )
         return True
 
     def ensure_auth_session(self, allow_grace: bool = True) -> bool:
@@ -9446,6 +9544,15 @@ class SessionState:
         # the local account attached avoids surprise kicks to the login screen while
         # later sync attempts retry naturally.
         grace_started = self._begin_auth_reconnect_grace(known_user_id, known_user_email)
+        if not grace_started and allow_grace:
+            log_disconnect_event(
+                'ensure_auth_session_failed_without_grace',
+                self,
+                logging.ERROR,
+                known_user_id=known_user_id,
+                known_user_email=known_user_email,
+                has_refresh_token=bool(refresh_token),
+            )
         return bool(grace_started) if allow_grace else False
 
     def clear_auth_session_storage(self) -> None:
@@ -9681,6 +9788,17 @@ class SessionState:
             slot_index if slot_index is not None else '-',
             exc if exc is not None else '-',
         )
+        log_disconnect_event(
+            'runtime_restore_recovered_to_chronicle',
+            self,
+            logging.WARNING,
+            reason=reason,
+            storage_source=storage_source,
+            stored_screen=desired_screen or '-',
+            stored_tab=desired_tab or '-',
+            stored_slot=slot_index if slot_index is not None else '-',
+            error=exc if exc is not None else '-',
+        )
         return True
 
     def _stored_cloud_slot_backup(self) -> Dict[str, object]:
@@ -9815,16 +9933,38 @@ class SessionState:
             if self.refresh_authenticated_user(persist_session=False):
                 self.persist_auth_session()
                 return True
-        except Exception:
-            pass
+        except Exception as exc:
+            log_disconnect_event(
+                'restore_auth_session_set_session_exception',
+                self,
+                logging.WARNING,
+                error=exc,
+                has_access_token=bool(str(tokens.get('access_token') or '').strip()),
+                has_refresh_token=bool(str(tokens.get('refresh_token') or '').strip()),
+            )
         if self._refresh_auth_session(tokens.get('refresh_token', '')):
             return True
         if self.restore_cloud_slot_backup(allow_stored_user=True):
             self._begin_auth_reconnect_grace(self.auth_user_id, self.auth_user_email, 'Restored cached cloud slots while reconnecting.')
             self.set_auth_status('Cloud reconnect is retrying. Your cached chronicle was restored locally so you are not dumped to the title screen.', 'warning')
+            log_disconnect_event(
+                'restore_auth_session_used_cloud_backup',
+                self,
+                logging.WARNING,
+                stored_user_id=tokens.get('user_id', ''),
+                stored_user_email=tokens.get('user_email', ''),
+            )
             return True
         if self._begin_auth_reconnect_grace(tokens.get('user_id', ''), tokens.get('user_email', ''), 'Stored auth session could not be verified yet.'):
             return True
+        log_disconnect_event(
+            'restore_auth_session_failed',
+            self,
+            logging.ERROR,
+            stored_user_id=tokens.get('user_id', ''),
+            stored_user_email=tokens.get('user_email', ''),
+            has_refresh_token=bool(str(tokens.get('refresh_token') or '').strip()),
+        )
         return False
 
     def complete_oauth_sign_in(self, access_token: str = '', refresh_token: str = '', code: str = '', provider: str = 'Discord') -> bool:
@@ -9901,6 +10041,13 @@ class SessionState:
             if not user_id:
                 if self._begin_auth_reconnect_grace(known_user_id, known_user_email, 'Authenticated user was temporarily unavailable.'):
                     return False
+                log_disconnect_event(
+                    'refresh_authenticated_user_missing_user_without_grace',
+                    self,
+                    logging.ERROR,
+                    known_user_id=known_user_id,
+                    known_user_email=known_user_email,
+                )
                 self.auth_user_id = ''
                 self.auth_user_email = ''
                 return False
@@ -9910,12 +10057,29 @@ class SessionState:
             self._clear_auth_reconnect_grace()
             if was_reconnecting:
                 self.set_auth_status(f'Cloud session reconnected as {self.auth_user_email or "connected adventurer"}.', 'success')
+                log_disconnect_event(
+                    'auth_reconnect_recovered',
+                    self,
+                    logging.INFO,
+                    known_user_id=known_user_id,
+                    known_user_email=known_user_email,
+                    recovered_user_id=user_id,
+                    recovered_user_email=self.auth_user_email,
+                )
             if persist_session:
                 self.persist_auth_session()
             return True
         except Exception as exc:
             if self._begin_auth_reconnect_grace(known_user_id, known_user_email, str(exc)):
                 return False
+            log_disconnect_event(
+                'refresh_authenticated_user_exception_without_grace',
+                self,
+                logging.ERROR,
+                known_user_id=known_user_id,
+                known_user_email=known_user_email,
+                error=exc,
+            )
             self.auth_user_id = ''
             self.auth_user_email = ''
             return False
@@ -15381,14 +15545,16 @@ SessionState.delete_inventory_item = delete_inventory_item
 SessionState.delete_saved_item = delete_saved_item
 SessionState.unequip_slot = unequip_slot
 
-
+def meter_dom_id(meter_id: str) -> str:
+    safe_id = ''.join(ch if ch.isalnum() or ch in {'-', '_'} else '-' for ch in meter_id) or 'meter'
+    return f"mq-meter-{safe_id}"
 
 
 def animated_meter_html(meter_id: str, label: str, value: int, maximum: int, tone: str, duration_ms: int = 720, cycle: Optional[object] = None, rollover: bool = False) -> str:
     safe_max = max(1, int(maximum))
     safe_value = max(0, min(int(value), safe_max))
     fill_pct = max(0.0, min(100.0, (safe_value / safe_max) * 100.0))
-    safe_id = ''.join(ch if ch.isalnum() or ch in {'-', '_'} else '-' for ch in meter_id) or 'meter'
+    dom_id = meter_dom_id(meter_id)
     label_html = html.escape(str(label))
     value_html = f"{safe_value} / {safe_max}"
     tone_class = html.escape(str(tone or ''))
@@ -15396,7 +15562,7 @@ def animated_meter_html(meter_id: str, label: str, value: int, maximum: int, ton
     cycle_attr = '' if cycle is None else f" data-cycle='{html.escape(str(cycle), quote=True)}'"
     rollover_attr = " data-rollover='1'" if rollover else ''
     return (
-        f"<div class='mq-meter' id='mq-meter-{safe_id}' data-meter-id='mq-meter-{safe_id}' data-fill='{fill_pct:.4f}' data-duration='{int(duration_ms)}'{cycle_attr}{rollover_attr}>"
+        f"<div class='mq-meter' id='{dom_id}' data-meter-id='{dom_id}' data-fill='{fill_pct:.4f}' data-duration='{int(duration_ms)}'{cycle_attr}{rollover_attr}>"
         f"<div class='mq-meter-row'><span class='mq-meter-label'>{label_html}</span><span class='mq-meter-value'>{value_html}</span></div>"
         f"<div class='mq-meter-track {tone_class}'><div class='{fill_classes}' style='width:{fill_pct:.4f}%'></div></div>"
         f"</div>"
