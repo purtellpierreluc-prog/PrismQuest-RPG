@@ -2036,9 +2036,126 @@ body {
 }
 .mq-player-panels {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(300px, 1.15fr);
+  grid-template-columns: minmax(190px, 0.82fr) minmax(195px, 0.86fr) minmax(124px, 0.42fr);
   gap: 14px;
   margin-top: 16px;
+}
+.mq-last-drop-card {
+  position: relative;
+  isolation: isolate;
+  --mq-drop-rgb: 156, 163, 175;
+  --mq-drop-highlight: 0.18;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 26%, rgba(255,255,255,0) 100%),
+    rgba(8, 11, 16, 0.94);
+}
+.mq-last-drop-card::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.0) 28%),
+    linear-gradient(135deg, rgba(var(--mq-drop-rgb), calc(var(--mq-drop-highlight) + 0.05)) 0%, rgba(var(--mq-drop-rgb), 0.04) 38%, rgba(255,255,255,0) 78%);
+  opacity: 0.98;
+}
+.mq-last-drop-card::after {
+  content: '';
+  position: absolute;
+  inset: -54% -48%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-82%) rotate(8deg);
+  background:
+    linear-gradient(106deg, rgba(255,255,255,0) 28%, rgba(255,255,255,0.30) 46%, rgba(var(--mq-drop-rgb), 0.58) 50%, rgba(255,255,255,0.0) 72%);
+  mix-blend-mode: screen;
+}
+.mq-last-drop-card > * {
+  position: relative;
+  z-index: 1;
+}
+.mq-last-drop-name {
+  min-height: 2.2em;
+  color: #eef4fb;
+  font-size: 0.96rem;
+  line-height: 1.45;
+}
+.mq-last-drop-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.mq-last-drop-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  color: #eff5fd;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.mq-last-drop-source {
+  margin-top: 12px;
+  color: #cad6e4;
+  font-size: 0.92rem;
+  line-height: 1.58;
+}
+.mq-last-drop-empty {
+  margin-top: 12px;
+  color: #eef4fb;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.mq-last-drop-hint {
+  margin-top: 10px;
+  color: #94a8bc;
+  font-size: 0.90rem;
+  line-height: 1.58;
+}
+.mq-item-hover-wrap-persist .mq-item-hover-panel {
+  display: none !important;
+}
+.mq-item-hover-floating {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9950;
+  pointer-events: none;
+  width: min(420px, 72vw);
+}
+.mq-last-drop-card .mq-item-hover-panel {
+  left: auto;
+  right: calc(100% + 14px);
+  transform: translateY(-50%) translateX(-10px);
+}
+.mq-last-drop-card .mq-item-hover-wrap:hover .mq-item-hover-panel,
+.mq-last-drop-card .mq-item-hover-wrap:focus-within .mq-item-hover-panel {
+  transform: translateY(-50%) translateX(0);
+}
+@media (max-width: 1480px) {
+  .mq-player-panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mq-last-drop-card {
+    grid-column: 1 / -1;
+  }
+  .mq-last-drop-card .mq-item-hover-panel {
+    left: calc(100% + 14px);
+    right: auto;
+    transform: translateY(-50%) translateX(10px);
+  }
+  .mq-last-drop-card .mq-item-hover-wrap:hover .mq-item-hover-panel,
+  .mq-last-drop-card .mq-item-hover-wrap:focus-within .mq-item-hover-panel {
+    transform: translateY(-50%) translateX(0);
+  }
 }
 .mq-core-stat-grid {
   display: grid;
@@ -3935,6 +4052,57 @@ body {
   0% { opacity: 0; transform: translateY(8px); filter: blur(2px); }
   100% { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
+@keyframes mqLastDropReveal {
+  0% {
+    transform: translateY(14px) scale(0.965);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.04),
+      0 14px 24px rgba(0,0,0,0.26),
+      0 0 0 0 rgba(var(--mq-drop-rgb), 0.00),
+      0 0 0 0 rgba(255,255,255,0.00);
+    filter: saturate(0.88) brightness(0.94);
+  }
+  28% {
+    transform: translateY(-3px) scale(1.018);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.07),
+      0 24px 42px rgba(0,0,0,0.34),
+      0 0 0 1px rgba(var(--mq-drop-rgb), 0.34),
+      0 0 36px rgba(var(--mq-drop-rgb), 0.30),
+      0 0 68px rgba(var(--mq-drop-rgb), 0.18),
+      0 0 0 9px rgba(255,255,255,0.06);
+    filter: saturate(1.12) brightness(1.04);
+  }
+  62% {
+    transform: translateY(0) scale(1.0);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      0 18px 30px rgba(0,0,0,0.28),
+      0 0 0 1px rgba(var(--mq-drop-rgb), 0.20),
+      0 0 28px rgba(var(--mq-drop-rgb), 0.20);
+    filter: saturate(1.02) brightness(1.01);
+  }
+  100% {
+    transform: translateY(0) scale(1.0);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.04),
+      0 16px 26px rgba(0,0,0,0.26),
+      0 0 0 1px rgba(var(--mq-drop-rgb), 0.14);
+    filter: saturate(1.0) brightness(1.0);
+  }
+}
+@keyframes mqLastDropSheen {
+  0% { opacity: 0; transform: translateX(-88%) rotate(8deg); }
+  14% { opacity: 0.88; }
+  48% { opacity: 0.72; }
+  100% { opacity: 0; transform: translateX(88%) rotate(8deg); }
+}
+.mq-last-drop-card-animate {
+  animation: mqLastDropReveal 1520ms cubic-bezier(0.19, 0.82, 0.24, 1) both;
+}
+.mq-last-drop-card-animate::after {
+  animation: mqLastDropSheen 1380ms cubic-bezier(0.18, 0.7, 0.24, 1) 120ms both;
+}
 .q-tab-panels,
 .q-tab-panel,
 .q-table tbody td,
@@ -5735,6 +5903,8 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
         'saved_set_collapsed': build_default_saved_set_collapsed(True),
         'vault_items': [],
         'vault_capacity': 0,
+        'last_monster_drop_item': None,
+        'last_monster_drop_source': '',
         'ladder_stats': build_default_ladder_stats(),
         'unlocked_classes': list(season_feeder_classes(normalized_season)),
         'selection_return_class': None,
@@ -5960,6 +6130,9 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
     except Exception:
         vault_capacity = 0
     slot['vault_capacity'] = max(legacy_default, len(slot['vault_items']), vault_capacity, 0)
+    raw_last_drop = raw_slot.get('last_monster_drop_item')
+    slot['last_monster_drop_item'] = copy.deepcopy(raw_last_drop) if isinstance(raw_last_drop, dict) else None
+    slot['last_monster_drop_source'] = str(raw_slot.get('last_monster_drop_source', '') or '').strip().lower()
     slot['ladder_stats'] = normalize_ladder_stats(raw_slot.get('ladder_stats', slot['ladder_stats']))
     slot['season_id'] = sanitize_ladder_season_id(raw_slot.get('season_id', DEFAULT_LADDER_SEASON_ID))
     slot['unlocked_classes'] = sorted(
@@ -7110,6 +7283,25 @@ def hoverable_item_name_html(item: Optional[Item], empty_text: str = 'None') -> 
         f"<span class='mq-item-hover-panel'>{build_item_hover_tooltip_html(item)}</span>"
         "</span>"
     )
+
+def persistent_hoverable_item_name_html(
+    item: Optional[Item],
+    empty_text: str = 'None',
+    *,
+    persist_key: str,
+    hover_side: str = 'right',
+) -> str:
+    if item is None:
+        return f"<span class='mq-item-name-muted'>{html.escape(empty_text)}</span>"
+    rarity_color = html.escape(RARITY_COLORS.get(getattr(item, 'rarity', ''), '#eef4fb'), quote=True)
+    safe_key = html.escape(str(persist_key or 'mq-hover'), quote=True)
+    safe_side = 'left' if str(hover_side).strip().lower() == 'left' else 'right'
+    return (
+        f"<span class='mq-item-hover-wrap mq-item-hover-wrap-persist' data-hover-key='{safe_key}' data-hover-side='{safe_side}'>"
+        f"<span class='mq-item-hover-label' style='color:{rarity_color}; border-bottom-color:{rarity_color}55;'>{html.escape(item.name)}</span>"
+        f"<span class='mq-item-hover-panel'>{build_item_hover_tooltip_html(item)}</span>"
+        "</span>"
+    )
 def equipped_item_display_name(item: Optional[Item], empty_text: str = 'Empty') -> str:
     if item is None:
         return str(empty_text)
@@ -7347,6 +7539,16 @@ def rarity_edge_style(item: Optional[Item]) -> str:
     color = RARITY_COLORS.get(rarity, '#9ca3af')
     r, g, b = _hex_to_rgb(color)
     return f'border-color: rgba({r}, {g}, {b}, 0.88); box-shadow: inset 0 0 0 1px rgba({r}, {g}, {b}, 0.22);'
+
+def last_monster_drop_card_style(item: Optional[Item]) -> str:
+    rarity = str(getattr(item, 'rarity', 'Common') or 'Common') if item is not None else 'Common'
+    color = RARITY_COLORS.get(rarity, '#9ca3af')
+    r, g, b = _hex_to_rgb(color)
+    highlight = 0.32 if item is not None and item_rarity_sort_key(item) >= RARITY_ORDER.index('Fine') else 0.18
+    return '; '.join([
+        f'--mq-drop-rgb: {r}, {g}, {b}',
+        f'--mq-drop-highlight: {highlight:.2f}',
+    ])
 ITEM_SLOT_SORT_ORDER = {'weapon': 0, 'armor': 1, 'charm': 2}
 TRANSMUTE_TIER_FILTER_OPTIONS = ['All tiers'] + [f'Tier {bucket}' for bucket in ITEM_BUCKETS]
 TRANSMUTE_RARITY_FILTER_OPTIONS = ['All rarities'] + [rarity for rarity in RARITY_ORDER if rarity != 'Common']
@@ -9245,6 +9447,9 @@ class SessionState:
         self.arena_looted_item_count: int = 0
         self.arena_combat_log_hidden: bool = True
         self.arena_flee_requested: bool = False
+        self.last_monster_drop_item: Optional[Item] = None
+        self.last_monster_drop_source: str = ''
+        self.last_monster_drop_sequence: int = 0
         self.last_monster_snapshot: Optional[Fighter] = None
         self.last_fight_outcome: str = 'idle'
         self.current_arena_monster_uri: str = ''
@@ -10409,6 +10614,7 @@ class SessionState:
         self.arena_level_offset = 0
         self.mana_regen_progress = 0.0
         self.life_regen_progress = 0.0
+        self.clear_last_monster_drop()
         self.arena_combat_log_hidden = True
         self.clear_arena_monster_art(True)
         self.game_tab = 'arena'
@@ -10968,6 +11174,8 @@ class SessionState:
         slot['saved_set_collapsed'] = dict(self.saved_set_collapsed)
         slot['vault_items'] = [asdict(item) for item in self.vault_items]
         slot['vault_capacity'] = max(int(self.vault_capacity), len(self.vault_items), 0)
+        slot['last_monster_drop_item'] = None if self.last_monster_drop_item is None else copy.deepcopy(self.last_monster_drop_item.to_dict())
+        slot['last_monster_drop_source'] = str(self.last_monster_drop_source or '')
         slot['ladder_stats'] = copy.deepcopy(self.ladder_stats)
         slot['season_id'] = slot_season_id
         slot['unlocked_classes'] = sorted(
@@ -11067,6 +11275,9 @@ class SessionState:
         except Exception:
             self.vault_capacity = 0
         self.vault_capacity = max(self.vault_capacity, len(self.vault_items), 0)
+        self.last_monster_drop_item = coerce_item(slot.get('last_monster_drop_item'))
+        self.last_monster_drop_source = str(slot.get('last_monster_drop_source', '') or '').strip().lower()
+        self.last_monster_drop_sequence = 0
         self.ladder_stats = normalize_ladder_stats(slot.get('ladder_stats'))
         self.current_global_season_id = max(self.current_global_season_id, sanitize_ladder_season_id(slot.get('season_id', DEFAULT_LADDER_SEASON_ID)))
         self.global_ladder_reset_count = max(self.global_ladder_reset_count, sanitize_ladder_reset_count(slot.get('ladder_reset_count', 0)))
@@ -12558,6 +12769,7 @@ async def _finish_arena_fight_async(self, refresh) -> None:
                     item = generate_well_item_drop(sacrifice_item, self.player.magic_find)
                     self.player.inventory.append(item)
                     self.arena_looted_item_count = int(getattr(self, 'arena_looted_item_count', 0) or 0) + 1
+                    self.remember_last_monster_drop(item, 'well')
                     reward_found = True
                     self.add_log(f'The Well of Evil yields a Tier {sacrificed_tier} {sacrificed_type}.', 'warning')
                     self.add_log(f'Loot found: {item.summary()}.', 'success')
@@ -12592,6 +12804,7 @@ async def _finish_arena_fight_async(self, refresh) -> None:
                 item = generate_item_drop(self.current_monster.level, self.player.player_class, self.player.magic_find, affix_roll_mode='disadvantage')
                 self.player.inventory.append(item)
                 self.arena_looted_item_count = int(getattr(self, 'arena_looted_item_count', 0) or 0) + 1
+                self.remember_last_monster_drop(item, 'arena')
                 self.add_log(f'Loot found: {item.summary()}.', 'success')
             else:
                 if drop_penalty >= 1.0:
@@ -12669,6 +12882,20 @@ async def _finish_arena_fight_async(self, refresh) -> None:
 def add_log(self, text: str, tag: str = 'info') -> None:
     self.log.append(CombatEvent(text, tag))
     self.log = self.log[-120:]
+
+def clear_last_monster_drop(self) -> None:
+    self.last_monster_drop_item = None
+    self.last_monster_drop_source = ''
+    self.last_monster_drop_sequence = 0
+
+def remember_last_monster_drop(self, item: object, source: str = 'arena') -> None:
+    drop = coerce_item(item)
+    if drop is None:
+        return
+    self.last_monster_drop_item = copy.deepcopy(drop)
+    self.last_monster_drop_source = str(source or 'arena').strip().lower()
+    self.last_monster_drop_sequence = int(getattr(self, 'last_monster_drop_sequence', 0) or 0) + 1
+
 def start_game(self, player_class: str) -> None:
     if player_class not in self.unlocked_classes:
         self.add_log(f'{player_class} is still locked on this chronicle.', 'warning')
@@ -12692,6 +12919,7 @@ def start_game(self, player_class: str) -> None:
     self.current_monster = None
     self.current_monster_xp = 0
     self.monster_chain_combo = 0
+    self.clear_last_monster_drop()
     self.mana_regen_progress = 0.0
     self.life_regen_progress = 0.0
     self.marketplace_offers = []
@@ -12770,6 +12998,7 @@ def fight(self) -> None:
             item = generate_item_drop(self.current_monster.level, self.player.player_class, self.player.magic_find, affix_roll_mode='disadvantage')
             self.player.inventory.append(item)
             self.arena_looted_item_count = int(getattr(self, 'arena_looted_item_count', 0) or 0) + 1
+            self.remember_last_monster_drop(item, self.current_encounter_type or 'arena')
             self.add_log(f'Loot found: {item.summary()}.', 'success')
         self.current_monster = None
         self.current_monster_xp = 0
@@ -12905,6 +13134,7 @@ def import_save(self) -> None:
         self.current_run_start_wall_time = time.time()
         self.current_monster = None
         self.current_monster_xp = 0
+        self.clear_last_monster_drop()
         self.game_tab = 'arena'
         self.screen = 'town'
         self.town_tutorial_seen = bool(payload.get('town_tutorial_seen', True))
@@ -15628,6 +15858,7 @@ def _hardcore_death_cleanup(self, encounter_type: str = 'normal') -> None:
     self.current_run_kills = 0
     self.mana_regen_progress = 0.0
     self.life_regen_progress = 0.0
+    self.clear_last_monster_drop()
     self.arena_flee_requested = False
     self.clear_arena_monster_art(True)
     self.game_tab = 'arena'
@@ -15667,6 +15898,8 @@ SessionState._resolve_arena_flee_async = _resolve_arena_flee_async
 SessionState._run_arena_combat_async = _run_arena_combat_async
 SessionState._finish_arena_fight_async = _finish_arena_fight_async
 SessionState.add_log = add_log
+SessionState.clear_last_monster_drop = clear_last_monster_drop
+SessionState.remember_last_monster_drop = remember_last_monster_drop
 SessionState.start_game = start_game
 SessionState.spawn_monster = spawn_monster
 def set_damage_popup(self, target: str, amount: int, crit: bool = False) -> None:
@@ -19257,6 +19490,10 @@ def main_page(request: Request) -> None:
                     monster_state_label = 'Wellspawn'
                 if state.current_monster is None and stage_monster is not None:
                     monster_state_label = 'Defeated' if state.last_fight_outcome == 'victory' else ('Last Opponent' if state.last_fight_outcome == 'defeat' else 'Between Rounds')
+                recent_drop_item = coerce_item(getattr(state, 'last_monster_drop_item', None))
+                recent_drop_sequence = int(getattr(state, 'last_monster_drop_sequence', 0) or 0)
+                recent_drop_animatable = recent_drop_item is not None and item_rarity_sort_key(recent_drop_item) >= RARITY_ORDER.index('Fine')
+                recent_drop_should_pop = bool(recent_drop_animatable and not state.fight_in_progress)
                 with ui.element('div').classes('mq-arena-top w-full'):
                     with ui.card().classes('mq-arena-card w-full p-5'):
                         with ui.element('div').classes('mq-player-side-layout'):
@@ -19310,15 +19547,145 @@ def main_page(request: Request) -> None:
                         with ui.element('div').classes('mq-player-panels'):
                             with ui.card().classes('mq-panel-frame p-4 h-full'):
                                 ui.label('LOADOUT').classes('mq-panel-caption')
-                                ui.html(f"<div class='text-slate-300 text-sm mt-2'>Weapon&nbsp;&nbsp;{hoverable_item_name_html(player.equipped.get('weapon'))}</div>")
-                                ui.html(f"<div class='text-slate-300 text-sm mt-1'>Armor&nbsp;&nbsp;&nbsp;{hoverable_item_name_html(player.equipped.get('armor'))}</div>")
-                                ui.html(f"<div class='text-slate-300 text-sm mt-1'>Charm&nbsp;&nbsp;&nbsp;{hoverable_item_name_html(player.equipped.get('charm'))}</div>")
+                                ui.html(f"<div class='text-slate-300 text-sm mt-2'>Weapon&nbsp;&nbsp;{persistent_hoverable_item_name_html(player.equipped.get('weapon'), persist_key='arena-loadout-weapon')}</div>")
+                                ui.html(f"<div class='text-slate-300 text-sm mt-1'>Armor&nbsp;&nbsp;&nbsp;{persistent_hoverable_item_name_html(player.equipped.get('armor'), persist_key='arena-loadout-armor')}</div>")
+                                ui.html(f"<div class='text-slate-300 text-sm mt-1'>Charm&nbsp;&nbsp;&nbsp;{persistent_hoverable_item_name_html(player.equipped.get('charm'), persist_key='arena-loadout-charm')}</div>")
                             with ui.card().classes('mq-panel-frame p-4 h-full'):
                                 ui.label('ADVENTURER').classes('mq-panel-caption')
                                 chain_bonus_pct = int(round(get_monster_chain_bonus_fraction(int(getattr(state, 'monster_chain_combo', 0) or 0)) * 100))
-                                ui.label(f'Unspent Stat Points: {player.unspent_stat_points}').classes('text-amber-300 text-sm mt-2')
-                                ui.label(f'New Loot Since Entering Arena: {int(getattr(state, "arena_looted_item_count", 0) or 0)}').classes('text-slate-300 text-sm mt-1')
-                                ui.label(f'Arena Streak Bonus: Chain x{int(getattr(state, "monster_chain_combo", 0) or 0)} (+{chain_bonus_pct}% XP)').classes('text-slate-300 text-sm mt-1')
+                                ui.label(f'Points: {player.unspent_stat_points}').classes('text-amber-300 text-sm mt-2')
+                                ui.label(f'New Loot: {int(getattr(state, "arena_looted_item_count", 0) or 0)}').classes('text-slate-300 text-sm mt-1')
+                                ui.label(f'Chain Bonus x{int(getattr(state, "monster_chain_combo", 0) or 0)} (+{chain_bonus_pct}% XP)').classes('text-slate-300 text-sm mt-1')
+                            with ui.card().classes('mq-panel-frame mq-last-drop-card p-4 h-full').style(last_monster_drop_card_style(recent_drop_item)).props('id=mq-last-drop-card'):
+                                ui.label('LAST SPOILS').classes('mq-panel-caption')
+                                if recent_drop_item is None:
+                                    ui.label('No recent drop yet.').classes('mq-last-drop-empty')
+                                    ui.label('Fine or better drops flare.').classes('mq-last-drop-hint')
+                                else:
+                                    ui.html(f"<div class='mq-last-drop-name mt-2'>{persistent_hoverable_item_name_html(recent_drop_item, 'No recent drop', persist_key='arena-last-drop', hover_side='left')}</div>")
+                                    ui.html(
+                                        "<div class='mq-last-drop-meta'>"
+                                        f"<span class='mq-last-drop-pill'>Tier {item_required_level(recent_drop_item)}</span>"
+                                        "</div>"
+                                    )
+                        ui.run_javascript("""
+(() => {
+  const manager = window.mqArenaHoverManager = window.mqArenaHoverManager || (() => {
+    let overlay = null;
+    const state = {
+      activeKey: '',
+      activeSide: 'right',
+      anchor: null,
+      pointerX: -1,
+      pointerY: -1,
+      hideTimer: 0,
+    };
+    const ensureOverlay = () => {
+      if (overlay && document.body.contains(overlay)) return overlay;
+      overlay = document.createElement('div');
+      overlay.className = 'mq-item-hover-floating';
+      overlay.style.display = 'none';
+      document.body.appendChild(overlay);
+      return overlay;
+    };
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+    const place = (el, side) => {
+      const target = ensureOverlay();
+      if (!el || target.style.display === 'none') return;
+      const rect = el.getBoundingClientRect();
+      const box = target.getBoundingClientRect();
+      const gap = 16;
+      const width = box.width || 320;
+      const height = box.height || 120;
+      let left = side === 'left' ? rect.left - width - gap : rect.right + gap;
+      left = clamp(left, 12, Math.max(12, window.innerWidth - width - 12));
+      const top = clamp(rect.top + (rect.height / 2) - (height / 2), 12, Math.max(12, window.innerHeight - height - 12));
+      target.style.left = `${Math.round(left)}px`;
+      target.style.top = `${Math.round(top)}px`;
+    };
+    const pointerInside = (el) => {
+      if (!el) return false;
+      const rect = el.getBoundingClientRect();
+      return state.pointerX >= rect.left && state.pointerX <= rect.right && state.pointerY >= rect.top && state.pointerY <= rect.bottom;
+    };
+    const show = (el) => {
+      const panel = el ? el.querySelector('.mq-item-hover-panel') : null;
+      if (!panel) return;
+      clearTimeout(state.hideTimer);
+      const target = ensureOverlay();
+      target.innerHTML = panel.innerHTML;
+      target.style.display = 'block';
+      state.activeKey = String(el.dataset.hoverKey || '');
+      state.activeSide = String(el.dataset.hoverSide || 'right');
+      state.anchor = el;
+      requestAnimationFrame(() => place(el, state.activeSide));
+    };
+    const hide = (force = false) => {
+      clearTimeout(state.hideTimer);
+      const run = () => {
+        const target = ensureOverlay();
+        target.style.display = 'none';
+        target.innerHTML = '';
+        state.activeKey = '';
+        state.anchor = null;
+      };
+      if (force) {
+        run();
+      } else {
+        state.hideTimer = window.setTimeout(run, 80);
+      }
+    };
+    if (!window.__mqArenaHoverPointerBound) {
+      document.addEventListener('pointermove', (event) => {
+        state.pointerX = event.clientX;
+        state.pointerY = event.clientY;
+        if (state.anchor) place(state.anchor, state.activeSide);
+      }, { passive: true });
+      window.addEventListener('scroll', () => {
+        if (state.anchor) place(state.anchor, state.activeSide);
+      }, { passive: true });
+      window.addEventListener('resize', () => {
+        if (state.anchor) place(state.anchor, state.activeSide);
+      }, { passive: true });
+      window.__mqArenaHoverPointerBound = true;
+    }
+    return {
+      bind(el) {
+        if (!el) return;
+        if (el.dataset.hoverBound !== '1') {
+          el.dataset.hoverBound = '1';
+          el.addEventListener('mouseenter', () => show(el));
+          el.addEventListener('mouseleave', () => hide());
+          el.addEventListener('focus', () => show(el));
+          el.addEventListener('blur', () => hide());
+        }
+        if (state.activeKey && state.activeKey === String(el.dataset.hoverKey || '')) {
+          if (pointerInside(el) || el.matches(':hover')) {
+            show(el);
+          } else if (state.anchor && String(state.anchor.dataset.hoverKey || '') === state.activeKey) {
+            hide(true);
+          }
+        }
+      },
+    };
+  })();
+  document.querySelectorAll('.mq-item-hover-wrap-persist').forEach((el) => manager.bind(el));
+})();
+""")
+                        if recent_drop_should_pop:
+                            ui.run_javascript(f"""
+(() => {{
+  const el = document.getElementById('mq-last-drop-card');
+  if (!el) return;
+  const seq = {recent_drop_sequence};
+  const state = window.mqLastDropRevealState = window.mqLastDropRevealState || {{ seenSeq: 0 }};
+  if (seq <= 0 || seq <= Number(state.seenSeq || 0)) return;
+  state.seenSeq = seq;
+  el.classList.remove('mq-last-drop-card-animate');
+  void el.offsetWidth;
+  el.classList.add('mq-last-drop-card-animate');
+}})();
+""")
                         with ui.element('div').classes('mq-player-meters'):
                             with ui.element('div').classes('mq-meter-shell'):
                                 ui.html(animated_meter_html('player-hp', 'HP', player.hp, player.max_hp, 'hp', 1800))
