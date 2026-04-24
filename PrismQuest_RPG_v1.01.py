@@ -2174,6 +2174,15 @@ body {
   margin: auto;
   object-fit: contain;
 }
+.mq-roster-hero-art {
+  width: 116%;
+  max-width: none;
+  height: 100%;
+  margin: 0 -8%;
+  object-fit: cover;
+  object-position: center 32%;
+  transform: scale(1.05);
+}
 .mq-selection-hero-bubble .mq-hero-art-fallback {
   min-height: 110px;
   border-radius: 999px;
@@ -5137,6 +5146,11 @@ def should_apply_static_cache_headers(path: str) -> bool:
     return request_path.startswith(prefixes) or os.path.splitext(request_path)[1] in cacheable_exts
 
 
+def immutable_static_cache_headers(path: str) -> bool:
+    request_path = str(path or '').split('?', 1)[0].lower()
+    return request_path.startswith(('/mq-assets/', '/_nicegui/'))
+
+
 def _find_title_screen_path() -> Optional[str]:
     base_dir = os.path.dirname(os.path.abspath(__file__))
     search_paths = [
@@ -5171,7 +5185,14 @@ def _find_title_screen_path() -> Optional[str]:
     return None
 GENERATED_STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.mq_runtime_static')
 os.makedirs(GENERATED_STATIC_DIR, exist_ok=True)
-_STATIC_IMAGE_URL_CACHE: Dict[Tuple[str, bool], str] = {}
+DEFAULT_STATIC_IMAGE_TARGET_MAX = 1600
+CROPPED_STATIC_IMAGE_TARGET_MAX = 1400
+SCENE_STATIC_IMAGE_TARGET_MAX = 1280
+ARENA_HERO_STATIC_IMAGE_TARGET_MAX = 960
+ARENA_MONSTER_STATIC_IMAGE_TARGET_MAX = 960
+MASTERQUEST_STATIC_IMAGE_TARGET_MAX = 768
+
+_STATIC_IMAGE_URL_CACHE: Dict[Tuple[str, bool, int], str] = {}
 _ASSET_URL_LAZY_CACHE: Dict[str, str] = {}
 
 
@@ -5192,11 +5213,18 @@ def _safe_static_stem(name: str, fallback: str = 'asset') -> str:
     return stem or fallback
 
 
-def _register_static_image(path: Optional[str], *, crop_alpha: bool = False) -> str:
+def _register_static_image(path: Optional[str], *, crop_alpha: bool = False, target_max: Optional[int] = None) -> str:
     if not path:
         return ''
     source_path = os.path.abspath(path)
-    cache_key = (source_path, bool(crop_alpha))
+    resolved_target_max = max(
+        256,
+        int(
+            target_max
+            or (CROPPED_STATIC_IMAGE_TARGET_MAX if crop_alpha else DEFAULT_STATIC_IMAGE_TARGET_MAX)
+        ),
+    )
+    cache_key = (source_path, bool(crop_alpha), resolved_target_max)
     cached = _STATIC_IMAGE_URL_CACHE.get(cache_key)
     if cached is not None:
         return cached
@@ -5225,22 +5253,21 @@ def _register_static_image(path: Optional[str], *, crop_alpha: bool = False) -> 
                             transformed = True
 
                     max_dimension = max(image.width, image.height)
-                    target_max = 1400 if crop_alpha else 1600
-                    if max_dimension > target_max:
-                        image.thumbnail((target_max, target_max), Image.LANCZOS)
+                    if max_dimension > resolved_target_max:
+                        image.thumbnail((resolved_target_max, resolved_target_max), Image.LANCZOS)
                         transformed = True
 
                     pixel_count = image.width * image.height
-                    should_reencode = transformed or (not has_alpha and (pixel_count >= 1_600_000 or generated_ext in {'.png', '.jpg', '.jpeg'}))
+                    should_reencode = transformed or generated_ext in {'.png', '.jpg', '.jpeg'} or pixel_count >= 1_600_000
                     if should_reencode:
-                        generated_ext = '.png' if has_alpha else '.webp'
-                        generated_name = f"{_safe_static_stem(os.path.splitext(os.path.basename(source_path))[0], 'image')}_{hashlib.md5((digest_seed + generated_ext + str(target_max)).encode('utf-8')).hexdigest()}{generated_ext}"
+                        generated_ext = '.webp'
+                        generated_name = f"{_safe_static_stem(os.path.splitext(os.path.basename(source_path))[0], 'image')}_{hashlib.md5((digest_seed + generated_ext + str(resolved_target_max)).encode('utf-8')).hexdigest()}{generated_ext}"
                         generated_path = os.path.join(GENERATED_STATIC_DIR, generated_name)
                         if not os.path.exists(generated_path):
-                            if generated_ext == '.webp':
-                                image.save(generated_path, format='WEBP', quality=82, method=6)
+                            if has_alpha:
+                                image.save(generated_path, format='WEBP', lossless=True, method=6)
                             else:
-                                image.save(generated_path, format='PNG', optimize=True)
+                                image.save(generated_path, format='WEBP', quality=82, method=6)
                         serve_path = generated_path
             except Exception:
                 serve_path = source_path
@@ -5257,8 +5284,8 @@ def _register_static_image(path: Optional[str], *, crop_alpha: bool = False) -> 
         _STATIC_IMAGE_URL_CACHE[cache_key] = ''
         return ''
 
-def _image_path_to_data_uri(path: Optional[str], *, crop_alpha: bool = False) -> str:
-    return _register_static_image(path, crop_alpha=crop_alpha)
+def _image_path_to_data_uri(path: Optional[str], *, crop_alpha: bool = False, target_max: Optional[int] = None) -> str:
+    return _register_static_image(path, crop_alpha=crop_alpha, target_max=target_max)
 
 
 _ROBOTS_TXT = b'User-agent: *\nAllow: /\n'
@@ -5283,7 +5310,9 @@ async def mq_static_cache_headers(request: Request, call_next):
     try:
         if request.method in {'GET', 'HEAD'} and int(getattr(response, 'status_code', 0) or 0) < 400:
             request_path = str(getattr(request.url, 'path', '') or '')
-            if should_apply_static_cache_headers(request_path) and not response.headers.get('Cache-Control'):
+            if immutable_static_cache_headers(request_path):
+                response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+            elif should_apply_static_cache_headers(request_path) and not response.headers.get('Cache-Control'):
                 response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
     except Exception:
         pass
@@ -5441,7 +5470,7 @@ def _hero_data_uri(player_class: str) -> str:
     cached = HERO_DATA_URI_CACHE.get(player_class)
     if cached is not None:
         return cached
-    resolved = _image_path_to_data_uri(_find_hero_asset_path(player_class))
+    resolved = _image_path_to_data_uri(_find_hero_asset_path(player_class), target_max=ARENA_HERO_STATIC_IMAGE_TARGET_MAX)
     HERO_DATA_URI_CACHE[player_class] = resolved
     return resolved
 
@@ -5472,7 +5501,7 @@ def _find_town_scene_path() -> Optional[str]:
                 return os.path.join(directory, name)
     return None
 def _town_scene_data_uri() -> str:
-    return _image_path_to_data_uri(_find_town_scene_path())
+    return _image_path_to_data_uri(_find_town_scene_path(), target_max=SCENE_STATIC_IMAGE_TARGET_MAX)
 def get_town_scene_data_uri() -> str:
     return _lazy_asset_url('town_scene', _town_scene_data_uri)
 PERSISTENT_SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'masterquest_nicegui_saves.json')
@@ -6301,7 +6330,7 @@ def _find_marketplace_scene_path() -> Optional[str]:
                 return os.path.join(directory, name)
     return None
 def _marketplace_scene_data_uri() -> str:
-    return _image_path_to_data_uri(_find_marketplace_scene_path())
+    return _image_path_to_data_uri(_find_marketplace_scene_path(), target_max=SCENE_STATIC_IMAGE_TARGET_MAX)
 def get_marketplace_scene_data_uri() -> str:
     return _lazy_asset_url('marketplace_scene', _marketplace_scene_data_uri)
 def _find_transmutation_scene_path() -> Optional[str]:
@@ -6331,7 +6360,7 @@ def _find_transmutation_scene_path() -> Optional[str]:
                 return os.path.join(directory, name)
     return None
 def _transmutation_scene_data_uri() -> str:
-    return _image_path_to_data_uri(_find_transmutation_scene_path())
+    return _image_path_to_data_uri(_find_transmutation_scene_path(), target_max=SCENE_STATIC_IMAGE_TARGET_MAX)
 def get_transmutation_scene_data_uri() -> str:
     return _lazy_asset_url('transmutation_scene', _transmutation_scene_data_uri)
 
@@ -6360,7 +6389,7 @@ def _find_well_scene_path() -> Optional[str]:
     return None
 
 def _well_scene_data_uri() -> str:
-    return _image_path_to_data_uri(_find_well_scene_path())
+    return _image_path_to_data_uri(_find_well_scene_path(), target_max=SCENE_STATIC_IMAGE_TARGET_MAX)
 
 def get_well_scene_data_uri() -> str:
     return _lazy_asset_url('well_scene', _well_scene_data_uri)
@@ -6392,7 +6421,7 @@ def _find_inn_scene_path() -> Optional[str]:
     return None
 
 def _inn_scene_data_uri() -> str:
-    return _image_path_to_data_uri(_find_inn_scene_path())
+    return _image_path_to_data_uri(_find_inn_scene_path(), target_max=SCENE_STATIC_IMAGE_TARGET_MAX)
 
 def get_inn_scene_data_uri() -> str:
     return _lazy_asset_url('inn_scene', _inn_scene_data_uri)
@@ -6452,10 +6481,18 @@ def _find_masterquest_asset_path(preferred_names: List[str]) -> Optional[str]:
     return None
 
 def _masterquest_prism_data_uri() -> str:
-    return _image_path_to_data_uri(_find_masterquest_asset_path(['Black_Prism.png', 'Black Prism.png', 'Prism.png']), crop_alpha=True)
+    return _image_path_to_data_uri(
+        _find_masterquest_asset_path(['Black_Prism.png', 'Black Prism.png', 'Prism.png']),
+        crop_alpha=True,
+        target_max=MASTERQUEST_STATIC_IMAGE_TARGET_MAX,
+    )
 
 def _masterquest_essence_variant_data_uri(preferred_names: List[str]) -> str:
-    return _image_path_to_data_uri(_find_masterquest_asset_path(preferred_names), crop_alpha=True)
+    return _image_path_to_data_uri(
+        _find_masterquest_asset_path(preferred_names),
+        crop_alpha=True,
+        target_max=MASTERQUEST_STATIC_IMAGE_TARGET_MAX,
+    )
 
 def _build_masterquest_essence_variants() -> Dict[str, str]:
     variants = {
@@ -7690,7 +7727,7 @@ def _arena_monster_data_uri(monster_type: str) -> str:
     cached = MONSTER_DATA_URI_CACHE.get(species)
     if cached:
         return cached
-    uri = _image_path_to_data_uri(_find_arena_monster_asset_path(species))
+    uri = _image_path_to_data_uri(_find_arena_monster_asset_path(species), target_max=ARENA_MONSTER_STATIC_IMAGE_TARGET_MAX)
     if uri:
         MONSTER_DATA_URI_CACHE[species] = uri
     return uri
@@ -9271,6 +9308,7 @@ class SessionState:
         self.inn_vault_affix_filter: str = 'All attributes'
         self.inn_vault_inventory_selected_index: int = -1
         self.inn_vault_selected_index: int = -1
+        self.inn_vault_dialog_requested: bool = False
         self.current_ladder_line: str = ''
         self.town_communications_text: str = ''
         self.town_communications_messages: List[Dict[str, str]] = []
@@ -9391,6 +9429,8 @@ class SessionState:
             'bazaar': 15.0,
             'marketplace': 20.0,
         }
+        self._public_profile_cache: Dict[str, Tuple[float, Dict[str, object], str]] = {}
+        self._public_profile_cache_ttl_seconds: float = 20.0
         self.slots: List[Dict[str, object]] = [build_default_slot_payload() for _ in range(3)] if SUPABASE_ENABLED else load_persisted_slots()
         self.public_ladder_rows_cache: List[Dict[str, object]] = []
         self.public_pq_ledger_rows_cache: List[Dict[str, object]] = []
@@ -9918,6 +9958,46 @@ class SessionState:
             return (time.monotonic() - last_at) >= ttl_seconds
         except Exception:
             return True
+
+    def _public_profile_cache_key(self, user_id: str = '', character_name: str = '', mode: str = '') -> str:
+        cleaned_user_id = str(user_id or '').strip().lower()
+        cleaned_name = clean_character_name(character_name).lower() if character_name else ''
+        cleaned_mode = normalize_ladder_mode(mode, '') if mode else ''
+        return f'{cleaned_user_id}|{cleaned_name}|{cleaned_mode}'
+
+    def _load_cached_public_profile(self, cache_key: str) -> bool:
+        if not cache_key:
+            return False
+        cache = getattr(self, '_public_profile_cache', {})
+        cached = cache.get(cache_key) if isinstance(cache, dict) else None
+        if not isinstance(cached, tuple) or len(cached) != 3:
+            return False
+        cached_at, snapshot, status_message = cached
+        try:
+            ttl_seconds = float(getattr(self, '_public_profile_cache_ttl_seconds', 20.0) or 20.0)
+        except Exception:
+            ttl_seconds = 20.0
+        if (time.monotonic() - float(cached_at or 0.0)) >= ttl_seconds:
+            try:
+                cache.pop(cache_key, None)
+            except Exception:
+                pass
+            return False
+        self.profile_snapshot = copy.deepcopy(snapshot) if isinstance(snapshot, dict) else {}
+        self.profile_status = str(status_message or '')
+        return True
+
+    def _store_public_profile_cache(self, cache_key: str) -> None:
+        if not cache_key:
+            return
+        snapshot = getattr(self, 'profile_snapshot', {})
+        if not isinstance(snapshot, dict):
+            snapshot = {}
+        status_message = str(getattr(self, 'profile_status', '') or '')
+        try:
+            self._public_profile_cache[cache_key] = (time.monotonic(), copy.deepcopy(snapshot), status_message)
+        except Exception:
+            pass
 
     def clear_runtime_session_storage(self) -> None:
         try:
@@ -12943,7 +13023,6 @@ def ensure_ladder_scene_state(self, new_visit: bool = False, allow_cached: bool 
         self.current_ladder_line = 'The registrar records triumph, ruin, and audacity with exactly the same expression.'
     cache_ok = bool(
         allow_cached
-        and not new_visit
         and (not getattr(self, '_scene_refresh_stale', None) or not self._scene_refresh_stale('ladder'))
     )
     if cache_ok:
@@ -13792,6 +13871,15 @@ def open_game_tab(self, tab_name: str, note: Optional[str] = None) -> None:
     requested_tab = str(tab_name or '')
     previous_screen = str(getattr(self, 'screen', '') or '')
     current_mode = self.current_slot_mode()
+    public_sync_due = bool(
+        SUPABASE_ENABLED
+        and self.is_authenticated()
+        and getattr(self, '_public_sync_dirty', False)
+        and (
+            (time.monotonic() - float(getattr(self, '_last_public_sync_at', 0.0) or 0.0))
+            >= float(getattr(self, '_public_sync_min_interval_seconds', 15.0) or 15.0)
+        )
+    )
     if requested_tab == 'bazaar' and current_mode == 'SSF':
         self.game_tab = 'arena'
         self.screen = 'game'
@@ -13816,12 +13904,12 @@ def open_game_tab(self, tab_name: str, note: Optional[str] = None) -> None:
     elif requested_tab == 'ladder':
         self.ladder_mode = current_mode
         self.refresh_global_season_state()
-        if SUPABASE_ENABLED and self.is_authenticated() and getattr(self, '_public_sync_dirty', False):
+        if public_sync_due:
             self.sync_public_leaderboard(force=False)
-        self.ensure_ladder_scene_state(True, allow_cached=False)
+        self.ensure_ladder_scene_state(True, allow_cached=True)
         self.refresh_guild_leaderboard(force=False, allow_cached=True)
     elif requested_tab == 'guild_hall':
-        if SUPABASE_ENABLED and self.is_authenticated() and getattr(self, '_public_sync_dirty', False):
+        if public_sync_due:
             self.sync_public_leaderboard(force=False)
         self.refresh_guild_hall_state(allow_cached=True)
         self.refresh_guild_leaderboard(force=False, allow_cached=True)
@@ -14195,11 +14283,22 @@ def open_public_profile_scene(self, user_id: str = '', character_name: str = '',
         'town': 'Return to Town',
         'arena': 'Return to Arena',
     }
+    cleaned_user_id = str(user_id or '').strip()
+    cleaned_name = clean_character_name(character_name) if character_name else ''
+    cleaned_mode = normalize_ladder_mode(mode, '') if mode else ''
     self.profile_return_tab = return_tab if return_tab in {'ladder', 'guild_hall', 'town', 'arena'} else 'ladder'
     self.profile_return_label = label_map.get(self.profile_return_tab, 'Return')
     self.profile_saved_sets_open = True
     self.profile_saved_set_collapsed = build_default_saved_set_collapsed(True)
-    opened = self.fetch_public_profile(user_id=user_id, character_name=character_name, mode=mode)
+    cache_key = ''
+    is_self_profile = bool(cleaned_user_id and self.is_authenticated() and cleaned_user_id == str(self.auth_user_id or '').strip())
+    if not is_self_profile and hasattr(self, '_public_profile_cache_key'):
+        cache_key = self._public_profile_cache_key(cleaned_user_id, cleaned_name, cleaned_mode)
+    opened = bool(cache_key and hasattr(self, '_load_cached_public_profile') and self._load_cached_public_profile(cache_key))
+    if not opened:
+        opened = self.fetch_public_profile(user_id=cleaned_user_id, character_name=cleaned_name, mode=cleaned_mode)
+        if cache_key and hasattr(self, '_store_public_profile_cache'):
+            self._store_public_profile_cache(cache_key)
     self.game_tab = 'profile'
     self.screen = 'game'
     if not opened and not self.profile_status:
@@ -15948,7 +16047,7 @@ def main_page(request: Request) -> None:
             state.screen = 'game'
         request_render_refresh(force=True)
 
-    with public_profile_dialog:
+    if False:  # Legacy modal kept disabled; profile now opens as a dedicated scene.
         @ui.refreshable
         def render_public_profile_dialog() -> None:
             snapshot = getattr(state, 'profile_snapshot', {}) if isinstance(getattr(state, 'profile_snapshot', {}), dict) else {}
@@ -16640,7 +16739,7 @@ def main_page(request: Request) -> None:
             refresh_actions = render_inventory_action_bar
 
         restore_manifest_scroll()
-    with inventory_dialog:
+    if False:  # Inventory popup is deprecated in favor of the full inventory scene.
         @ui.refreshable
         def render_inventory_dialog() -> None:
             current_player = state.player
@@ -16654,7 +16753,7 @@ def main_page(request: Request) -> None:
 
 
     marketplace_purchase_dialog = ui.dialog()
-    with marketplace_purchase_dialog:
+    if False:  # Marketplace purchase now reuses the shared confirmation flow.
         @ui.refreshable
         def render_marketplace_purchase_dialog() -> None:
             pending_index = int(getattr(state, 'marketplace_pending_purchase_index', -1) or -1)
@@ -16751,6 +16850,8 @@ def main_page(request: Request) -> None:
 
     def refresh_inn_vault_views(*, preserve_scroll: bool = True, remember_scroll: bool = True) -> None:
         sync_inn_vault_selection()
+        if not bool(getattr(state, 'inn_vault_dialog_requested', False)):
+            return
         if preserve_scroll and remember_scroll:
             remember_inn_vault_scroll()
         render_inn_vault_dialog.refresh()
@@ -16774,9 +16875,14 @@ def main_page(request: Request) -> None:
     def open_inn_vault_dialog() -> None:
         ensure_inn_vault_runtime_state()
         sync_inn_vault_selection()
+        state.inn_vault_dialog_requested = True
         render_inn_vault_dialog.refresh()
         inn_vault_dialog.open()
         restore_inn_vault_scroll()
+
+    def close_inn_vault_dialog() -> None:
+        state.inn_vault_dialog_requested = False
+        inn_vault_dialog.close()
 
     def buy_inn_vault_slots() -> None:
         if state.player is None:
@@ -16835,6 +16941,8 @@ def main_page(request: Request) -> None:
     with inn_vault_dialog:
         @ui.refreshable
         def render_inn_vault_dialog() -> None:
+            if not bool(getattr(state, 'inn_vault_dialog_requested', False)):
+                return
             ensure_inn_vault_runtime_state()
             sync_inn_vault_selection()
             selected_inv = int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1)
@@ -16847,7 +16955,7 @@ def main_page(request: Request) -> None:
                 ui.label('Inn Vault').classes('mq-inv-title')
                 if state.player is None:
                     ui.label('No active adventurer is available.').classes('mq-inv-empty mt-3')
-                    ui.button('Close', on_click=lambda: inn_vault_dialog.close()).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold mt-4')
+                    ui.button('Close', on_click=close_inn_vault_dialog).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold mt-4')
                     return
                 ui.label(f'Buy {VAULT_SLOT_BUNDLE_SIZE} slots for {VAULT_SLOT_BUNDLE_COST} gold. Deposits and withdrawals are free once you have room.').classes('text-slate-300 text-base leading-7 mt-2')
                 with ui.row().classes('w-full gap-3 mt-4 flex-wrap'):
@@ -16892,7 +17000,7 @@ def main_page(request: Request) -> None:
                                 buy_slots_btn.disable()
                             ui.button('Deposit Selected', on_click=store_selected_inn_vault_item).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold w-full mt-3')
                             ui.button('Withdraw Selected', on_click=withdraw_selected_inn_vault_item).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold w-full mt-3')
-                            ui.button('Close', on_click=lambda: inn_vault_dialog.close()).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold w-full mt-3')
+                            ui.button('Close', on_click=close_inn_vault_dialog).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold w-full mt-3')
                             ui.separator().classes('my-4 opacity-20')
                             ui.label(f'Gold {state.player.gold}').classes('mq-detail-text text-center')
                             ui.label(f'Vault {vault_count}/{vault_capacity}').classes('mq-detail-text text-center')
@@ -17394,7 +17502,7 @@ def main_page(request: Request) -> None:
                                                     hero_uri = _hero_data_uri(class_name)
                                                     with ui.element('div').classes('mq-hero-art-frame w-full'):
                                                         if hero_uri:
-                                                            ui.image(hero_uri).classes('mq-hero-art')
+                                                            ui.image(hero_uri).classes('mq-hero-art mq-roster-hero-art')
                                                         else:
                                                             with ui.element('div').classes('mq-hero-art-fallback'):
                                                                 ui.label(f'{class_name} art missing')
@@ -18383,7 +18491,7 @@ def main_page(request: Request) -> None:
                                 with ui.column().classes('w-full items-center justify-between gap-3 text-center h-full'):
                                     essence_visual = state.masterquest_essence_visuals.get(essence_key, get_masterquest_essence_blue_data_uri())
                                     if essence_visual:
-                                        ui.html(f"<img src='{html.escape(essence_visual, quote=True)}' alt='Light Essence' class='mq-masterquest-essence-img' loading='eager' decoding='async' draggable='false'>")
+                                            ui.html(f"<img src='{html.escape(essence_visual, quote=True)}' alt='Light Essence' class='mq-masterquest-essence-img' loading='lazy' decoding='async' draggable='false'>")
                                     else:
                                         ui.element('div').classes('mq-masterquest-vessel-core')
                                     ui.label(MASTERQUEST_ESSENCE_LABELS.get(essence_key, essence_key)).classes('mq-masterquest-vessel-name')
@@ -18407,7 +18515,7 @@ def main_page(request: Request) -> None:
                                     ui.label('The Black Prism').classes('mq-inv-section-title mb-3')
                                     with ui.element('div').classes('mq-masterquest-prism-wrap'):
                                         if get_masterquest_prism_data_uri():
-                                            ui.html(f"<img src='{html.escape(get_masterquest_prism_data_uri(), quote=True)}' alt='Black prism' class='mq-masterquest-prism-img' loading='eager' decoding='async' draggable='false'>")
+                                            ui.html(f"<img src='{html.escape(get_masterquest_prism_data_uri(), quote=True)}' alt='Black prism' class='mq-masterquest-prism-img' loading='lazy' decoding='async' draggable='false'>")
                                         else:
                                             with ui.column().classes('items-center justify-center gap-4 text-center px-6'):
                                                 ui.label('BLACK PRISM').classes('text-3xl font-semibold text-slate-100 tracking-[0.18em]')
@@ -19382,11 +19490,23 @@ def main_page(request: Request) -> None:
   }});
 }})();
 """)
+    def scene_needs_live_meter_updates() -> bool:
+        if state.player is None:
+            return False
+        if state.screen == 'town':
+            return True
+        if state.screen != 'game':
+            return False
+        quiet_tabs = {'ladder', 'guild_hall', 'glossary', 'settings', 'donate', 'profile'}
+        return str(getattr(state, 'game_tab', '') or '') not in quiet_tabs
+
     def maybe_refresh_for_passive_regen() -> None:
         if not state.passive_regen_tick():
             return
         snapshot = state.passive_regen_visual_snapshot()
         if snapshot is None:
+            return
+        if not scene_needs_live_meter_updates():
             return
         if state.should_refresh_for_passive_regen():
             request_render_refresh()
