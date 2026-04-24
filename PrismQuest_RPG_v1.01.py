@@ -34,6 +34,7 @@ except Exception:
     create_client = None
 APP_TITLE = 'Prismatic Quest'
 COMMUNITY_DISCORD_URL = 'https://discord.gg/5MtzdPkTW'
+DEFAULT_LADDER_SEASON_ID = 1
 LOGGER = logging.getLogger('prismquest.runtime')
 DISCONNECT_LOGGER = logging.getLogger('prismquest.disconnect')
 DISCONNECT_LOG_DIR = os.path.join(SCRIPT_DIR, 'logs')
@@ -560,15 +561,50 @@ ITEM_SUBTYPES = {
     'charm': ['Fire', 'Lightning', 'Ice'],
 }
 CLASS_ORDER = ['Black Guard', 'Shadow Mage', 'Jade Samurai', 'Solaris Paladin', 'Monk of Selune', 'Night Assassin', 'Warlock', 'Chroma Reaver', 'Prismatic Sorceress']
-FUTURE_ROTATION_CLASS_ORDER = ['Shadow Warrior', 'Alecloak Thief', 'Shadow Arcanist']
-KNOWN_CLASS_NAMES = set(CLASS_ORDER) | set(FUTURE_ROTATION_CLASS_ORDER)
+FUTURE_ROTATION_CLASS_ORDER = ['Shadow Warrior', 'Night Angel', 'Frost Oracle', 'Alecloak Thief', 'Shadow Arcanist', 'Executioner', 'Ember Fae', 'Shadowfang Stalker', 'Prismatic Templar']
+ALL_CLASS_ORDER = list(dict.fromkeys(CLASS_ORDER + FUTURE_ROTATION_CLASS_ORDER))
+KNOWN_CLASS_NAMES = set(ALL_CLASS_ORDER)
 LEGACY_CLASS_ALIASES = {'Fighter': 'Black Guard'}
+BASE_FEEDER_CLASSES = ('Black Guard', 'Shadow Mage')
+SEASONAL_FEEDER_POOLS = {
+    'melee': ('Black Guard', 'Shadow Warrior'),
+    'caster': ('Shadow Mage', 'Night Angel'),
+}
+SEASONAL_UNLOCK_POOLS = (
+    ('Jade Samurai', 'Frost Oracle'),
+    ('Solaris Paladin', 'Alecloak Thief'),
+    ('Monk of Selune', 'Shadow Arcanist'),
+    ('Night Assassin', 'Executioner'),
+    ('Warlock', 'Ember Fae'),
+    ('Chroma Reaver', 'Shadowfang Stalker'),
+    ('Prismatic Sorceress', 'Prismatic Templar'),
+)
+CLASS_UNLOCK_TIERS = {
+    'Black Guard': 0,
+    'Shadow Warrior': 0,
+    'Shadow Mage': 0,
+    'Night Angel': 0,
+    'Jade Samurai': 1,
+    'Frost Oracle': 1,
+    'Solaris Paladin': 2,
+    'Alecloak Thief': 2,
+    'Monk of Selune': 3,
+    'Shadow Arcanist': 3,
+    'Night Assassin': 4,
+    'Executioner': 4,
+    'Warlock': 5,
+    'Ember Fae': 5,
+    'Chroma Reaver': 6,
+    'Shadowfang Stalker': 6,
+    'Prismatic Sorceress': 7,
+    'Prismatic Templar': 7,
+}
 
 def normalize_player_class_name(value: object, default: str = 'Black Guard') -> str:
     raw = str(value or '').strip()
     mapped = LEGACY_CLASS_ALIASES.get(raw, raw)
     return mapped if mapped in KNOWN_CLASS_NAMES else default
-CASTER_CLASSES = {'Shadow Mage', 'Warlock', 'Prismatic Sorceress'}
+CASTER_CLASSES = {'Shadow Mage', 'Warlock', 'Prismatic Sorceress', 'Shadow Arcanist', 'Night Angel', 'Frost Oracle', 'Ember Fae'}
 CLASS_DESCRIPTIONS = {
     'Black Guard': 'Higher HP and armor. Steady physical damage.',
     'Shadow Mage': 'Higher magic damage and mana. Better magic scaling.',
@@ -580,8 +616,14 @@ CLASS_DESCRIPTIONS = {
     'Chroma Reaver': 'Precision killer. Excellent accuracy and crits.',
     'Prismatic Sorceress': 'Hybrid master. Flexible offense and utility.',
     'Shadow Warrior': 'Flexible feeder. Balanced frontline stats with room to pivot into any loot path.',
+    'Night Angel': 'Fallen caster. Broad gear freedom with quick shadow spell pressure.',
+    'Frost Oracle': 'Ice seer. Adaptive caster with freezing precision and broad equipment access.',
     'Alecloak Thief': 'Quick ambusher. Dagger specialist with light-footed defenses and open charm play.',
     'Shadow Arcanist': 'Veiled spell duelist. Staff caster built for precise mana pressure and radiant fire.',
+    'Executioner': 'Relentless axeman. Heavy finishers backed by medium-armored staying power.',
+    'Ember Fae': 'Fire fae caster. Fast, fragile, and explosive with dagger-led spell tempo.',
+    'Shadowfang Stalker': 'Predator duelist. Razor-fast dagger hunter with sharp crit pressure.',
+    'Prismatic Templar': 'Prismatic bulwark. Staff-wielding final rite class with heavy armor and holy endurance.',
 }
 CLASS_MASTERQUEST_NEXT = {
     'Black Guard': 'Jade Samurai',
@@ -595,22 +637,58 @@ CLASS_MASTERQUEST_NEXT = {
 }
 FUTURE_ROTATION_CLASS_DETAILS = {
     'Shadow Warrior': {
-        'rotation_role': 'Feeder Class',
-        'rotation_slot': 'Planned feeder-class option for the next seasonal ladder reset.',
-        'unlock_text': 'Available from the start once the next seasonal rotation goes live.',
-        'rotation_note': 'Broad gear access makes it the flexible opener of the incoming roster.',
+        'rotation_role': 'Feeder Class (Melee)',
+        'rotation_slot': 'Shares the opening melee feeder slot with Black Guard in future seasonal resets.',
+        'unlock_text': 'Available from the start in seasons where the melee feeder roll lands on it.',
+        'rotation_note': 'Broad gear access makes it the flexible frontline opener of the incoming roster.',
+    },
+    'Night Angel': {
+        'rotation_role': 'Feeder Class (Caster)',
+        'rotation_slot': 'Shares the opening caster feeder slot with Shadow Mage in future seasonal resets.',
+        'unlock_text': 'Available from the start in seasons where the caster feeder roll lands on it.',
+        'rotation_note': 'Carries the opening caster slot with wide item freedom instead of narrow starter rules.',
+    },
+    'Frost Oracle': {
+        'rotation_role': 'First Unlock',
+        'rotation_slot': 'Shares the first unlock slot with Jade Samurai.',
+        'unlock_text': 'Unlocked by passing Prismatic Quest as either feeder when its tier roll is active.',
+        'rotation_note': 'Offers a caster-led first unlock without giving up broad weapon and armor access.',
     },
     'Alecloak Thief': {
         'rotation_role': 'Second Unlock',
-        'rotation_slot': 'Takes the current Solaris Paladin position in the unlock track.',
-        'unlock_text': 'Planned second unlock after Jade Samurai once the next rotation is active.',
+        'rotation_slot': 'Shares the second unlock slot with Solaris Paladin.',
+        'unlock_text': 'Unlocked after the first seasonal unlock when its tier roll is active.',
         'rotation_note': 'Slides into the mid-route dexterity slot with dagger pressure and lighter armor rules.',
     },
     'Shadow Arcanist': {
         'rotation_role': 'Third Unlock',
-        'rotation_slot': 'Takes the current Monk of Selune position in the unlock track.',
-        'unlock_text': 'Planned third unlock after Alecloak Thief once the next rotation is active.',
+        'rotation_slot': 'Shares the third unlock slot with Monk of Selune.',
+        'unlock_text': 'Unlocked after the second seasonal unlock when its tier roll is active.',
         'rotation_note': 'Carries the caster-heavy follow-up slot with staff focus and narrower charm access.',
+    },
+    'Executioner': {
+        'rotation_role': 'Fourth Unlock',
+        'rotation_slot': 'Shares the fourth unlock slot with Night Assassin.',
+        'unlock_text': 'Unlocked after the third seasonal unlock when its tier roll is active.',
+        'rotation_note': 'Trades some assassin finesse for harder axe finishes and heavier execution pressure.',
+    },
+    'Ember Fae': {
+        'rotation_role': 'Fifth Unlock',
+        'rotation_slot': 'Shares the fifth unlock slot with Warlock.',
+        'unlock_text': 'Unlocked after the fourth seasonal unlock when its tier roll is active.',
+        'rotation_note': 'Keeps the caster tier alive with faster tempo, lighter defenses, and fire-only charm play.',
+    },
+    'Shadowfang Stalker': {
+        'rotation_role': 'Sixth Unlock',
+        'rotation_slot': 'Shares the sixth unlock slot with Chroma Reaver.',
+        'unlock_text': 'Unlocked after the fifth seasonal unlock when its tier roll is active.',
+        'rotation_note': 'Carries the late-run predator slot with dagger speed, crit pressure, and open charm freedom.',
+    },
+    'Prismatic Templar': {
+        'rotation_role': 'Seventh Unlock',
+        'rotation_slot': 'Shares the final unlock slot with Prismatic Sorceress.',
+        'unlock_text': 'Unlocked after the sixth seasonal unlock when its tier roll is active.',
+        'rotation_note': 'Replaces the final hybrid slot with a heavier, staff-led templar finish instead of a pure caster finale.',
     },
 }
 INNKEEPER_GREETINGS = [
@@ -624,7 +702,7 @@ VAULT_SLOT_BUNDLE_COST = 100
 VAULT_SLOT_BUNDLE_SIZE = 10
 LEGACY_VAULT_CAPACITY = 20
 
-FEEDER_CLASSES = {'Black Guard', 'Shadow Mage'}
+FEEDER_CLASSES = set(BASE_FEEDER_CLASSES)
 TOWN_SERVICE_LABELS = {
     'inn': 'the inn',
     'transmutation': 'transmutation services',
@@ -636,12 +714,8 @@ TOWN_SERVICE_LABELS = {
 }
 
 def class_run_drop_debuff_step(player_class: str) -> int:
-    if player_class in FEEDER_CLASSES:
-        return 0
-    try:
-        return max(1, CLASS_ORDER.index(player_class) - 1)
-    except ValueError:
-        return 0
+    player_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
+    return max(0, int(CLASS_UNLOCK_TIERS.get(player_class, 0)))
 
 
 def class_run_drop_debuff_threshold_multiplier(has_attempted_masterquest: bool) -> float:
@@ -693,8 +767,14 @@ CLASS_EQUIP_RULES = {
     'Chroma Reaver': {'weapon': {'Axe'}, 'armor': {'Heavy'}, 'charm': None},
     'Prismatic Sorceress': {'weapon': set(), 'armor': {'Light'}, 'charm': None},
     'Shadow Warrior': {'weapon': None, 'armor': None, 'charm': None},
+    'Night Angel': {'weapon': None, 'armor': None, 'charm': None},
+    'Frost Oracle': {'weapon': None, 'armor': None, 'charm': {'Ice'}},
     'Alecloak Thief': {'weapon': {'Dagger'}, 'armor': {'Light', 'Medium'}, 'charm': None},
     'Shadow Arcanist': {'weapon': {'Staff'}, 'armor': {'Light'}, 'charm': {'Fire', 'Light'}},
+    'Executioner': {'weapon': {'Axe'}, 'armor': {'Medium'}, 'charm': None},
+    'Ember Fae': {'weapon': {'Dagger'}, 'armor': {'Light'}, 'charm': {'Fire'}},
+    'Shadowfang Stalker': {'weapon': {'Dagger'}, 'armor': {'Light'}, 'charm': None},
+    'Prismatic Templar': {'weapon': {'Staff'}, 'armor': None, 'charm': set()},
 }
 STAT_LABELS = {
     'strength': 'STR', 'dexterity': 'DEX', 'intelligence': 'INT', 'vitality': 'VIT',
@@ -5254,6 +5334,12 @@ HERO_ASSET_FILENAMES = {
     'Chroma Reaver': ['Headhunter.png'],
     'Prismatic Sorceress': ['Alchemist.png'],
     'Shadow Warrior': ['Shadow_Warrior.png'],
+    'Night Angel': ['Night Angel.webp', 'Night Angel.png'],
+    'Frost Oracle': ['Frost Oracle.webp', 'Frost Oracle.png'],
+    'Executioner': ['Executioner.webp', 'Executioner.png'],
+    'Ember Fae': ['Ember Fae.webp', 'Ember Fae.png'],
+    'Prismatic Templar': ['Prismatic Templar.webp', 'Prismatic Templar.png'],
+    'Shadowfang Stalker': ['Shadowfang Stalker.webp', 'Shadowfang Stalker.png'],
     'Alecloak Thief': ['Alecloak Thief.png', 'Alecloak_Thief.png'],
     'Shadow Arcanist': ['Shadow_Arcanist.png', 'Shadow Arcanist.png'],
 }
@@ -5282,12 +5368,19 @@ def format_class_equip_rules(player_class: str) -> str:
         charm_text = '/'.join(sorted(charm_rules)) + ' charms'
     return f'Equipment: {weapon_text}; {armor_text}. Charms: {charm_text}.'
 def get_class_unlock_requirement(player_class: str) -> str:
+    return get_class_unlock_requirement_for_season(player_class, DEFAULT_LADDER_SEASON_ID)
+
+
+def get_class_unlock_requirement_for_season(player_class: str, season_id: object = DEFAULT_LADDER_SEASON_ID) -> str:
     player_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
-    if player_class in {'Black Guard', 'Shadow Mage'}:
-        return 'Available from the start.'
-    prerequisites = [source for source, target in CLASS_MASTERQUEST_NEXT.items() if target == player_class]
-    if not prerequisites:
+    if not player_class:
         return 'Hidden path.'
+    season = sanitize_ladder_season_id(season_id)
+    if player_class in set(season_feeder_classes(season)):
+        return 'Available from the start.'
+    prerequisites = [source for source, target in season_class_masterquest_next(season).items() if target == player_class]
+    if not prerequisites:
+        return 'Off-season path.'
     if len(prerequisites) == 1:
         return f'Pass Prismatic Quest as {prerequisites[0]}.'
     return 'Pass Prismatic Quest as ' + ' or '.join(prerequisites) + '.'
@@ -5296,6 +5389,13 @@ def format_class_path_entry(player_class: str, unlocked_classes: set[str]) -> st
     marker = '◆' if player_class in unlocked_classes else '◇'
     state = 'Ready' if player_class in unlocked_classes else get_class_unlock_requirement(player_class)
     return f'{marker} {player_class:<11} {state}'
+def format_class_path_entry_for_season(player_class: str, unlocked_classes: set[str], season_id: object = DEFAULT_LADDER_SEASON_ID) -> str:
+    player_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
+    marker = '◆' if player_class in unlocked_classes else '◇'
+    state = 'Ready' if player_class in unlocked_classes else get_class_unlock_requirement_for_season(player_class, season_id)
+    return f'{marker} {player_class:<11} {state}'
+
+
 def _find_hero_asset_path(player_class: str) -> Optional[str]:
     player_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -5382,8 +5482,6 @@ SUPABASE_PUBLISHABLE_KEY = os.environ.get('SUPABASE_PUBLISHABLE_KEY', '').strip(
 SUPABASE_SITE_URL = os.environ.get('SUPABASE_SITE_URL', 'https://prismquest-rpg.com').strip()
 SUPABASE_ENABLED = bool(SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY and create_client is not None)
 AUTH_RECONNECT_GRACE_SECONDS = 30.0
-DEFAULT_LADDER_SEASON_ID = 1
-BASE_FEEDER_CLASSES = ('Black Guard', 'Shadow Mage')
 
 def sanitize_ladder_season_id(value: object, default: int = DEFAULT_LADDER_SEASON_ID) -> int:
     try:
@@ -5397,14 +5495,87 @@ def sanitize_ladder_reset_count(value: object, default: int = 0) -> int:
     except Exception:
         return max(0, int(default))
 
+
+_SEASON_CLASS_ORDER_CACHE: Dict[int, Tuple[str, ...]] = {}
+_SEASON_CLASS_NEXT_CACHE: Dict[int, Dict[str, str]] = {}
+
+
+def _season_pair_pick(season_id: int, label: str, pair: Tuple[str, str]) -> str:
+    if season_id <= DEFAULT_LADDER_SEASON_ID:
+        return pair[0]
+    digest = hashlib.sha256(f'prismquest-season:{season_id}:{label}'.encode('utf-8')).digest()
+    return pair[int(digest[0] % len(pair))]
+
+
+def season_class_order(season_id: object = DEFAULT_LADDER_SEASON_ID) -> List[str]:
+    season = sanitize_ladder_season_id(season_id)
+    cached = _SEASON_CLASS_ORDER_CACHE.get(season)
+    if cached is not None:
+        return list(cached)
+    if season <= DEFAULT_LADDER_SEASON_ID:
+        order = tuple(CLASS_ORDER)
+    else:
+        order_list = [
+            _season_pair_pick(season, 'feeder-melee', SEASONAL_FEEDER_POOLS['melee']),
+            _season_pair_pick(season, 'feeder-caster', SEASONAL_FEEDER_POOLS['caster']),
+        ]
+        for tier_index, pair in enumerate(SEASONAL_UNLOCK_POOLS, start=1):
+            order_list.append(_season_pair_pick(season, f'unlock-tier-{tier_index}', pair))
+        order = tuple(order_list)
+    _SEASON_CLASS_ORDER_CACHE[season] = order
+    return list(order)
+
+
+def season_class_set(season_id: object = DEFAULT_LADDER_SEASON_ID) -> set[str]:
+    return set(season_class_order(season_id))
+
+
+def season_feeder_classes(season_id: object = DEFAULT_LADDER_SEASON_ID) -> Tuple[str, str]:
+    order = season_class_order(season_id)
+    return (order[0], order[1])
+
+
+def season_class_masterquest_next(season_id: object = DEFAULT_LADDER_SEASON_ID) -> Dict[str, str]:
+    season = sanitize_ladder_season_id(season_id)
+    cached = _SEASON_CLASS_NEXT_CACHE.get(season)
+    if cached is not None:
+        return dict(cached)
+    order = season_class_order(season)
+    mapping: Dict[str, str] = {}
+    if len(order) >= 3:
+        mapping[order[0]] = order[2]
+        mapping[order[1]] = order[2]
+    for index in range(2, len(order) - 1):
+        mapping[order[index]] = order[index + 1]
+    _SEASON_CLASS_NEXT_CACHE[season] = dict(mapping)
+    return dict(mapping)
+
+
+def season_path_note(season_id: object = DEFAULT_LADDER_SEASON_ID) -> str:
+    order = season_class_order(season_id)
+    if len(order) < 3:
+        return 'The seasonal ascent is still being charted.'
+    return f'{order[0]} and {order[1]} both lead into {order[2]}. From there, the path tightens one class at a time until {order[-1]}.'
+
+
+def season_class_sort_key(class_name: str, season_id: object = DEFAULT_LADDER_SEASON_ID) -> Tuple[int, int, str]:
+    normalized = normalize_player_class_name(class_name, '')
+    order = season_class_order(season_id)
+    try:
+        order_index = order.index(normalized)
+        return (0, order_index, normalized)
+    except ValueError:
+        return (1, int(CLASS_UNLOCK_TIERS.get(normalized, 99)), normalized)
+
 def masterquest_slot_count(player_class: Optional[str]) -> int:
     player_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
-    if player_class in {'Monk of Selune', 'Night Assassin'}:
-        return 4
-    if player_class in {'Warlock', 'Chroma Reaver'}:
-        return 5
-    if player_class == 'Prismatic Sorceress':
+    tier = int(CLASS_UNLOCK_TIERS.get(player_class, 0))
+    if tier >= 7:
         return 6
+    if tier >= 5:
+        return 5
+    if tier >= 3:
+        return 4
     return 3
 
 def masterquest_active_essence_keys(player_class: Optional[str]) -> List[str]:
@@ -5516,16 +5687,19 @@ def slot_ladder_reset_total(slot: object, mode: object, global_reset_count: int 
     return local_resets
 
 
-def normalize_unlocked_classes(value) -> set[str]:
-    unlocked = {'Black Guard', 'Shadow Mage'}
+def normalize_unlocked_classes(value, season_id: object = DEFAULT_LADDER_SEASON_ID) -> set[str]:
+    season = sanitize_ladder_season_id(season_id)
+    allowed_classes = season_class_set(season)
+    unlocked = set(season_feeder_classes(season))
     if isinstance(value, (list, tuple, set)):
         for class_name in value:
             normalized = normalize_player_class_name(class_name, '')
-            if normalized in CLASS_ORDER:
+            if normalized in allowed_classes:
                 unlocked.add(normalized)
     return unlocked
 
-def build_default_slot_payload() -> Dict[str, object]:
+def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dict[str, object]:
+    normalized_season = sanitize_ladder_season_id(season_id)
     return {
         'player': None,
         'saved_item_sets': saved_item_sets_to_payload(empty_saved_item_sets()),
@@ -5533,7 +5707,7 @@ def build_default_slot_payload() -> Dict[str, object]:
         'vault_items': [],
         'vault_capacity': 0,
         'ladder_stats': build_default_ladder_stats(),
-        'unlocked_classes': ['Black Guard', 'Shadow Mage'],
+        'unlocked_classes': list(season_feeder_classes(normalized_season)),
         'selection_return_class': None,
         'carryover_gold': 0,
         'carryover_inventory': [],
@@ -5545,7 +5719,7 @@ def build_default_slot_payload() -> Dict[str, object]:
         'town_tutorial_seen': False,
         'scene_tutorials_seen': build_default_scene_tutorials_seen(False),
         'hotkey_bindings': build_default_hotkey_bindings(),
-        'season_id': DEFAULT_LADDER_SEASON_ID,
+        'season_id': normalized_season,
         'ladder_reset_count': 0,
         'run_started_wall_time': 0.0,
         'pq_ledger_entries': [],
@@ -5758,9 +5932,13 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
         vault_capacity = 0
     slot['vault_capacity'] = max(legacy_default, len(slot['vault_items']), vault_capacity, 0)
     slot['ladder_stats'] = normalize_ladder_stats(raw_slot.get('ladder_stats', slot['ladder_stats']))
-    slot['unlocked_classes'] = sorted(normalize_unlocked_classes(raw_slot.get('unlocked_classes')))
+    slot['season_id'] = sanitize_ladder_season_id(raw_slot.get('season_id', DEFAULT_LADDER_SEASON_ID))
+    slot['unlocked_classes'] = sorted(
+        normalize_unlocked_classes(raw_slot.get('unlocked_classes'), slot['season_id']),
+        key=lambda class_name: season_class_sort_key(class_name, slot['season_id']),
+    )
     selection_return_class = normalize_player_class_name(raw_slot.get('selection_return_class'), '')
-    slot['selection_return_class'] = selection_return_class if selection_return_class in CLASS_ORDER else None
+    slot['selection_return_class'] = selection_return_class if selection_return_class in season_class_set(slot['season_id']) else None
     slot['carryover_gold'] = int(raw_slot.get('carryover_gold', 0) or 0)
     carryover_inventory = raw_slot.get('carryover_inventory', [])
     slot['carryover_inventory'] = carryover_inventory if isinstance(carryover_inventory, list) else []
@@ -5780,7 +5958,6 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
         slot['town_tutorial_seen'] = bool(slot['player'])
     slot['scene_tutorials_seen'] = normalize_scene_tutorials_seen(raw_slot.get('scene_tutorials_seen'), bool(slot['player']))
     slot['hotkey_bindings'] = normalize_hotkey_bindings(raw_slot.get('hotkey_bindings'))
-    slot['season_id'] = sanitize_ladder_season_id(raw_slot.get('season_id', DEFAULT_LADDER_SEASON_ID))
     slot['ladder_reset_count'] = sanitize_ladder_reset_count(raw_slot.get('ladder_reset_count', 0))
     raw_run_started = raw_slot.get('run_started_wall_time', 0.0)
     try:
@@ -5926,27 +6103,28 @@ def _slots_from_supabase_rows(rows: object) -> List[Dict[str, object]]:
 
 
 def class_progression_rank(class_name: Optional[str]) -> int:
-    if not isinstance(class_name, str) or class_name not in CLASS_ORDER:
+    normalized = normalize_player_class_name(class_name, '')
+    if not normalized:
         return -1
-    if class_name in {'Black Guard', 'Shadow Mage'}:
-        return 0
-    return CLASS_ORDER.index(class_name)
+    return int(CLASS_UNLOCK_TIERS.get(normalized, -1))
 
 
 def slot_has_meaningful_progress(slot: Dict[str, object]) -> bool:
     normalized = normalize_slot_payload(slot)
+    season_id = sanitize_ladder_season_id(normalized.get('season_id', DEFAULT_LADDER_SEASON_ID))
     if isinstance(normalized.get('player'), dict):
         return True
     selection_class = normalized.get('selection_return_class')
-    if isinstance(selection_class, str) and selection_class in CLASS_ORDER:
+    if isinstance(selection_class, str) and class_progression_rank(selection_class) >= 0:
         return True
-    unlocked = normalize_unlocked_classes(normalized.get('unlocked_classes'))
-    return any(class_name not in {'Black Guard', 'Shadow Mage'} for class_name in unlocked)
+    unlocked = normalize_unlocked_classes(normalized.get('unlocked_classes'), season_id)
+    return any(class_progression_rank(class_name) > 0 for class_name in unlocked)
 
 
 def slot_highest_class(slot: Dict[str, object]) -> Optional[str]:
     normalized = normalize_slot_payload(slot)
-    unlocked_classes = normalize_unlocked_classes(normalized.get('unlocked_classes'))
+    season_id = sanitize_ladder_season_id(normalized.get('season_id', DEFAULT_LADDER_SEASON_ID))
+    unlocked_classes = normalize_unlocked_classes(normalized.get('unlocked_classes'), season_id)
     player_data = normalized.get('player') if isinstance(normalized.get('player'), dict) else None
     player_class = ''
     if isinstance(player_data, dict):
@@ -5955,27 +6133,28 @@ def slot_highest_class(slot: Dict[str, object]) -> Optional[str]:
 
     candidates: List[str] = []
     for class_name in unlocked_classes:
-        if class_name in CLASS_ORDER:
+        if class_progression_rank(class_name) >= 0:
             candidates.append(class_name)
-    if player_class in CLASS_ORDER:
+    if class_progression_rank(player_class) >= 0:
         candidates.append(player_class)
-    if selection_class in CLASS_ORDER:
+    if class_progression_rank(selection_class) >= 0:
         candidates.append(selection_class)
     if not candidates:
         return None
 
-    progressed_candidates = [class_name for class_name in candidates if class_name not in {'Black Guard', 'Shadow Mage'}]
+    progressed_candidates = [class_name for class_name in candidates if class_progression_rank(class_name) > 0]
     if progressed_candidates:
         return max(progressed_candidates, key=class_progression_rank)
 
-    if player_class in {'Black Guard', 'Shadow Mage'}:
+    feeder_classes = season_feeder_classes(season_id)
+    if player_class in feeder_classes:
         return player_class
-    if selection_class in {'Black Guard', 'Shadow Mage'}:
+    if selection_class in feeder_classes:
         return selection_class
-    if 'Black Guard' in unlocked_classes and 'Shadow Mage' not in unlocked_classes:
-        return 'Black Guard'
-    if 'Shadow Mage' in unlocked_classes and 'Black Guard' not in unlocked_classes:
-        return 'Shadow Mage'
+    if feeder_classes[0] in unlocked_classes and feeder_classes[1] not in unlocked_classes:
+        return feeder_classes[0]
+    if feeder_classes[1] in unlocked_classes and feeder_classes[0] not in unlocked_classes:
+        return feeder_classes[1]
     return max(candidates, key=class_progression_rank)
 
 
@@ -6024,7 +6203,7 @@ def normalize_public_ladder_rows(rows: object) -> List[Dict[str, object]]:
         if not isinstance(raw_row, dict):
             continue
         highest_class = str(raw_row.get('highest_class') or '').strip()
-        if highest_class not in CLASS_ORDER:
+        if highest_class not in KNOWN_CLASS_NAMES:
             continue
         try:
             level = int(raw_row.get('level', 1) or 1)
@@ -6392,17 +6571,26 @@ SAVED_ITEM_SET_LABELS = {
 }
 MASTERQUEST_PASS_DENOMINATORS = {
     'Black Guard': 6,
+    'Shadow Warrior': 6,
     'Shadow Mage': 6,
+    'Night Angel': 6,
     'Jade Samurai': 6,
+    'Frost Oracle': 6,
     'Solaris Paladin': 6,
+    'Alecloak Thief': 6,
     'Monk of Selune': 24,
+    'Shadow Arcanist': 24,
     'Night Assassin': 6,
+    'Executioner': 6,
     'Warlock': 6,
+    'Ember Fae': 6,
     'Chroma Reaver': 6,
+    'Shadowfang Stalker': 6,
     'Prismatic Sorceress': 6,
+    'Prismatic Templar': 6,
 }
-MASTERQUEST_PROGRESSIVE_CLASSES = ['Jade Samurai', 'Solaris Paladin', 'Monk of Selune', 'Night Assassin', 'Warlock', 'Chroma Reaver', 'Prismatic Sorceress']
-MASTERQUEST_PROGRESSIVE_INDEX = {class_name: index for index, class_name in enumerate(MASTERQUEST_PROGRESSIVE_CLASSES, start=1)}
+MASTERQUEST_PROGRESSIVE_CLASSES = [class_name for class_name in ALL_CLASS_ORDER if int(CLASS_UNLOCK_TIERS.get(class_name, 0)) > 0]
+MASTERQUEST_PROGRESSIVE_INDEX = {class_name: int(CLASS_UNLOCK_TIERS.get(class_name, 0)) for class_name in MASTERQUEST_PROGRESSIVE_CLASSES}
 MASTERQUEST_ATTEMPT_COST_STEP = 5
 MASTERQUEST_XP_DEBUFF_STEP = 0.075
 INVENTORY_VIEW_OPTIONS = ['Inventory', 'Saved Sets']
@@ -6555,7 +6743,7 @@ def slot_fastest_pq_seconds(slot: Dict[str, object]) -> Optional[float]:
     stats = normalized.get('ladder_stats') if isinstance(normalized.get('ladder_stats'), dict) else {}
     if isinstance(stats, dict):
         for class_name, class_stats in stats.items():
-            if class_name not in CLASS_ORDER or not isinstance(class_stats, dict):
+            if class_name not in KNOWN_CLASS_NAMES or not isinstance(class_stats, dict):
                 continue
             fastest = class_stats.get('fastest_masterquest_seconds')
             if fastest in (None, ''):
@@ -6648,7 +6836,7 @@ def ladder_fastest_overall_rows(rows: object, mode: object, current_global_seaso
 
 def ladder_fastest_by_class_rows(rows: object, mode: object, current_global_season_id: object = DEFAULT_LADDER_SEASON_ID) -> List[Dict[str, object]]:
     best_by_class: Dict[str, Dict[str, object]] = {}
-    for class_name in CLASS_ORDER:
+    for class_name in season_class_order(current_global_season_id):
         class_rows = ladder_fastest_rows_for_class(rows, mode, class_name, current_global_season_id)
         if class_rows:
             best_by_class[class_name] = dict(class_rows[0])
@@ -6661,7 +6849,7 @@ def ladder_fastest_by_class_rows(rows: object, mode: object, current_global_seas
 
 def ladder_fastest_rows_for_class(rows: object, mode: object, target_class: object, current_global_season_id: object = DEFAULT_LADDER_SEASON_ID) -> List[Dict[str, object]]:
     class_name = normalize_player_class_name(target_class, '')
-    if class_name not in CLASS_ORDER:
+    if class_name not in KNOWN_CLASS_NAMES:
         return []
     best_by_user: Dict[str, Dict[str, object]] = {}
     for row in filtered_pq_ledger_rows(rows, mode, current_global_season_id):
@@ -6743,7 +6931,7 @@ def masterquest_pass_denominator(player_class: str) -> int:
     return int(MASTERQUEST_PASS_DENOMINATORS.get(str(player_class or ''), 999999))
 def masterquest_progressive_rank(player_class: str) -> int:
     player_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
-    return int(MASTERQUEST_PROGRESSIVE_INDEX.get(str(player_class or ''), 0))
+    return int(CLASS_UNLOCK_TIERS.get(str(player_class or ''), 0))
 def masterquest_attempt_cost(player_class: str) -> int:
     return masterquest_progressive_rank(player_class) * MASTERQUEST_ATTEMPT_COST_STEP
 
@@ -6755,10 +6943,7 @@ def masterquest_enemy_health_buff_fraction(player_class: str) -> float:
 
 def inn_rest_cost(player_class: str) -> int:
     player_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
-    if player_class in {'Black Guard', 'Shadow Mage'}:
-        return 0
-    rank = CLASS_ORDER.index(player_class) if player_class in CLASS_ORDER else 0
-    return max(0, rank - 1)
+    return max(0, class_progression_rank(player_class))
 
 def total_xp_gain_factor(player: Optional[Player], combo_bonus: float = 0.0) -> float:
     if player is None:
@@ -8050,8 +8235,14 @@ CLASS_CONFIGS = {
     'Chroma Reaver': dict(max_hp=86, attack_min=7, attack_max=10, physical_armor=3, magic_resistance=2, speed=15, accuracy=0.94, crit_chance=0.18, crit_damage=1.80, armor_penetration=2, lifesteal=0.0, evasion=0.06, thorns=0.0, max_mana=20, mana_per_kill=1, life_per_kill=2, magic_find=0.03, damage_school='physical', core=dict(strength=18, dexterity=20, intelligence=8, vitality=14), gear=dict(weapon=('Hunter Axe', 'weapon', 'Axe'), armor=('Tracker Heavy Armor', 'armor', 'Heavy'), charm=('Target Lightning Charm', 'charm', 'Lightning'))),
     'Prismatic Sorceress': dict(max_hp=90, attack_min=8, attack_max=11, physical_armor=3, magic_resistance=4, speed=13, accuracy=0.93, crit_chance=0.16, crit_damage=1.75, armor_penetration=1, lifesteal=0.0, evasion=0.05, thorns=0.0, max_mana=34, mana_per_kill=3, life_per_kill=1, magic_find=0.05, damage_school='magic', core=dict(strength=14, dexterity=14, intelligence=20, vitality=17), gear=dict(weapon=('Catalyst Staff', 'weapon', 'Staff'), armor=('Experiment Light Armor', 'armor', 'Light'), charm=('Reactive Ice Charm', 'charm', 'Ice'))),
     'Shadow Warrior': dict(max_hp=82, attack_min=3, attack_max=5, physical_armor=2, magic_resistance=1, speed=11, accuracy=0.87, crit_chance=0.10, crit_damage=1.55, armor_penetration=0, lifesteal=0.0, evasion=0.03, thorns=0.0, max_mana=14, mana_per_kill=1, life_per_kill=1, magic_find=0.01, damage_school='physical', core=dict(strength=11, dexterity=9, intelligence=4, vitality=6), gear=dict(weapon=('Frontier Axe', 'weapon', 'Axe'), armor=('Field Medium Armor', 'armor', 'Medium'), charm=('Ember Fire Charm', 'charm', 'Fire'))),
+    'Night Angel': dict(max_hp=76, attack_min=5, attack_max=7, physical_armor=1, magic_resistance=2, speed=12, accuracy=0.90, crit_chance=0.12, crit_damage=1.62, armor_penetration=0, lifesteal=0.0, evasion=0.04, thorns=0.0, max_mana=26, mana_per_kill=2, life_per_kill=0, magic_find=0.02, damage_school='magic', core=dict(strength=5, dexterity=8, intelligence=12, vitality=7), gear=dict(weapon=('Halo Staff', 'weapon', 'Staff'), armor=('Fallen Light Armor', 'armor', 'Light'), charm=('Eclipse Ice Charm', 'charm', 'Ice'))),
+    'Frost Oracle': dict(max_hp=77, attack_min=5, attack_max=7, physical_armor=2, magic_resistance=2, speed=13, accuracy=0.90, crit_chance=0.14, crit_damage=1.66, armor_penetration=0, lifesteal=0.0, evasion=0.04, thorns=0.0, max_mana=28, mana_per_kill=2, life_per_kill=0, magic_find=0.02, damage_school='magic', core=dict(strength=7, dexterity=10, intelligence=15, vitality=8), gear=dict(weapon=('Glacier Staff', 'weapon', 'Staff'), armor=('Oracle Light Armor', 'armor', 'Light'), charm=('Oracle Ice Charm', 'charm', 'Ice'))),
     'Alecloak Thief': dict(max_hp=80, attack_min=5, attack_max=7, physical_armor=2, magic_resistance=2, speed=15, accuracy=0.91, crit_chance=0.16, crit_damage=1.68, armor_penetration=1, lifesteal=0.0, evasion=0.07, thorns=0.0, max_mana=18, mana_per_kill=1, life_per_kill=1, magic_find=0.03, damage_school='physical', core=dict(strength=9, dexterity=15, intelligence=6, vitality=10), gear=dict(weapon=('Alecloak Dirk', 'weapon', 'Dagger'), armor=('Cloaked Light Armor', 'armor', 'Light'), charm=('Street Lightning Charm', 'charm', 'Lightning'))),
     'Shadow Arcanist': dict(max_hp=81, attack_min=6, attack_max=8, physical_armor=1, magic_resistance=4, speed=13, accuracy=0.91, crit_chance=0.15, crit_damage=1.72, armor_penetration=0, lifesteal=0.0, evasion=0.05, thorns=0.0, max_mana=32, mana_per_kill=2, life_per_kill=0, magic_find=0.03, damage_school='magic', core=dict(strength=7, dexterity=10, intelligence=17, vitality=11), gear=dict(weapon=('Gloam Staff', 'weapon', 'Staff'), armor=('Veil Light Armor', 'armor', 'Light'), charm=('Solar Fire Charm', 'charm', 'Fire'))),
+    'Executioner': dict(max_hp=84, attack_min=7, attack_max=9, physical_armor=2, magic_resistance=2, speed=14, accuracy=0.91, crit_chance=0.15, crit_damage=1.76, armor_penetration=2, lifesteal=0.0, evasion=0.04, thorns=0.0, max_mana=18, mana_per_kill=1, life_per_kill=1, magic_find=0.03, damage_school='physical', core=dict(strength=16, dexterity=14, intelligence=6, vitality=14), gear=dict(weapon=('Headsman Axe', 'weapon', 'Axe'), armor=('Execution Medium Armor', 'armor', 'Medium'), charm=('Punisher Fire Charm', 'charm', 'Fire'))),
+    'Ember Fae': dict(max_hp=78, attack_min=7, attack_max=10, physical_armor=1, magic_resistance=4, speed=14, accuracy=0.91, crit_chance=0.16, crit_damage=1.78, armor_penetration=0, lifesteal=0.0, evasion=0.06, thorns=0.0, max_mana=34, mana_per_kill=3, life_per_kill=0, magic_find=0.03, damage_school='magic', core=dict(strength=6, dexterity=13, intelligence=21, vitality=12), gear=dict(weapon=('Cinder Dirk', 'weapon', 'Dagger'), armor=('Emberweave Light Armor', 'armor', 'Light'), charm=('Fae Fire Charm', 'charm', 'Fire'))),
+    'Shadowfang Stalker': dict(max_hp=84, attack_min=7, attack_max=10, physical_armor=2, magic_resistance=2, speed=16, accuracy=0.94, crit_chance=0.19, crit_damage=1.82, armor_penetration=2, lifesteal=0.0, evasion=0.07, thorns=0.0, max_mana=18, mana_per_kill=1, life_per_kill=2, magic_find=0.03, damage_school='physical', core=dict(strength=15, dexterity=21, intelligence=7, vitality=13), gear=dict(weapon=('Shadowfang Dagger', 'weapon', 'Dagger'), armor=('Prowler Light Armor', 'armor', 'Light'), charm=('Predator Lightning Charm', 'charm', 'Lightning'))),
+    'Prismatic Templar': dict(max_hp=92, attack_min=8, attack_max=11, physical_armor=4, magic_resistance=4, speed=11, accuracy=0.91, crit_chance=0.14, crit_damage=1.74, armor_penetration=1, lifesteal=0.0, evasion=0.03, thorns=0.03, max_mana=22, mana_per_kill=1, life_per_kill=2, magic_find=0.04, damage_school='physical', core=dict(strength=18, dexterity=12, intelligence=12, vitality=18), gear=dict(weapon=('Prismatic Staff', 'weapon', 'Staff'), armor=('Cathedral Heavy Armor', 'armor', 'Heavy'), charm=None)),
 }
 def build_item_base_stats(slot: str, subtype: str, bucket_level: int) -> Dict[str, float]:
     bucket = bucket_item_level(bucket_level)
@@ -8129,11 +8320,10 @@ def create_player(player_class: str) -> Player:
     player.base_magic_find = player.magic_find
     player.base_xp_gain = 0.0
     player.base_thorns = player.thorns
-    player.equipped = {
-        'weapon': starter_item(*gear['weapon']),
-        'armor': starter_item(*gear['armor']),
-        'charm': starter_item(*gear['charm']),
-    }
+    player.equipped = {}
+    for slot_name in ('weapon', 'armor', 'charm'):
+        gear_entry = gear.get(slot_name)
+        player.equipped[slot_name] = starter_item(*gear_entry) if isinstance(gear_entry, tuple) and len(gear_entry) >= 3 else None
     player.recalculate_stats()
     player.hp = player.max_hp
     player.mana = player.max_mana
@@ -8578,8 +8768,8 @@ def gain_xp(player: Player, amount: int) -> List[str]:
         messages.append('You gain no XP from this fight.')
         return messages
     player.xp += amount
-    hp_gain_by_class = {'Black Guard': 8, 'Shadow Mage': 5, 'Jade Samurai': 7, 'Solaris Paladin': 9, 'Monk of Selune': 7, 'Night Assassin': 6, 'Warlock': 6, 'Chroma Reaver': 7, 'Prismatic Sorceress': 8, 'Shadow Warrior': 7, 'Alecloak Thief': 7, 'Shadow Arcanist': 6}
-    mana_gain_by_class = {'Black Guard': 0, 'Shadow Mage': 2, 'Jade Samurai': 1, 'Solaris Paladin': 1, 'Monk of Selune': 1, 'Night Assassin': 1, 'Warlock': 3, 'Chroma Reaver': 1, 'Prismatic Sorceress': 2, 'Shadow Warrior': 1, 'Alecloak Thief': 1, 'Shadow Arcanist': 2}
+    hp_gain_by_class = {'Black Guard': 8, 'Shadow Mage': 5, 'Jade Samurai': 7, 'Solaris Paladin': 9, 'Monk of Selune': 7, 'Night Assassin': 6, 'Warlock': 6, 'Chroma Reaver': 7, 'Prismatic Sorceress': 8, 'Shadow Warrior': 7, 'Night Angel': 5, 'Frost Oracle': 6, 'Alecloak Thief': 7, 'Shadow Arcanist': 6, 'Executioner': 7, 'Ember Fae': 6, 'Shadowfang Stalker': 7, 'Prismatic Templar': 9}
+    mana_gain_by_class = {'Black Guard': 0, 'Shadow Mage': 2, 'Jade Samurai': 1, 'Solaris Paladin': 1, 'Monk of Selune': 1, 'Night Assassin': 1, 'Warlock': 3, 'Chroma Reaver': 1, 'Prismatic Sorceress': 2, 'Shadow Warrior': 1, 'Night Angel': 2, 'Frost Oracle': 2, 'Alecloak Thief': 1, 'Shadow Arcanist': 2, 'Executioner': 1, 'Ember Fae': 3, 'Shadowfang Stalker': 1, 'Prismatic Templar': 1}
     while player.level < 60 and player.xp >= player.xp_to_next:
         player.xp -= player.xp_to_next
         player.level += 1
@@ -8696,7 +8886,7 @@ def build_default_ladder_stats() -> Dict[str, Dict[str, Optional[float]]]:
             'total_deaths': 0,
             'wellspawns_killed': 0,
         }
-        for class_name in CLASS_ORDER
+        for class_name in ALL_CLASS_ORDER
     }
 
 def normalize_ladder_stats(data: Optional[Dict[str, Dict[str, Optional[float]]]]) -> Dict[str, Dict[str, Optional[float]]]:
@@ -8789,7 +8979,7 @@ def glossary_drop_rows() -> List[List[object]]:
 
 def glossary_equip_rule_rows() -> List[List[object]]:
     rows: List[List[object]] = []
-    for class_name in CLASS_ORDER:
+    for class_name in ALL_CLASS_ORDER:
         rules = CLASS_EQUIP_RULES.get(class_name, {})
         weapon_text = glossary_allowed_text(rules.get('weapon'))
         armor_text = glossary_allowed_text(rules.get('armor'))
@@ -10119,12 +10309,14 @@ class SessionState:
         return False
 
     def ladder_reset_slot_payload(self, season_id: int, reset_count: int) -> Dict[str, object]:
-        slot = build_default_slot_payload()
-        slot['season_id'] = sanitize_ladder_season_id(season_id)
+        season = sanitize_ladder_season_id(season_id)
+        slot = build_default_slot_payload(season)
+        slot['season_id'] = season
         slot['ladder_reset_count'] = sanitize_ladder_reset_count(reset_count)
         return slot
 
     def _apply_runtime_ladder_reset_state(self, notice: str, tone: str = 'warning') -> None:
+        feeder_classes = season_feeder_classes(self.current_global_season_id)
         self.player = None
         self.current_run_started_at = 0.0
         self.current_run_start_wall_time = 0.0
@@ -10142,6 +10334,7 @@ class SessionState:
         self.game_tab = 'arena'
         self.screen = 'chronicle' if (SUPABASE_ENABLED and self.is_authenticated()) else 'class_select'
         self.selection_return_class = None
+        self.unlocked_classes = set(feeder_classes)
         self.shared_gold = 0
         self.shared_inventory = []
         self.shared_proficiency_levels = empty_proficiency_levels()
@@ -10220,7 +10413,7 @@ class SessionState:
         ):
             return False
         self.slots = [self.ladder_reset_slot_payload(target_season, target_resets) for _ in range(3)]
-        notice = f'New ladder season live. The Prismatic Sorceress has shattered the old climb. All chronicles return to feeder-class selection. Ladder Resets {target_resets}.'
+        notice = f'New ladder season live. The seasonal apex has shattered the old climb. All chronicles return to feeder-class selection. Ladder Resets {target_resets}.'
         self._apply_runtime_ladder_reset_state(notice, 'warning' if announce else 'success')
         self.persist_to_disk()
         self.refresh_public_ladder()
@@ -10685,13 +10878,27 @@ class SessionState:
             self.persist_to_disk()
             return
         slot = self.slots[self.active_slot_index]
+        slot_mode = slot_mode_for_index(self.active_slot_index)
+        slot_season_id = int(
+            self.current_global_season_id
+            if slot_uses_global_ladder(slot_mode)
+            else sanitize_ladder_season_id(slot.get('season_id', DEFAULT_LADDER_SEASON_ID))
+        )
         slot['saved_item_sets'] = saved_item_sets_to_payload(self.saved_item_sets)
         slot['saved_set_collapsed'] = dict(self.saved_set_collapsed)
         slot['vault_items'] = [asdict(item) for item in self.vault_items]
         slot['vault_capacity'] = max(int(self.vault_capacity), len(self.vault_items), 0)
         slot['ladder_stats'] = copy.deepcopy(self.ladder_stats)
-        slot['unlocked_classes'] = sorted(normalize_unlocked_classes(self.unlocked_classes))
-        slot['selection_return_class'] = self.selection_return_class if self.selection_return_class in CLASS_ORDER else None
+        slot['season_id'] = slot_season_id
+        slot['unlocked_classes'] = sorted(
+            normalize_unlocked_classes(self.unlocked_classes, slot_season_id),
+            key=lambda class_name: season_class_sort_key(class_name, slot_season_id),
+        )
+        slot['selection_return_class'] = (
+            self.selection_return_class
+            if self.selection_return_class in season_class_set(slot_season_id)
+            else None
+        )
         slot['carryover_gold'] = int(self.shared_gold)
         slot['carryover_inventory'] = [asdict(item) for item in self.shared_inventory]
         slot['carryover_proficiency_levels'] = dict(self.shared_proficiency_levels)
@@ -10703,7 +10910,6 @@ class SessionState:
         slot['town_tutorial_seen'] = bool(self.town_tutorial_seen)
         slot['scene_tutorials_seen'] = dict(self.scene_tutorials_seen)
         slot['hotkey_bindings'] = dict(normalize_hotkey_bindings(self.hotkey_bindings))
-        slot['season_id'] = int(self.current_global_season_id)
         slot['ladder_reset_count'] = int(self.current_account_ladder_resets())
         slot['run_started_wall_time'] = float(self.current_run_start_wall_time if self.player is not None else 0.0)
         slot['player'] = None if self.player is None else copy.deepcopy(self.player.to_dict())
@@ -10736,47 +10942,54 @@ class SessionState:
     def open_slot(self, index: int) -> None:
         self.active_slot_index = index
         self.ladder_mode = slot_mode_for_index(index)
+        slot = normalize_slot_payload(self.slots[index])
+        slot_season_id = int(
+            self.current_global_season_id
+            if slot_uses_global_ladder(self.ladder_mode)
+            else sanitize_ladder_season_id(slot.get('season_id', DEFAULT_LADDER_SEASON_ID))
+        )
         self.current_monster = None
         self.current_monster_xp = 0
-        self.monster_chain_combo = int(self.slots[index].get('monster_chain_combo', 0) or 0)
-        self.current_run_kills = int(self.slots[index].get('current_run_kills', 0) or 0)
+        self.monster_chain_combo = int(slot.get('monster_chain_combo', 0) or 0)
+        self.current_run_kills = int(slot.get('current_run_kills', 0) or 0)
         self.arena_looted_item_count = 0
         self.arena_level_offset = 0
         self.mana_regen_progress = 0.0
         self.life_regen_progress = 0.0
         self.clear_arena_monster_art(True)
         self.arena_flee_requested = False
-        self.saved_item_sets = saved_item_sets_from_payload(self.slots[index].get('saved_item_sets'))
-        self.saved_set_collapsed = normalize_saved_set_collapsed(self.slots[index].get('saved_set_collapsed'), True)
-        self.unlocked_classes = normalize_unlocked_classes(self.slots[index].get('unlocked_classes'))
-        self.selection_return_class = self.slots[index].get('selection_return_class') if self.slots[index].get('selection_return_class') in CLASS_ORDER else None
-        self.shared_gold = int(self.slots[index].get('carryover_gold', 0) or 0)
+        self.saved_item_sets = saved_item_sets_from_payload(slot.get('saved_item_sets'))
+        self.saved_set_collapsed = normalize_saved_set_collapsed(slot.get('saved_set_collapsed'), True)
+        self.unlocked_classes = normalize_unlocked_classes(slot.get('unlocked_classes'), slot_season_id)
+        selection_return_class = normalize_player_class_name(slot.get('selection_return_class'), '')
+        self.selection_return_class = selection_return_class if selection_return_class in season_class_set(slot_season_id) else None
+        self.shared_gold = int(slot.get('carryover_gold', 0) or 0)
         self.shared_inventory = []
-        for carry_item_data in self.slots[index].get('carryover_inventory', []):
+        for carry_item_data in slot.get('carryover_inventory', []):
             if isinstance(carry_item_data, dict):
                 try:
                     self.shared_inventory.append(Item(**carry_item_data))
                 except Exception:
                     pass
-        carry_levels = self.slots[index].get('carryover_proficiency_levels', {})
-        carry_progress = self.slots[index].get('carryover_proficiency_progress', {})
+        carry_levels = slot.get('carryover_proficiency_levels', {})
+        carry_progress = slot.get('carryover_proficiency_progress', {})
         self.shared_proficiency_levels = {**empty_proficiency_levels(), **(carry_levels if isinstance(carry_levels, dict) else {})}
         self.shared_proficiency_progress = {**empty_proficiency_progress(), **(carry_progress if isinstance(carry_progress, dict) else {})}
         self.vault_items = []
-        for vault_item_data in self.slots[index].get('vault_items', []):
+        for vault_item_data in slot.get('vault_items', []):
             if isinstance(vault_item_data, dict):
                 try:
                     self.vault_items.append(Item(**vault_item_data))
                 except Exception:
                     pass
         try:
-            self.vault_capacity = int(self.slots[index].get('vault_capacity', 0) or 0)
+            self.vault_capacity = int(slot.get('vault_capacity', 0) or 0)
         except Exception:
             self.vault_capacity = 0
         self.vault_capacity = max(self.vault_capacity, len(self.vault_items), 0)
-        self.ladder_stats = normalize_ladder_stats(self.slots[index].get('ladder_stats'))
-        self.current_global_season_id = max(self.current_global_season_id, sanitize_ladder_season_id(self.slots[index].get('season_id', DEFAULT_LADDER_SEASON_ID)))
-        self.global_ladder_reset_count = max(self.global_ladder_reset_count, sanitize_ladder_reset_count(self.slots[index].get('ladder_reset_count', 0)))
+        self.ladder_stats = normalize_ladder_stats(slot.get('ladder_stats'))
+        self.current_global_season_id = max(self.current_global_season_id, sanitize_ladder_season_id(slot.get('season_id', DEFAULT_LADDER_SEASON_ID)))
+        self.global_ladder_reset_count = max(self.global_ladder_reset_count, sanitize_ladder_reset_count(slot.get('ladder_reset_count', 0)))
         self.arena_combat_log_hidden = True
         self.selected_inventory_source = 'inventory'
         self.selected_inventory_key = ''
@@ -10817,20 +11030,20 @@ class SessionState:
         self.inn_vault_inventory_selected_index = -1
         self.inn_vault_selected_index = -1
         self.current_ladder_line = ''
-        self.town_communications_text = str(self.slots[index].get('town_communications_text', '') or '')
-        self.town_communications_messages = normalize_town_communications_messages(self.slots[index].get('town_communications_messages', []), self.town_communications_text)
+        self.town_communications_text = str(slot.get('town_communications_text', '') or '')
+        self.town_communications_messages = normalize_town_communications_messages(slot.get('town_communications_messages', []), self.town_communications_text)
         self.town_communications_draft = ''
-        self.town_tutorial_seen = bool(self.slots[index].get('town_tutorial_seen', False))
+        self.town_tutorial_seen = bool(slot.get('town_tutorial_seen', False))
         self.town_tutorial_open = False
-        self.scene_tutorials_seen = normalize_scene_tutorials_seen(self.slots[index].get('scene_tutorials_seen'), bool(self.slots[index].get('player')))
-        self.hotkey_bindings = normalize_hotkey_bindings(self.slots[index].get('hotkey_bindings'))
+        self.scene_tutorials_seen = normalize_scene_tutorials_seen(slot.get('scene_tutorials_seen'), bool(slot.get('player')))
+        self.hotkey_bindings = normalize_hotkey_bindings(slot.get('hotkey_bindings'))
         self.scene_tutorial_open_key = ''
         self.reset_masterquest_scene_state()
         self.current_well_monster_asset_index = 0
         self.current_encounter_type = 'normal'
         self.last_encounter_type = 'normal'
         self.class_compendium_open = False
-        slot_player = self.slots[index].get('player')
+        slot_player = slot.get('player')
         if slot_player:
             self.player = Player.from_dict(copy.deepcopy(slot_player))
             self.selection_return_class = self.player.player_class
@@ -10839,11 +11052,11 @@ class SessionState:
             self.shared_inventory = build_carryover_inventory_from_player(self.player)
             self.shared_proficiency_levels = dict(getattr(self.player, 'proficiency_levels', empty_proficiency_levels()))
             self.shared_proficiency_progress = dict(getattr(self.player, 'proficiency_progress', empty_proficiency_progress()))
-            self.monster_chain_combo = int(self.slots[index].get('monster_chain_combo', 0) or 0)
-            self.current_run_kills = int(self.slots[index].get('current_run_kills', 0) or 0)
+            self.monster_chain_combo = int(slot.get('monster_chain_combo', 0) or 0)
+            self.current_run_kills = int(slot.get('current_run_kills', 0) or 0)
             self.arena_looted_item_count = 0
             self.arena_level_offset = 0
-            saved_started = float(self.slots[index].get('run_started_wall_time', 0.0) or 0.0)
+            saved_started = float(slot.get('run_started_wall_time', 0.0) or 0.0)
             if saved_started > 0:
                 elapsed = max(0.0, time.time() - saved_started)
                 self.current_run_started_at = max(0.0, time.monotonic() - elapsed)
@@ -10861,8 +11074,8 @@ class SessionState:
             self.player = None
             self.current_run_started_at = 0.0
             self.current_run_start_wall_time = 0.0
-            self.saved_item_sets = saved_item_sets_from_payload(self.slots[index].get('saved_item_sets'))
-            self.saved_set_collapsed = normalize_saved_set_collapsed(self.slots[index].get('saved_set_collapsed'), True)
+            self.saved_item_sets = saved_item_sets_from_payload(slot.get('saved_item_sets'))
+            self.saved_set_collapsed = normalize_saved_set_collapsed(slot.get('saved_set_collapsed'), True)
             self.pending_character_name = clean_character_name(self.pending_character_name)
             self.town_tutorial_open = False
             self.screen = 'class_select'
@@ -11101,8 +11314,11 @@ def assign_masterquest_essence_visuals(self) -> None:
 def ensure_masterquest_scene_state(self, new_visit: bool = False) -> None:
     if self.player is None:
         return
-    next_class = CLASS_MASTERQUEST_NEXT.get(normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard')))
-    is_final_victory = normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard')) == 'Prismatic Sorceress'
+    season_id = self.current_slot_season_id()
+    current_class = normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard'))
+    current_order = season_class_order(season_id)
+    next_class = season_class_masterquest_next(season_id).get(current_class)
+    is_final_victory = bool(current_order) and current_class == current_order[-1]
     if next_class is None and not is_final_victory:
         self.masterquest_message = 'This class has no further Prismatic Quest path.'
         return
@@ -11139,8 +11355,11 @@ def masterquest_entry_blocker(self) -> str:
         return 'Finish the current fight before stepping into Prismatic Quest.'
     if int(self.player.level) < 60:
         return 'Prismatic Quest remains sealed until level 60.'
-    next_class = CLASS_MASTERQUEST_NEXT.get(normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard')))
-    is_final_victory = normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard')) == 'Prismatic Sorceress'
+    season_id = self.current_slot_season_id()
+    current_class = normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard'))
+    current_order = season_class_order(season_id)
+    next_class = season_class_masterquest_next(season_id).get(current_class)
+    is_final_victory = bool(current_order) and current_class == current_order[-1]
     if next_class is None and not is_final_victory:
         return 'This class has no further Prismatic Quest path.'
     if next_class is not None and next_class in self.unlocked_classes:
@@ -11201,12 +11420,13 @@ def clear_masterquest_drag(self) -> None:
 def masterquest_status_text(self) -> str:
     if self.player is None:
         return ''
-    next_class = CLASS_MASTERQUEST_NEXT.get(normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard')))
+    current_class = normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard'))
+    next_class = season_class_masterquest_next(self.current_slot_season_id()).get(current_class)
     path_text = f"{self.player.player_class} -> {next_class}" if next_class else f"{self.player.player_class} -> Final Victory"
-    total_slots = len(self.masterquest_essence_order) if self.masterquest_essence_order else masterquest_slot_count(normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard')))
+    total_slots = len(self.masterquest_essence_order) if self.masterquest_essence_order else masterquest_slot_count(current_class)
     solved = len(self.masterquest_matched_essences)
-    cost = masterquest_attempt_cost(normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard')))
-    xp_penalty_pct = int(round(masterquest_xp_debuff_fraction(normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard'))) * 1000)) / 10
+    cost = masterquest_attempt_cost(current_class)
+    xp_penalty_pct = int(round(masterquest_xp_debuff_fraction(current_class) * 1000)) / 10
     return (
         f"Path {path_text}  •  Solved {solved}/{total_slots}  •  Blind clear odds {masterquest_blind_clear_text(normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard')))}  •  Entry {cost}g  •  XP Penalty -{xp_penalty_pct}%\n"
         f"Any wrong vessel fails the rite immediately."
@@ -11282,6 +11502,8 @@ async def resolve_masterquest_drop(self, container_key: str, refresh) -> None:
 def finish_masterquest_attempt(self, passed: bool) -> None:
     if self.player is None:
         return
+    season_id = self.current_slot_season_id()
+    current_order = season_class_order(season_id)
     current_class = normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard'))
     current_name = clean_character_name(self.player.name)
     current_mode = slot_mode_for_index(self.active_slot_index if self.active_slot_index is not None else 0)
@@ -11294,7 +11516,7 @@ def finish_masterquest_attempt(self, passed: bool) -> None:
     elapsed = self.current_run_elapsed_seconds()
     self.record_masterquest_ledger_entry(passed, elapsed)
     if passed:
-        unlocked_next = CLASS_MASTERQUEST_NEXT.get(current_class)
+        unlocked_next = season_class_masterquest_next(season_id).get(current_class)
         if unlocked_next:
             self.unlocked_classes.add(unlocked_next)
         if elapsed > 0 and current_class in self.ladder_stats:
@@ -11303,13 +11525,14 @@ def finish_masterquest_attempt(self, passed: bool) -> None:
                 self.ladder_stats[current_class]['fastest_masterquest_seconds'] = float(elapsed)
     self.queue_masterquest_result_popup(passed)
     chance_text = masterquest_blind_clear_text(current_class)
-    if passed and current_class == 'Prismatic Sorceress':
+    if passed and bool(current_order) and current_class == current_order[-1]:
         if current_mode == 'SSF':
             slot_index = self.active_slot_index if self.active_slot_index is not None else SLOT_INDEX_BY_MODE['SSF']
-            base_slot = normalize_slot_payload(self.slots[slot_index]) if 0 <= slot_index < len(self.slots) else build_default_slot_payload()
+            base_slot = normalize_slot_payload(self.slots[slot_index]) if 0 <= slot_index < len(self.slots) else build_default_slot_payload(season_id)
             new_reset_count = sanitize_ladder_reset_count(base_slot.get('ladder_reset_count', 0)) + 1
-            reset_slot = build_default_slot_payload()
-            reset_slot['season_id'] = sanitize_ladder_season_id(base_slot.get('season_id', DEFAULT_LADDER_SEASON_ID))
+            reset_season_id = sanitize_ladder_season_id(base_slot.get('season_id', season_id))
+            reset_slot = build_default_slot_payload(reset_season_id)
+            reset_slot['season_id'] = reset_season_id
             reset_slot['ladder_reset_count'] = new_reset_count
             self.slots[slot_index] = reset_slot
             self.player = None
@@ -12558,6 +12781,7 @@ def export_save(self) -> None:
         'saved_set_collapsed': dict(self.saved_set_collapsed),
         'ladder_stats': copy.deepcopy(self.ladder_stats),
         'unlocked_classes': sorted(self.unlocked_classes),
+        'season_id': self.current_slot_season_id(),
         'selection_return_class': self.selection_return_class,
         'town_tutorial_seen': bool(self.town_tutorial_seen),
         'scene_tutorials_seen': dict(self.scene_tutorials_seen),
@@ -12575,6 +12799,7 @@ def import_save(self) -> None:
     try:
         raw = base64.urlsafe_b64decode(code.encode('utf-8'))
         payload = json.loads(raw.decode('utf-8'))
+        import_season_id = sanitize_ladder_season_id(payload.get('season_id', self.current_slot_season_id()), self.current_slot_season_id())
         self.player = Player.from_dict(payload['player'])
         self.vault_items = []
         for vault_item_data in payload.get('vault_items', []):
@@ -12592,10 +12817,9 @@ def import_save(self) -> None:
         self.saved_item_sets = saved_item_sets_from_payload(payload.get('saved_item_sets'))
         self.saved_set_collapsed = normalize_saved_set_collapsed(payload.get('saved_set_collapsed'), True)
         self.ladder_stats = normalize_ladder_stats(payload.get('ladder_stats'))
-        for class_name in payload.get('unlocked_classes', []):
-            if isinstance(class_name, str):
-                self.unlocked_classes.add(class_name)
-        self.selection_return_class = payload.get('selection_return_class') or self.player.player_class
+        self.unlocked_classes = normalize_unlocked_classes(payload.get('unlocked_classes'), import_season_id)
+        selection_return_class = normalize_player_class_name(payload.get('selection_return_class'), self.player.player_class)
+        self.selection_return_class = selection_return_class if selection_return_class in season_class_set(import_season_id) else self.player.player_class
         self.pending_character_name = clean_character_name(self.player.name)
         self.current_run_started_at = time.monotonic()
         self.current_run_start_wall_time = time.time()
@@ -12745,7 +12969,7 @@ def ladder_fastest_rows(self) -> List[Tuple[str, float]]:
 def ladder_table_rows(self) -> List[Dict[str, object]]:
     rows: List[Dict[str, object]] = []
     current_class = self.player.player_class if self.player is not None else None
-    for class_name in CLASS_ORDER:
+    for class_name in season_class_order(self.current_slot_season_id()):
         stats = self.ladder_stats.get(class_name, {})
         rows.append({
             'class_name': class_name,
@@ -12879,7 +13103,7 @@ def normalize_public_profile_payload(raw_row: object) -> Dict[str, object]:
     if not isinstance(raw_row, dict):
         return {}
     highest_class = str(raw_row.get('highest_class') or '').strip()
-    if highest_class not in CLASS_ORDER:
+    if highest_class not in KNOWN_CLASS_NAMES:
         highest_class = ''
     equipped_items: Dict[str, Optional[Item]] = {'weapon': None, 'armor': None, 'charm': None}
     raw_equipped = raw_row.get('equipped_items')
@@ -15230,6 +15454,16 @@ def current_slot_mode(self) -> str:
         return slot_mode_for_index(self.active_slot_index)
     return normalize_ladder_mode(getattr(self, 'ladder_mode', 'Core'))
 
+def current_slot_season_id(self) -> int:
+    default_season = sanitize_ladder_season_id(getattr(self, 'current_global_season_id', DEFAULT_LADDER_SEASON_ID))
+    if self.active_slot_index is not None and 0 <= self.active_slot_index < len(self.slots):
+        mode = slot_mode_for_index(self.active_slot_index)
+        if slot_uses_global_ladder(mode):
+            return default_season
+        slot = normalize_slot_payload(self.slots[self.active_slot_index])
+        return sanitize_ladder_season_id(slot.get('season_id', default_season), default_season)
+    return default_season
+
 def current_slot_title(self) -> str:
     return slot_title_for_index(self.active_slot_index if self.active_slot_index is not None else SLOT_INDEX_BY_MODE.get(normalize_ladder_mode(getattr(self, 'ladder_mode', 'Core')), 0))
 
@@ -15261,7 +15495,7 @@ def apply_pending_global_season_reset(self, announce: bool = True) -> bool:
             changed_indexes.append(index)
     if not changed_indexes:
         return False
-    notice = f'New ladder season live. The Prismatic Sorceress has shattered the old climb. Core and HC chronicles return to feeder-class selection. Ladder Resets {target_resets}.'
+    notice = f'New ladder season live. The seasonal apex has shattered the old climb. Core and HC chronicles return to feeder-class selection. Ladder Resets {target_resets}.'
     if self.active_slot_index in changed_indexes:
         self._apply_runtime_ladder_reset_state(notice, 'warning' if announce else 'success')
         self.class_select_notice = notice
@@ -15272,6 +15506,7 @@ def apply_pending_global_season_reset(self, announce: bool = True) -> bool:
 def _hardcore_death_cleanup(self, encounter_type: str = 'normal') -> None:
     if self.player is None:
         return
+    season_id = self.current_slot_season_id()
     fallen_class = str(self.player.player_class or 'Adventurer')
     fallen_name = clean_character_name(self.player.name)
     lost_items = [coerce_item(self.player.equipped.get(slot_name)) for slot_name in ('weapon', 'armor', 'charm')]
@@ -15284,7 +15519,7 @@ def _hardcore_death_cleanup(self, encounter_type: str = 'normal') -> None:
     self.shared_proficiency_progress = dict(getattr(self.player, 'proficiency_progress', empty_proficiency_progress()))
     self.pending_character_name = fallen_name
     self.selection_return_class = None
-    self.unlocked_classes = {'Black Guard', 'Shadow Mage'}
+    self.unlocked_classes = set(season_feeder_classes(season_id))
     self.player = None
     self.current_run_started_at = 0.0
     self.current_run_start_wall_time = 0.0
@@ -15316,6 +15551,7 @@ def _hardcore_death_cleanup(self, encounter_type: str = 'normal') -> None:
     self.sync_active_slot()
 
 SessionState.current_slot_mode = current_slot_mode
+SessionState.current_slot_season_id = current_slot_season_id
 SessionState.current_slot_title = current_slot_title
 SessionState.current_account_ladder_resets = current_account_ladder_resets
 SessionState.apply_pending_global_season_reset = apply_pending_global_season_reset
@@ -17041,6 +17277,8 @@ def main_page(request: Request) -> None:
                     if state.selection_return_class
                     else 'No active run is currently waiting in town. Pick any unlocked class to begin a new ascent.'
                 )
+                active_selection_season_id = state.current_slot_season_id()
+                active_selection_class_order = season_class_order(active_selection_season_id)
                 with ui.column().classes('mq-selection-shell w-full gap-5'): 
                     with ui.card().classes('mq-selection-hero w-full p-4 md:p-5 lg:p-6'):
                         with ui.row().classes('w-full items-stretch gap-5 no-wrap max-[1180px]:flex-wrap'):
@@ -17072,16 +17310,16 @@ def main_page(request: Request) -> None:
                             with ui.card().classes('mq-panel-frame w-full max-w-[420px] p-4 flex-[2]'):
                                 ui.label('Ascension Path').classes('text-2xl font-semibold text-slate-100')
                                 ui.label('UNLOCK TRACK').classes('mq-panel-caption mt-2')
-                                for class_name in CLASS_ORDER:
+                                for class_name in active_selection_class_order:
                                     unlocked = class_name in state.unlocked_classes
                                     with ui.row().classes('w-full items-center justify-between gap-3 mt-2'):
                                         ui.label(f"{'◆' if unlocked else '◇'} {class_name}").classes('text-slate-200')
-                                        ui.label('Ready' if unlocked else get_class_unlock_requirement(class_name)).classes('text-right text-sm ' + ('text-amber-300' if unlocked else 'text-slate-500'))
+                                        ui.label('Ready' if unlocked else get_class_unlock_requirement_for_season(class_name, active_selection_season_id)).classes('text-right text-sm ' + ('text-amber-300' if unlocked else 'text-slate-500'))
                                 ui.separator().classes('my-3 opacity-20')
                                 ui.label('RITUAL NOTE').classes('mq-panel-caption')
-                                ui.label('Black Guard and Shadow Mage both lead into Jade Samurai. From there, the path tightens one class at a time until Prismatic Sorceress.').classes('text-slate-400 italic leading-6 mt-1')
+                                ui.label(season_path_note(active_selection_season_id)).classes('text-slate-400 italic leading-6 mt-1')
                     with ui.element('div').classes('mq-selection-grid w-full'):
-                        selectable_classes = [player_class for player_class in CLASS_ORDER if player_class in state.unlocked_classes]
+                        selectable_classes = [player_class for player_class in active_selection_class_order if player_class in state.unlocked_classes]
                         for player_class in selectable_classes:
                             preview = create_player(player_class)
                             unlocked = True
@@ -17104,7 +17342,7 @@ def main_page(request: Request) -> None:
                                 with ui.column().classes('w-full gap-3 mt-4'):
                                     with ui.card().classes('mq-panel-frame p-3'):
                                         ui.label('PATH').classes('mq-panel-caption')
-                                        ui.label(get_class_unlock_requirement(player_class)).classes('text-slate-300 text-sm leading-6 mt-1')
+                                        ui.label(get_class_unlock_requirement_for_season(player_class, active_selection_season_id)).classes('text-slate-300 text-sm leading-6 mt-1')
                                     with ui.card().classes('mq-panel-frame p-3'):
                                         ui.label('EQUIPMENT').classes('mq-panel-caption')
                                         ui.label(format_class_equip_rules(player_class)).classes('text-slate-300 text-sm leading-6 mt-1')
@@ -17193,7 +17431,7 @@ def main_page(request: Request) -> None:
                                                     rotation_note = str(details.get('rotation_note') or '')
                                                     if rotation_note:
                                                         ui.label(rotation_note).classes('text-slate-400 italic leading-6')
-                                for class_name in (CLASS_ORDER if active_compendium_tab == 'classes' else []):
+                                for class_name in (active_selection_class_order if active_compendium_tab == 'classes' else []):
                                     preview = create_player(class_name)
                                     unlocked = class_name in state.unlocked_classes
                                     weapon = preview.equipped.get('weapon')
@@ -17213,13 +17451,13 @@ def main_page(request: Request) -> None:
                                             with ui.column().classes('w-full flex-1 gap-3'):
                                                 with ui.row().classes('w-full items-center justify-between gap-3 max-[700px]:flex-wrap'):
                                                     ui.label(class_name).classes('text-2xl font-semibold text-slate-100')
-                                                    ui.label('Ready' if unlocked else get_class_unlock_requirement(class_name)).classes('text-sm ' + ('text-amber-300' if unlocked else 'text-slate-400'))
+                                                    ui.label('Ready' if unlocked else get_class_unlock_requirement_for_season(class_name, active_selection_season_id)).classes('text-sm ' + ('text-amber-300' if unlocked else 'text-slate-400'))
                                                 ui.label(CLASS_DESCRIPTIONS[class_name]).classes('text-slate-300 leading-6')
                                                 with ui.element('div').classes('mq-inventory-shell w-full'):
                                                     with ui.card().classes('mq-panel-frame p-4'):
                                                         ui.label('Path & Restrictions').classes('mq-panel-caption')
                                                         ui.label('UNLOCK').classes('text-slate-200 text-sm mt-3')
-                                                        ui.label(get_class_unlock_requirement(class_name)).classes('mq-detail-text mt-1')
+                                                        ui.label(get_class_unlock_requirement_for_season(class_name, active_selection_season_id)).classes('mq-detail-text mt-1')
                                                         ui.label('GEAR').classes('text-slate-200 text-sm mt-3')
                                                         ui.label(format_class_equip_rules(class_name)).classes('mq-detail-text mt-1')
                                                     with ui.card().classes('mq-panel-frame p-4'):
@@ -17348,7 +17586,7 @@ def main_page(request: Request) -> None:
                             visible_guild_messages = state.guild_message_rows[:80]
                             with ui.row().classes('w-full items-center justify-between gap-3 mb-2 max-[860px]:flex-wrap'):
                                 with ui.column().classes('gap-1'):
-                                    ui.label('Town Crier & Rumors').classes('text-[2.05rem] font-semibold text-slate-100 leading-tight')
+                                    ui.label('Town Crier & Rumors').classes('text-[2.22rem] font-semibold text-slate-100 leading-tight')
                                 with ui.row().classes('items-center gap-2 flex-wrap'):
                                     if selected_town_chat_tab == 'square':
                                         ui.label('Shared Cloud Feed' if cloud_feed_enabled else 'Local Chronicle Feed').classes('mq-town-chat-mode-pill')
@@ -18099,7 +18337,7 @@ def main_page(request: Request) -> None:
 
                     elif state.game_tab == 'masterquest':
                         state.ensure_masterquest_scene_state(False)
-                        next_class = CLASS_MASTERQUEST_NEXT.get(normalize_player_class_name(player.player_class, str(player.player_class or 'Black Guard')))
+                        next_class = season_class_masterquest_next(state.current_slot_season_id()).get(normalize_player_class_name(player.player_class, str(player.player_class or 'Black Guard')))
                         route_label = f'Unlock {next_class}' if next_class else 'Complete the Final Rite'
                         status_text = state.masterquest_status_text()
 
@@ -18355,9 +18593,11 @@ def main_page(request: Request) -> None:
                         fastest_rows_all = ladder_fastest_overall_rows(getattr(state, 'public_pq_ledger_rows_cache', []), current_ladder_mode, state.current_global_season_id)
                         fastest_rows_page, fastest_page, fastest_total_pages, fastest_page_options = paginate_leaderboard_rows(fastest_rows_all, getattr(state, 'ladder_fastest_page', 1))
                         state.ladder_fastest_page = fastest_page
-                        available_fastest_class = str(getattr(state, 'ladder_fastest_class_filter', 'Black Guard') or 'Black Guard')
-                        if available_fastest_class not in CLASS_ORDER:
-                            available_fastest_class = 'Black Guard'
+                        current_ladder_classes = season_class_order(state.current_global_season_id)
+                        default_fastest_class = current_ladder_classes[0] if current_ladder_classes else 'Black Guard'
+                        available_fastest_class = str(getattr(state, 'ladder_fastest_class_filter', default_fastest_class) or default_fastest_class)
+                        if available_fastest_class not in current_ladder_classes:
+                            available_fastest_class = default_fastest_class
                         state.ladder_fastest_class_filter = available_fastest_class
                         fastest_class_rows_all = ladder_fastest_rows_for_class(getattr(state, 'public_pq_ledger_rows_cache', []), current_ladder_mode, available_fastest_class, state.current_global_season_id)
                         fastest_class_rows_page, fastest_class_page, fastest_class_total_pages, fastest_class_page_options = paginate_leaderboard_rows(fastest_class_rows_all, getattr(state, 'ladder_fastest_class_page', 1))
@@ -18467,7 +18707,7 @@ def main_page(request: Request) -> None:
                                         ui.label(f'{current_ladder_mode} Fastest PQ by Class').classes('text-xl font-semibold text-slate-100 mb-3')
                                         ui.label('Choose a class tab to inspect ranked PQ attempt times for that path.').classes('text-slate-300 leading-6 mb-3')
                                         with ui.row().classes('w-full gap-2 mb-4 flex-wrap'):
-                                            for class_name in CLASS_ORDER:
+                                            for class_name in current_ladder_classes:
                                                 class_btn = ui.button(class_name, on_click=lambda chosen_class=class_name: (setattr(state, 'ladder_fastest_class_filter', chosen_class), setattr(state, 'ladder_fastest_class_page', 1), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-4 py-2 font-semibold')
                                                 if available_fastest_class == class_name:
                                                     class_btn.classes('mq-btn-gold')
