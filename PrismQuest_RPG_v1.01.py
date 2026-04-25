@@ -4573,14 +4573,6 @@ window.mqBindVaultList = function(id) {
   if (!el.hasAttribute('tabindex')) {
     el.setAttribute('tabindex', '0');
   }
-  el.addEventListener('click', function(event) {
-    const card = event.target && event.target.closest ? event.target.closest('[data-mq-vault-card="1"]') : null;
-    if (!card || !el.contains(card)) return;
-    window.mqVaultSetSelected(card.dataset.mqVaultList || '', card.dataset.mqVaultIndex || '');
-    if (typeof el.focus === 'function') {
-      el.focus({preventScroll: true});
-    }
-  });
   el.addEventListener('keydown', function(event) {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
     const cards = Array.from(el.querySelectorAll('[data-mq-vault-card="1"]'));
@@ -4598,8 +4590,10 @@ window.mqBindVaultList = function(id) {
     if (typeof target.scrollIntoView === 'function') {
       target.scrollIntoView({block: 'nearest'});
     }
-    if (typeof target.click === 'function') {
-      target.click();
+    const downEvent = new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window });
+    target.dispatchEvent(downEvent);
+    if (typeof el.focus === 'function') {
+      el.focus({preventScroll: true});
     }
   });
 };
@@ -17826,8 +17820,8 @@ def main_page(request: Request) -> None:
                                     for idx, item in filtered_inventory_entries:
                                         selected = idx == selected_inv
                                         card = ui.card().classes(f"{'mq-item-card selected' if selected else 'mq-item-card'} mq-vault-item-card w-full p-3").style(rarity_edge_style(item))
-                                        card.props(f'tabindex=0 role=button data-mq-vault-card=1 data-mq-vault-list=inventory data-mq-vault-index={idx}')
-                                        card.on('click', lambda _e, i=idx: select_inn_vault_inventory(i))
+                                        card.props(f"tabindex=0 role=button data-mq-vault-card=1 data-mq-vault-list=inventory data-mq-vault-index={idx} onmousedown=window.mqVaultSetSelected('inventory',{idx})")
+                                        card.on('mousedown', lambda _e, i=idx: select_inn_vault_inventory(i))
                                         with card:
                                             with ui.row().classes('w-full items-start justify-between gap-3 max-[860px]:flex-wrap'):
                                                 with ui.column().classes('gap-1 flex-grow'):
@@ -17863,8 +17857,8 @@ def main_page(request: Request) -> None:
                                     for idx, item in filtered_vault_entries:
                                         selected = idx == selected_vault
                                         card = ui.card().classes(f"{'mq-item-card selected' if selected else 'mq-item-card'} mq-vault-item-card w-full p-3").style(rarity_edge_style(item))
-                                        card.props(f'tabindex=0 role=button data-mq-vault-card=1 data-mq-vault-list=storage data-mq-vault-index={idx}')
-                                        card.on('click', lambda _e, i=idx: select_inn_vault_item(i))
+                                        card.props(f"tabindex=0 role=button data-mq-vault-card=1 data-mq-vault-list=storage data-mq-vault-index={idx} onmousedown=window.mqVaultSetSelected('storage',{idx})")
+                                        card.on('mousedown', lambda _e, i=idx: select_inn_vault_item(i))
                                         with card:
                                             with ui.row().classes('w-full items-start justify-between gap-3 max-[860px]:flex-wrap'):
                                                 with ui.column().classes('gap-1 flex-grow'):
