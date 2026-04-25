@@ -4554,6 +4554,55 @@ window.mqRestoreScroll = function(id) {
     setTimeout(apply, 700);
   });
 };
+window.mqVaultSetSelected = function(listName, index) {
+  const wantedList = String(listName || '');
+  const wantedIndex = String(index == null ? '' : index);
+  document.querySelectorAll('[data-mq-vault-card="1"]').forEach(card => {
+    const isSelected = wantedList && card.dataset.mqVaultList === wantedList && String(card.dataset.mqVaultIndex || '') === wantedIndex;
+    card.classList.toggle('selected', !!isSelected);
+    const flag = card.querySelector('[data-mq-vault-flag="1"]');
+    if (flag) {
+      flag.style.visibility = isSelected ? 'visible' : 'hidden';
+    }
+  });
+};
+window.mqBindVaultList = function(id) {
+  const el = document.getElementById(id);
+  if (!el || el.dataset.mqVaultBound === '1') return;
+  el.dataset.mqVaultBound = '1';
+  if (!el.hasAttribute('tabindex')) {
+    el.setAttribute('tabindex', '0');
+  }
+  el.addEventListener('click', function(event) {
+    const card = event.target && event.target.closest ? event.target.closest('[data-mq-vault-card="1"]') : null;
+    if (!card || !el.contains(card)) return;
+    window.mqVaultSetSelected(card.dataset.mqVaultList || '', card.dataset.mqVaultIndex || '');
+    if (typeof el.focus === 'function') {
+      el.focus({preventScroll: true});
+    }
+  });
+  el.addEventListener('keydown', function(event) {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    const cards = Array.from(el.querySelectorAll('[data-mq-vault-card="1"]'));
+    if (!cards.length) return;
+    event.preventDefault();
+    const step = event.key === 'ArrowDown' ? 1 : -1;
+    let currentIndex = cards.findIndex(card => card.classList.contains('selected'));
+    if (currentIndex < 0) {
+      currentIndex = step > 0 ? -1 : cards.length;
+    }
+    const nextIndex = Math.max(0, Math.min(cards.length - 1, currentIndex + step));
+    const target = cards[nextIndex];
+    if (!target) return;
+    window.mqVaultSetSelected(target.dataset.mqVaultList || '', target.dataset.mqVaultIndex || '');
+    if (typeof target.scrollIntoView === 'function') {
+      target.scrollIntoView({block: 'nearest'});
+    }
+    if (typeof target.click === 'function') {
+      target.click();
+    }
+  });
+};
 window.__mqMeterControllers = window.__mqMeterControllers || {};
 window.mqClampUnit = function(value) {
   return Math.max(0, Math.min(1, Number(value) || 0));
@@ -17572,7 +17621,19 @@ def main_page(request: Request) -> None:
     def remember_inn_vault_scroll() -> None:
         ui.run_javascript("window.mqRememberScroll && window.mqRememberScroll('mq-inn-vault-inventory-scroll'); window.mqRememberScroll && window.mqRememberScroll('mq-inn-vault-storage-scroll')")
 
+    def sync_inn_vault_client_selection() -> None:
+        selected_inv = int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1)
+        selected_vault = int(getattr(state, 'inn_vault_selected_index', -1) or -1)
+        selected_list = 'inventory' if selected_inv >= 0 else ('storage' if selected_vault >= 0 else '')
+        selected_index = selected_inv if selected_inv >= 0 else selected_vault
+        ui.run_javascript(
+            f"window.mqBindVaultList && window.mqBindVaultList('mq-inn-vault-inventory-scroll'); "
+            f"window.mqBindVaultList && window.mqBindVaultList('mq-inn-vault-storage-scroll'); "
+            f"window.mqVaultSetSelected && window.mqVaultSetSelected({json.dumps(selected_list)}, {json.dumps(selected_index)});"
+        )
+
     def restore_inn_vault_scroll() -> None:
+        sync_inn_vault_client_selection()
         ui.run_javascript("window.mqBindScrollMemory && window.mqBindScrollMemory('mq-inn-vault-inventory-scroll'); window.mqBindScrollMemory && window.mqBindScrollMemory('mq-inn-vault-storage-scroll'); window.mqRestoreScroll && window.mqRestoreScroll('mq-inn-vault-inventory-scroll'); window.mqRestoreScroll && window.mqRestoreScroll('mq-inn-vault-storage-scroll')")
 
     def inn_vault_item_matches_filters(item: Item) -> bool:
@@ -17603,7 +17664,7 @@ def main_page(request: Request) -> None:
 
     def inn_vault_selected_flag_html(selected: bool) -> str:
         visibility = 'visible' if selected else 'hidden'
-        return f"<span class='mq-manifest-flag selected' style='visibility:{visibility}; min-width: 7.25rem;'>Selected</span>"
+        return f"<span class='mq-manifest-flag selected' data-mq-vault-flag='1' style='visibility:{visibility}; min-width: 7.25rem;'>Selected</span>"
 
     def refresh_inn_vault_views(*, preserve_scroll: bool = True, remember_scroll: bool = True) -> None:
         sync_inn_vault_selection()
@@ -17707,14 +17768,14 @@ def main_page(request: Request) -> None:
             return
         state.inn_vault_inventory_selected_index = int(index)
         state.inn_vault_selected_index = -1
-        refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True)
+        sync_inn_vault_client_selection()
 
     def select_inn_vault_item(index: int) -> None:
         if int(getattr(state, 'inn_vault_selected_index', -1) or -1) == int(index) and int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1) == -1:
             return
         state.inn_vault_selected_index = int(index)
         state.inn_vault_inventory_selected_index = -1
-        refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True)
+        sync_inn_vault_client_selection()
 
     with inn_vault_dialog:
         @ui.refreshable
@@ -17755,7 +17816,7 @@ def main_page(request: Request) -> None:
                 with ui.row().classes('w-full items-stretch gap-4 mt-4 no-wrap max-[1180px]:flex-wrap'):
                     with ui.card().classes('mq-card flex-1 min-w-[340px] p-4'):
                         ui.label(f'Inventory ({len(filtered_inventory_entries)}/{len(state.player.inventory)})').classes('mq-inv-section-title mb-3')
-                        with ui.element('div').props('id=mq-inn-vault-inventory-scroll onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-inventory-scroll")').classes('w-full mq-pack-manifest-scroll').style('max-height: 520px; overflow-y: auto; padding-right: 6px; padding-top: 2px;'):
+                        with ui.element('div').props('id=mq-inn-vault-inventory-scroll data-mq-vault-list=inventory tabindex=0 onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-inventory-scroll")').classes('w-full mq-pack-manifest-scroll').style('max-height: 520px; overflow-y: auto; padding-right: 6px; padding-top: 2px;'):
                             if not state.player.inventory:
                                 ui.label('No inventory items to deposit.').classes('mq-inv-empty')
                             elif not filtered_inventory_entries:
@@ -17765,7 +17826,7 @@ def main_page(request: Request) -> None:
                                     for idx, item in filtered_inventory_entries:
                                         selected = idx == selected_inv
                                         card = ui.card().classes(f"{'mq-item-card selected' if selected else 'mq-item-card'} mq-vault-item-card w-full p-3").style(rarity_edge_style(item))
-                                        card.props('tabindex=0 role=button')
+                                        card.props(f'tabindex=0 role=button data-mq-vault-card=1 data-mq-vault-list=inventory data-mq-vault-index={idx}')
                                         card.on('click', lambda _e, i=idx: select_inn_vault_inventory(i))
                                         with card:
                                             with ui.row().classes('w-full items-start justify-between gap-3 max-[860px]:flex-wrap'):
@@ -17791,7 +17852,7 @@ def main_page(request: Request) -> None:
                             ui.label(f'Open Slots {max(vault_capacity - vault_count, 0)}').classes('mq-detail-text text-center')
                     with ui.card().classes('mq-card flex-1 min-w-[340px] p-4'):
                         ui.label(f'Vault Storage ({len(filtered_vault_entries)}/{vault_count})').classes('mq-inv-section-title mb-3')
-                        with ui.element('div').props('id=mq-inn-vault-storage-scroll onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-storage-scroll")').classes('w-full mq-pack-manifest-scroll').style('max-height: 520px; overflow-y: auto; padding-right: 6px; padding-top: 2px;'):
+                        with ui.element('div').props('id=mq-inn-vault-storage-scroll data-mq-vault-list=storage tabindex=0 onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-storage-scroll")').classes('w-full mq-pack-manifest-scroll').style('max-height: 520px; overflow-y: auto; padding-right: 6px; padding-top: 2px;'):
                             if not state.vault_items:
                                 empty_text = 'No vault slots purchased yet.' if vault_capacity <= 0 else 'The vault is empty.'
                                 ui.label(empty_text).classes('mq-inv-empty')
@@ -17802,7 +17863,7 @@ def main_page(request: Request) -> None:
                                     for idx, item in filtered_vault_entries:
                                         selected = idx == selected_vault
                                         card = ui.card().classes(f"{'mq-item-card selected' if selected else 'mq-item-card'} mq-vault-item-card w-full p-3").style(rarity_edge_style(item))
-                                        card.props('tabindex=0 role=button')
+                                        card.props(f'tabindex=0 role=button data-mq-vault-card=1 data-mq-vault-list=storage data-mq-vault-index={idx}')
                                         card.on('click', lambda _e, i=idx: select_inn_vault_item(i))
                                         with card:
                                             with ui.row().classes('w-full items-start justify-between gap-3 max-[860px]:flex-wrap'):
