@@ -3378,6 +3378,11 @@ body {
   border-color: rgba(var(--mq-accent-rgb), 0.78);
   box-shadow: 0 18px 34px rgba(0,0,0,0.30), 0 0 0 2px rgba(var(--mq-accent-rgb), 0.22), inset 0 0 0 1px rgba(255,255,255,0.04);
 }
+.mq-vault-item-card {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
 .mq-item-card.previewing:not(.selected) {
   border-color: rgba(125, 211, 252, 0.48);
   box-shadow: 0 14px 24px rgba(0,0,0,0.24), 0 0 0 1px rgba(125, 211, 252, 0.14);
@@ -17526,6 +17531,7 @@ def main_page(request: Request) -> None:
                         ui.button('Confirm Purchase', on_click=lambda: (state.buy_marketplace_offer(state.marketplace_pending_purchase_index), setattr(state, 'marketplace_pending_purchase_index', -1), marketplace_purchase_dialog.close(), request_render_refresh())).classes('mq-btn-gold max-[640px]:w-full')
 
     inn_vault_dialog = ui.dialog()
+    inn_vault_render_refs: Dict[str, object] = {'panels': None}
 
     def ensure_inn_vault_runtime_state() -> None:
         vault_items = getattr(state, 'vault_items', [])
@@ -17605,23 +17611,39 @@ def main_page(request: Request) -> None:
             return
         if preserve_scroll and remember_scroll:
             remember_inn_vault_scroll()
-        render_inn_vault_dialog.refresh()
+        panel_renderer = inn_vault_render_refs.get('panels')
+        if panel_renderer is not None:
+            panel_renderer.refresh()
+        else:
+            render_inn_vault_dialog.refresh()
         if preserve_scroll:
             restore_inn_vault_scroll()
 
     def reset_inn_vault_filters() -> None:
+        changed = (
+            getattr(state, 'inn_vault_tier_filter', 'All tiers') != 'All tiers'
+            or getattr(state, 'inn_vault_type_filter', 'All types') != 'All types'
+            or getattr(state, 'inn_vault_affix_filter', 'All attributes') != 'All attributes'
+            or int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1) != -1
+            or int(getattr(state, 'inn_vault_selected_index', -1) or -1) != -1
+        )
+        if not changed:
+            return
         state.inn_vault_tier_filter = 'All tiers'
         state.inn_vault_type_filter = 'All types'
         state.inn_vault_affix_filter = 'All attributes'
         state.inn_vault_inventory_selected_index = -1
         state.inn_vault_selected_index = -1
-        refresh_inn_vault_views(preserve_scroll=False)
+        refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True)
 
     def apply_inn_vault_filter_change(field_name: str, value: str, fallback: str) -> None:
-        setattr(state, field_name, value or fallback)
+        normalized_value = value or fallback
+        if getattr(state, field_name, fallback) == normalized_value:
+            return
+        setattr(state, field_name, normalized_value)
         state.inn_vault_inventory_selected_index = -1
         state.inn_vault_selected_index = -1
-        refresh_inn_vault_views(preserve_scroll=False)
+        refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True)
 
     def open_inn_vault_dialog() -> None:
         ensure_inn_vault_runtime_state()
@@ -17633,6 +17655,7 @@ def main_page(request: Request) -> None:
 
     def close_inn_vault_dialog() -> None:
         state.inn_vault_dialog_requested = False
+        inn_vault_render_refs['panels'] = None
         inn_vault_dialog.close()
 
     def buy_inn_vault_slots() -> None:
@@ -17680,22 +17703,28 @@ def main_page(request: Request) -> None:
         refresh_inn_vault_views()
 
     def select_inn_vault_inventory(index: int) -> None:
+        if int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1) == int(index) and int(getattr(state, 'inn_vault_selected_index', -1) or -1) == -1:
+            return
         state.inn_vault_inventory_selected_index = int(index)
         state.inn_vault_selected_index = -1
-        refresh_inn_vault_views(preserve_scroll=True, remember_scroll=False)
+        refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True)
 
     def select_inn_vault_item(index: int) -> None:
+        if int(getattr(state, 'inn_vault_selected_index', -1) or -1) == int(index) and int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1) == -1:
+            return
         state.inn_vault_selected_index = int(index)
         state.inn_vault_inventory_selected_index = -1
-        refresh_inn_vault_views(preserve_scroll=True, remember_scroll=False)
+        refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True)
 
     with inn_vault_dialog:
         @ui.refreshable
         def render_inn_vault_dialog() -> None:
             if not bool(getattr(state, 'inn_vault_dialog_requested', False)):
+                inn_vault_render_refs['panels'] = None
                 return
             ensure_inn_vault_runtime_state()
             sync_inn_vault_selection()
+            inn_vault_render_refs['panels'] = render_inn_vault_dialog
             selected_inv = int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1)
             selected_vault = int(getattr(state, 'inn_vault_selected_index', -1) or -1)
             filtered_inventory_entries = filtered_inn_vault_inventory_entries()
@@ -17711,19 +17740,22 @@ def main_page(request: Request) -> None:
                 ui.label(f'Buy {VAULT_SLOT_BUNDLE_SIZE} slots for {VAULT_SLOT_BUNDLE_COST} gold. Deposits and withdrawals are free once you have room.').classes('text-slate-300 text-base leading-7 mt-2')
                 with ui.row().classes('w-full gap-3 mt-4 flex-wrap'):
                     tier_select = ui.select(['All tiers'] + [f'Tier {bucket}' for bucket in ITEM_BUCKETS], value=getattr(state, 'inn_vault_tier_filter', 'All tiers'), label='Tier')
-                    tier_select.classes('min-w-[150px] flex-1')
+                    tier_select.classes('mq-item-select min-w-[150px] flex-1')
+                    tier_select.props('dense outlined options-dense')
                     tier_select.on_value_change(lambda e: apply_inn_vault_filter_change('inn_vault_tier_filter', e.value, 'All tiers'))
                     type_select = ui.select(ITEM_TYPE_FILTER_OPTIONS, value=getattr(state, 'inn_vault_type_filter', 'All types'), label='Type')
-                    type_select.classes('min-w-[170px] flex-1')
+                    type_select.classes('mq-item-select min-w-[170px] flex-1')
+                    type_select.props('dense outlined options-dense')
                     type_select.on_value_change(lambda e: apply_inn_vault_filter_change('inn_vault_type_filter', e.value, 'All types'))
                     affix_select = ui.select(ATTRIBUTE_FILTER_OPTIONS, value=getattr(state, 'inn_vault_affix_filter', 'All attributes'), label='Affix')
-                    affix_select.classes('min-w-[180px] flex-1')
+                    affix_select.classes('mq-item-select min-w-[180px] flex-1')
+                    affix_select.props('dense outlined options-dense')
                     affix_select.on_value_change(lambda e: apply_inn_vault_filter_change('inn_vault_affix_filter', e.value, 'All attributes'))
                     ui.button('Reset Filters', on_click=reset_inn_vault_filters).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
                 with ui.row().classes('w-full items-stretch gap-4 mt-4 no-wrap max-[1180px]:flex-wrap'):
                     with ui.card().classes('mq-card flex-1 min-w-[340px] p-4'):
                         ui.label(f'Inventory ({len(filtered_inventory_entries)}/{len(state.player.inventory)})').classes('mq-inv-section-title mb-3')
-                        with ui.element('div').props('id=mq-inn-vault-inventory-scroll onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-inventory-scroll")').classes('w-full mq-pack-manifest-scroll').style('max-height: 520px; overflow-y: auto; padding-right: 6px;'):
+                        with ui.element('div').props('id=mq-inn-vault-inventory-scroll onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-inventory-scroll")').classes('w-full mq-pack-manifest-scroll').style('max-height: 520px; overflow-y: auto; padding-right: 6px; padding-top: 2px;'):
                             if not state.player.inventory:
                                 ui.label('No inventory items to deposit.').classes('mq-inv-empty')
                             elif not filtered_inventory_entries:
@@ -17732,7 +17764,8 @@ def main_page(request: Request) -> None:
                                 with ui.column().classes('w-full gap-2'):
                                     for idx, item in filtered_inventory_entries:
                                         selected = idx == selected_inv
-                                        card = ui.card().classes(f"{'mq-item-card selected' if selected else 'mq-item-card'} w-full p-3").style(rarity_edge_style(item))
+                                        card = ui.card().classes(f"{'mq-item-card selected' if selected else 'mq-item-card'} mq-vault-item-card w-full p-3").style(rarity_edge_style(item))
+                                        card.props('tabindex=0 role=button')
                                         card.on('click', lambda _e, i=idx: select_inn_vault_inventory(i))
                                         with card:
                                             with ui.row().classes('w-full items-start justify-between gap-3 max-[860px]:flex-wrap'):
@@ -17758,7 +17791,7 @@ def main_page(request: Request) -> None:
                             ui.label(f'Open Slots {max(vault_capacity - vault_count, 0)}').classes('mq-detail-text text-center')
                     with ui.card().classes('mq-card flex-1 min-w-[340px] p-4'):
                         ui.label(f'Vault Storage ({len(filtered_vault_entries)}/{vault_count})').classes('mq-inv-section-title mb-3')
-                        with ui.element('div').props('id=mq-inn-vault-storage-scroll onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-storage-scroll")').classes('w-full mq-pack-manifest-scroll').style('max-height: 520px; overflow-y: auto; padding-right: 6px;'):
+                        with ui.element('div').props('id=mq-inn-vault-storage-scroll onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-storage-scroll")').classes('w-full mq-pack-manifest-scroll').style('max-height: 520px; overflow-y: auto; padding-right: 6px; padding-top: 2px;'):
                             if not state.vault_items:
                                 empty_text = 'No vault slots purchased yet.' if vault_capacity <= 0 else 'The vault is empty.'
                                 ui.label(empty_text).classes('mq-inv-empty')
@@ -17768,7 +17801,8 @@ def main_page(request: Request) -> None:
                                 with ui.column().classes('w-full gap-2'):
                                     for idx, item in filtered_vault_entries:
                                         selected = idx == selected_vault
-                                        card = ui.card().classes(f"{'mq-item-card selected' if selected else 'mq-item-card'} w-full p-3").style(rarity_edge_style(item))
+                                        card = ui.card().classes(f"{'mq-item-card selected' if selected else 'mq-item-card'} mq-vault-item-card w-full p-3").style(rarity_edge_style(item))
+                                        card.props('tabindex=0 role=button')
                                         card.on('click', lambda _e, i=idx: select_inn_vault_item(i))
                                         with card:
                                             with ui.row().classes('w-full items-start justify-between gap-3 max-[860px]:flex-wrap'):
