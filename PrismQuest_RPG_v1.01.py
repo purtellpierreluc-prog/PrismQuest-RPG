@@ -2036,7 +2036,7 @@ body {
 }
 .mq-player-panels {
   display: grid;
-  grid-template-columns: minmax(190px, 0.82fr) minmax(195px, 0.86fr) minmax(124px, 0.42fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-top: 16px;
 }
@@ -2045,6 +2045,39 @@ body {
   isolation: isolate;
   --mq-drop-rgb: 156, 163, 175;
   --mq-drop-highlight: 0.18;
+  --mq-drop-duration: 2280ms;
+  --mq-drop-sheen-duration: 2070ms;
+  --mq-drop-sheen-delay: 180ms;
+  --mq-drop-rise: 14px;
+  --mq-drop-peak-lift: -3px;
+  --mq-drop-start-scale: 0.965;
+  --mq-drop-peak-scale: 1.018;
+  --mq-drop-start-saturate: 0.88;
+  --mq-drop-start-brightness: 0.94;
+  --mq-drop-peak-saturate: 1.12;
+  --mq-drop-peak-brightness: 1.04;
+  --mq-drop-flash-saturate: 1.16;
+  --mq-drop-flash-brightness: 1.10;
+  --mq-drop-settle-saturate: 1.02;
+  --mq-drop-settle-brightness: 1.01;
+  --mq-drop-end-saturate: 1.00;
+  --mq-drop-end-brightness: 1.00;
+  --mq-drop-peak-near: 36px;
+  --mq-drop-peak-far: 68px;
+  --mq-drop-flash-near: 44px;
+  --mq-drop-flash-far: 84px;
+  --mq-drop-settle-glow: 28px;
+  --mq-drop-peak-line-alpha: 0.34;
+  --mq-drop-flash-line-alpha: 0.40;
+  --mq-drop-settle-line-alpha: 0.20;
+  --mq-drop-end-line-alpha: 0.14;
+  --mq-drop-ring-size: 9px;
+  --mq-drop-ring-alpha: 0.06;
+  --mq-drop-flash-ring-size: 12px;
+  --mq-drop-flash-ring-alpha: 0.09;
+  --mq-drop-sheen-opacity: 0.88;
+  --mq-drop-sheen-trail-opacity: 0.72;
+  --mq-drop-sheen-tilt: 8deg;
   background:
     linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 26%, rgba(255,255,255,0) 100%),
     rgba(8, 11, 16, 0.94);
@@ -4054,54 +4087,98 @@ body {
 }
 @keyframes mqLastDropReveal {
   0% {
-    transform: translateY(14px) scale(0.965);
+    transform: translateY(var(--mq-drop-rise)) scale(var(--mq-drop-start-scale));
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.04),
       0 14px 24px rgba(0,0,0,0.26),
       0 0 0 0 rgba(var(--mq-drop-rgb), 0.00),
       0 0 0 0 rgba(255,255,255,0.00);
-    filter: saturate(0.88) brightness(0.94);
+    filter: saturate(var(--mq-drop-start-saturate)) brightness(var(--mq-drop-start-brightness));
   }
-  28% {
-    transform: translateY(-3px) scale(1.018);
+  18% {
+    transform: translateY(var(--mq-drop-peak-lift)) scale(var(--mq-drop-peak-scale));
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.07),
       0 24px 42px rgba(0,0,0,0.34),
-      0 0 0 1px rgba(var(--mq-drop-rgb), 0.34),
-      0 0 36px rgba(var(--mq-drop-rgb), 0.30),
-      0 0 68px rgba(var(--mq-drop-rgb), 0.18),
-      0 0 0 9px rgba(255,255,255,0.06);
-    filter: saturate(1.12) brightness(1.04);
+      0 0 0 1px rgba(var(--mq-drop-rgb), var(--mq-drop-peak-line-alpha)),
+      0 0 var(--mq-drop-peak-near) rgba(var(--mq-drop-rgb), 0.30),
+      0 0 var(--mq-drop-peak-far) rgba(var(--mq-drop-rgb), 0.18),
+      0 0 0 var(--mq-drop-ring-size) rgba(255,255,255, var(--mq-drop-ring-alpha));
+    filter: saturate(var(--mq-drop-peak-saturate)) brightness(var(--mq-drop-peak-brightness));
   }
-  62% {
+  26% {
+    transform: translateY(calc(var(--mq-drop-peak-lift) - 1px)) scale(calc(var(--mq-drop-peak-scale) + 0.004));
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.09),
+      0 28px 48px rgba(0,0,0,0.36),
+      0 0 0 1px rgba(var(--mq-drop-rgb), var(--mq-drop-flash-line-alpha)),
+      0 0 var(--mq-drop-flash-near) rgba(var(--mq-drop-rgb), 0.38),
+      0 0 var(--mq-drop-flash-far) rgba(var(--mq-drop-rgb), 0.26),
+      0 0 0 var(--mq-drop-flash-ring-size) rgba(255,255,255, var(--mq-drop-flash-ring-alpha));
+    filter: saturate(var(--mq-drop-flash-saturate)) brightness(var(--mq-drop-flash-brightness));
+  }
+  34% {
+    transform: translateY(var(--mq-drop-peak-lift)) scale(var(--mq-drop-peak-scale));
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.07),
+      0 24px 42px rgba(0,0,0,0.34),
+      0 0 0 1px rgba(var(--mq-drop-rgb), var(--mq-drop-peak-line-alpha)),
+      0 0 var(--mq-drop-peak-near) rgba(var(--mq-drop-rgb), 0.30),
+      0 0 var(--mq-drop-peak-far) rgba(var(--mq-drop-rgb), 0.18),
+      0 0 0 var(--mq-drop-ring-size) rgba(255,255,255, var(--mq-drop-ring-alpha));
+    filter: saturate(var(--mq-drop-peak-saturate)) brightness(var(--mq-drop-peak-brightness));
+  }
+  42% {
+    transform: translateY(calc(var(--mq-drop-peak-lift) - 0.5px)) scale(calc(var(--mq-drop-peak-scale) + 0.002));
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 26px 44px rgba(0,0,0,0.35),
+      0 0 0 1px rgba(var(--mq-drop-rgb), var(--mq-drop-flash-line-alpha)),
+      0 0 var(--mq-drop-flash-near) rgba(var(--mq-drop-rgb), 0.34),
+      0 0 var(--mq-drop-flash-far) rgba(var(--mq-drop-rgb), 0.22),
+      0 0 0 var(--mq-drop-flash-ring-size) rgba(255,255,255, var(--mq-drop-flash-ring-alpha));
+    filter: saturate(var(--mq-drop-flash-saturate)) brightness(var(--mq-drop-flash-brightness));
+  }
+  50% {
+    transform: translateY(calc(var(--mq-drop-peak-lift) - 0.25px)) scale(calc(var(--mq-drop-peak-scale) + 0.001));
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 26px 44px rgba(0,0,0,0.35),
+      0 0 0 1px rgba(var(--mq-drop-rgb), var(--mq-drop-flash-line-alpha)),
+      0 0 var(--mq-drop-flash-near) rgba(var(--mq-drop-rgb), 0.30),
+      0 0 var(--mq-drop-flash-far) rgba(var(--mq-drop-rgb), 0.18),
+      0 0 0 var(--mq-drop-flash-ring-size) rgba(255,255,255, var(--mq-drop-flash-ring-alpha));
+    filter: saturate(var(--mq-drop-flash-saturate)) brightness(var(--mq-drop-flash-brightness));
+  }
+  64% {
     transform: translateY(0) scale(1.0);
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.05),
       0 18px 30px rgba(0,0,0,0.28),
-      0 0 0 1px rgba(var(--mq-drop-rgb), 0.20),
-      0 0 28px rgba(var(--mq-drop-rgb), 0.20);
-    filter: saturate(1.02) brightness(1.01);
+      0 0 0 1px rgba(var(--mq-drop-rgb), var(--mq-drop-settle-line-alpha)),
+      0 0 var(--mq-drop-settle-glow) rgba(var(--mq-drop-rgb), 0.20);
+    filter: saturate(var(--mq-drop-settle-saturate)) brightness(var(--mq-drop-settle-brightness));
   }
   100% {
     transform: translateY(0) scale(1.0);
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.04),
       0 16px 26px rgba(0,0,0,0.26),
-      0 0 0 1px rgba(var(--mq-drop-rgb), 0.14);
-    filter: saturate(1.0) brightness(1.0);
+      0 0 0 1px rgba(var(--mq-drop-rgb), var(--mq-drop-end-line-alpha));
+    filter: saturate(var(--mq-drop-end-saturate)) brightness(var(--mq-drop-end-brightness));
   }
 }
 @keyframes mqLastDropSheen {
-  0% { opacity: 0; transform: translateX(-88%) rotate(8deg); }
-  14% { opacity: 0.88; }
-  48% { opacity: 0.72; }
-  100% { opacity: 0; transform: translateX(88%) rotate(8deg); }
+  0% { opacity: 0; transform: translateX(-88%) rotate(var(--mq-drop-sheen-tilt)); }
+  14% { opacity: var(--mq-drop-sheen-opacity); }
+  48% { opacity: var(--mq-drop-sheen-trail-opacity); }
+  100% { opacity: 0; transform: translateX(88%) rotate(var(--mq-drop-sheen-tilt)); }
 }
 .mq-last-drop-card-animate {
-  animation: mqLastDropReveal 1520ms cubic-bezier(0.19, 0.82, 0.24, 1) both;
+  animation: mqLastDropReveal var(--mq-drop-duration) cubic-bezier(0.19, 0.82, 0.24, 1) both;
 }
 .mq-last-drop-card-animate::after {
-  animation: mqLastDropSheen 1380ms cubic-bezier(0.18, 0.7, 0.24, 1) 120ms both;
+  animation: mqLastDropSheen var(--mq-drop-sheen-duration) cubic-bezier(0.18, 0.7, 0.24, 1) var(--mq-drop-sheen-delay) both;
 }
 .q-tab-panels,
 .q-tab-panel,
@@ -5381,7 +5458,7 @@ def _safe_static_stem(name: str, fallback: str = 'asset') -> str:
     return stem or fallback
 
 
-def _register_static_image(path: Optional[str], *, crop_alpha: bool = False, target_max: Optional[int] = None) -> str:
+def _register_static_image(path: Optional[str], *, crop_alpha: bool = False, target_max: Optional[int] = None, preserve_original: bool = False) -> str:
     if not path:
         return ''
     source_path = os.path.abspath(path)
@@ -5427,6 +5504,8 @@ def _register_static_image(path: Optional[str], *, crop_alpha: bool = False, tar
 
                     pixel_count = image.width * image.height
                     should_reencode = transformed or generated_ext in {'.png', '.jpg', '.jpeg'} or pixel_count >= 1_600_000
+                    if preserve_original and not transformed and generated_ext in {'.png', '.webp'}:
+                        should_reencode = False
                     if should_reencode:
                         generated_ext = '.webp'
                         generated_name = f"{_safe_static_stem(os.path.splitext(os.path.basename(source_path))[0], 'image')}_{hashlib.md5((digest_seed + generated_ext + str(resolved_target_max)).encode('utf-8')).hexdigest()}{generated_ext}"
@@ -5452,8 +5531,8 @@ def _register_static_image(path: Optional[str], *, crop_alpha: bool = False, tar
         _STATIC_IMAGE_URL_CACHE[cache_key] = ''
         return ''
 
-def _image_path_to_data_uri(path: Optional[str], *, crop_alpha: bool = False, target_max: Optional[int] = None) -> str:
-    return _register_static_image(path, crop_alpha=crop_alpha, target_max=target_max)
+def _image_path_to_data_uri(path: Optional[str], *, crop_alpha: bool = False, target_max: Optional[int] = None, preserve_original: bool = False) -> str:
+    return _register_static_image(path, crop_alpha=crop_alpha, target_max=target_max, preserve_original=preserve_original)
 
 
 _ROBOTS_TXT = b'User-agent: *\nAllow: /\n'
@@ -5534,7 +5613,7 @@ HERO_ASSET_FILENAMES = {
     'Night Angel': ['Night Angel.webp', 'Night Angel.png'],
     'Frost Oracle': ['Frost Oracle.webp', 'Frost Oracle.png'],
     'Executioner': ['Executioner.webp', 'Executioner.png'],
-    'Ember Fae': ['Ember Fae.webp', 'Ember Fae.png'],
+    'Ember Fae': ['Ember Fae.png', 'Ember Fae.webp'],
     'Prismatic Templar': ['Prismatic Templar.webp', 'Prismatic Templar.png'],
     'Shadowfang Stalker': ['Shadowfang Stalker.webp', 'Shadowfang Stalker.png'],
     'Alecloak Thief': ['Alecloak Thief.png', 'Alecloak_Thief.png'],
@@ -5638,7 +5717,16 @@ def _hero_data_uri(player_class: str) -> str:
     cached = HERO_DATA_URI_CACHE.get(player_class)
     if cached is not None:
         return cached
-    resolved = _image_path_to_data_uri(_find_hero_asset_path(player_class), target_max=ARENA_HERO_STATIC_IMAGE_TARGET_MAX)
+    hero_path = _find_hero_asset_path(player_class)
+    resolved = _image_path_to_data_uri(
+        hero_path,
+        target_max=ARENA_HERO_STATIC_IMAGE_TARGET_MAX,
+        preserve_original=(
+            player_class == 'Ember Fae'
+            and bool(hero_path)
+            and str(hero_path).lower().endswith('.png')
+        ),
+    )
     HERO_DATA_URI_CACHE[player_class] = resolved
     return resolved
 
@@ -5918,6 +6006,8 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
         'town_tutorial_seen': False,
         'scene_tutorials_seen': build_default_scene_tutorials_seen(False),
         'hotkey_bindings': build_default_hotkey_bindings(),
+        'disable_last_drop_animation': False,
+        'arena_combat_log_default_open': False,
         'season_id': normalized_season,
         'ladder_reset_count': 0,
         'run_started_wall_time': 0.0,
@@ -6160,6 +6250,10 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
         slot['town_tutorial_seen'] = bool(slot['player'])
     slot['scene_tutorials_seen'] = normalize_scene_tutorials_seen(raw_slot.get('scene_tutorials_seen'), bool(slot['player']))
     slot['hotkey_bindings'] = normalize_hotkey_bindings(raw_slot.get('hotkey_bindings'))
+    disable_last_drop_animation = raw_slot.get('disable_last_drop_animation', False)
+    slot['disable_last_drop_animation'] = bool(disable_last_drop_animation) if isinstance(disable_last_drop_animation, bool) else False
+    combat_log_default_open = raw_slot.get('arena_combat_log_default_open', False)
+    slot['arena_combat_log_default_open'] = bool(combat_log_default_open) if isinstance(combat_log_default_open, bool) else False
     slot['ladder_reset_count'] = sanitize_ladder_reset_count(raw_slot.get('ladder_reset_count', 0))
     raw_run_started = raw_slot.get('run_started_wall_time', 0.0)
     try:
@@ -7544,10 +7638,405 @@ def last_monster_drop_card_style(item: Optional[Item]) -> str:
     rarity = str(getattr(item, 'rarity', 'Common') or 'Common') if item is not None else 'Common'
     color = RARITY_COLORS.get(rarity, '#9ca3af')
     r, g, b = _hex_to_rgb(color)
-    highlight = 0.32 if item is not None and item_rarity_sort_key(item) >= RARITY_ORDER.index('Fine') else 0.18
+    profiles: Dict[str, Dict[str, float]] = {
+        'Common': {
+            'highlight': 0.18,
+            'duration_ms': 2280,
+            'sheen_ms': 2070,
+            'sheen_delay_ms': 180,
+            'rise_px': 14,
+            'peak_lift_px': -3,
+            'start_scale': 0.965,
+            'peak_scale': 1.018,
+            'start_sat': 0.88,
+            'start_bright': 0.94,
+            'peak_sat': 1.12,
+            'peak_bright': 1.04,
+            'flash_sat': 1.16,
+            'flash_bright': 1.10,
+            'settle_sat': 1.02,
+            'settle_bright': 1.01,
+            'end_sat': 1.00,
+            'end_bright': 1.00,
+            'peak_near': 36,
+            'peak_far': 68,
+            'flash_near': 44,
+            'flash_far': 84,
+            'settle_glow': 28,
+            'peak_line': 0.34,
+            'flash_line': 0.40,
+            'settle_line': 0.20,
+            'end_line': 0.14,
+            'ring_size': 9,
+            'ring_alpha': 0.06,
+            'flash_ring_size': 12,
+            'flash_ring_alpha': 0.09,
+            'sheen_opacity': 0.88,
+            'sheen_trail_opacity': 0.72,
+            'sheen_tilt': 8,
+        },
+        'Fine': {
+            'highlight': 0.22,
+            'duration_ms': 1120,
+            'sheen_ms': 900,
+            'sheen_delay_ms': 70,
+            'rise_px': 8,
+            'peak_lift_px': -1,
+            'start_scale': 0.986,
+            'peak_scale': 1.006,
+            'start_sat': 0.97,
+            'start_bright': 0.98,
+            'peak_sat': 1.03,
+            'peak_bright': 1.01,
+            'flash_sat': 1.04,
+            'flash_bright': 1.02,
+            'settle_sat': 1.00,
+            'settle_bright': 1.00,
+            'end_sat': 1.00,
+            'end_bright': 1.00,
+            'peak_near': 10,
+            'peak_far': 18,
+            'flash_near': 14,
+            'flash_far': 24,
+            'settle_glow': 8,
+            'peak_line': 0.16,
+            'flash_line': 0.20,
+            'settle_line': 0.10,
+            'end_line': 0.06,
+            'ring_size': 3,
+            'ring_alpha': 0.02,
+            'flash_ring_size': 4,
+            'flash_ring_alpha': 0.03,
+            'sheen_opacity': 0.44,
+            'sheen_trail_opacity': 0.28,
+            'sheen_tilt': 7,
+        },
+        'Rare': {
+            'highlight': 0.24,
+            'duration_ms': 1360,
+            'sheen_ms': 1140,
+            'sheen_delay_ms': 80,
+            'rise_px': 9,
+            'peak_lift_px': -1.5,
+            'start_scale': 0.983,
+            'peak_scale': 1.009,
+            'start_sat': 0.96,
+            'start_bright': 0.97,
+            'peak_sat': 1.06,
+            'peak_bright': 1.03,
+            'flash_sat': 1.08,
+            'flash_bright': 1.05,
+            'settle_sat': 1.01,
+            'settle_bright': 1.00,
+            'end_sat': 1.00,
+            'end_bright': 1.00,
+            'peak_near': 16,
+            'peak_far': 28,
+            'flash_near': 22,
+            'flash_far': 36,
+            'settle_glow': 12,
+            'peak_line': 0.22,
+            'flash_line': 0.28,
+            'settle_line': 0.12,
+            'end_line': 0.08,
+            'ring_size': 4,
+            'ring_alpha': 0.03,
+            'flash_ring_size': 6,
+            'flash_ring_alpha': 0.04,
+            'sheen_opacity': 0.56,
+            'sheen_trail_opacity': 0.38,
+            'sheen_tilt': 7.5,
+        },
+        'Epic': {
+            'highlight': 0.27,
+            'duration_ms': 1640,
+            'sheen_ms': 1400,
+            'sheen_delay_ms': 95,
+            'rise_px': 10,
+            'peak_lift_px': -2,
+            'start_scale': 0.979,
+            'peak_scale': 1.013,
+            'start_sat': 0.94,
+            'start_bright': 0.96,
+            'peak_sat': 1.10,
+            'peak_bright': 1.06,
+            'flash_sat': 1.14,
+            'flash_bright': 1.10,
+            'settle_sat': 1.02,
+            'settle_bright': 1.01,
+            'end_sat': 1.00,
+            'end_bright': 1.00,
+            'peak_near': 22,
+            'peak_far': 40,
+            'flash_near': 30,
+            'flash_far': 54,
+            'settle_glow': 18,
+            'peak_line': 0.28,
+            'flash_line': 0.34,
+            'settle_line': 0.16,
+            'end_line': 0.10,
+            'ring_size': 6,
+            'ring_alpha': 0.04,
+            'flash_ring_size': 8,
+            'flash_ring_alpha': 0.05,
+            'sheen_opacity': 0.66,
+            'sheen_trail_opacity': 0.48,
+            'sheen_tilt': 8,
+        },
+        'Mythic': {
+            'highlight': 0.30,
+            'duration_ms': 1920,
+            'sheen_ms': 1670,
+            'sheen_delay_ms': 115,
+            'rise_px': 12,
+            'peak_lift_px': -2.5,
+            'start_scale': 0.974,
+            'peak_scale': 1.016,
+            'start_sat': 0.92,
+            'start_bright': 0.95,
+            'peak_sat': 1.14,
+            'peak_bright': 1.10,
+            'flash_sat': 1.20,
+            'flash_bright': 1.16,
+            'settle_sat': 1.03,
+            'settle_bright': 1.01,
+            'end_sat': 1.00,
+            'end_bright': 1.00,
+            'peak_near': 30,
+            'peak_far': 56,
+            'flash_near': 38,
+            'flash_far': 72,
+            'settle_glow': 24,
+            'peak_line': 0.32,
+            'flash_line': 0.40,
+            'settle_line': 0.18,
+            'end_line': 0.12,
+            'ring_size': 8,
+            'ring_alpha': 0.05,
+            'flash_ring_size': 10,
+            'flash_ring_alpha': 0.07,
+            'sheen_opacity': 0.78,
+            'sheen_trail_opacity': 0.60,
+            'sheen_tilt': 8,
+        },
+        'Ancient': {
+            'highlight': 0.32,
+            'duration_ms': 2280,
+            'sheen_ms': 2070,
+            'sheen_delay_ms': 180,
+            'rise_px': 14,
+            'peak_lift_px': -3,
+            'start_scale': 0.965,
+            'peak_scale': 1.018,
+            'start_sat': 0.88,
+            'start_bright': 0.94,
+            'peak_sat': 1.12,
+            'peak_bright': 1.04,
+            'flash_sat': 1.16,
+            'flash_bright': 1.10,
+            'settle_sat': 1.02,
+            'settle_bright': 1.01,
+            'end_sat': 1.00,
+            'end_bright': 1.00,
+            'peak_near': 36,
+            'peak_far': 68,
+            'flash_near': 44,
+            'flash_far': 84,
+            'settle_glow': 28,
+            'peak_line': 0.34,
+            'flash_line': 0.40,
+            'settle_line': 0.20,
+            'end_line': 0.14,
+            'ring_size': 9,
+            'ring_alpha': 0.06,
+            'flash_ring_size': 12,
+            'flash_ring_alpha': 0.09,
+            'sheen_opacity': 0.88,
+            'sheen_trail_opacity': 0.72,
+            'sheen_tilt': 8,
+        },
+        'Relic': {
+            'highlight': 0.36,
+            'duration_ms': 2560,
+            'sheen_ms': 2320,
+            'sheen_delay_ms': 190,
+            'rise_px': 16,
+            'peak_lift_px': -4,
+            'start_scale': 0.960,
+            'peak_scale': 1.022,
+            'start_sat': 0.86,
+            'start_bright': 0.93,
+            'peak_sat': 1.20,
+            'peak_bright': 1.12,
+            'flash_sat': 1.30,
+            'flash_bright': 1.22,
+            'settle_sat': 1.05,
+            'settle_bright': 1.03,
+            'end_sat': 1.00,
+            'end_bright': 1.00,
+            'peak_near': 44,
+            'peak_far': 84,
+            'flash_near': 58,
+            'flash_far': 110,
+            'settle_glow': 34,
+            'peak_line': 0.42,
+            'flash_line': 0.50,
+            'settle_line': 0.24,
+            'end_line': 0.16,
+            'ring_size': 12,
+            'ring_alpha': 0.09,
+            'flash_ring_size': 16,
+            'flash_ring_alpha': 0.12,
+            'sheen_opacity': 0.92,
+            'sheen_trail_opacity': 0.76,
+            'sheen_tilt': 8.5,
+        },
+        'Ascendant': {
+            'highlight': 0.40,
+            'duration_ms': 2860,
+            'sheen_ms': 2560,
+            'sheen_delay_ms': 205,
+            'rise_px': 18,
+            'peak_lift_px': -5,
+            'start_scale': 0.955,
+            'peak_scale': 1.027,
+            'start_sat': 0.84,
+            'start_bright': 0.92,
+            'peak_sat': 1.26,
+            'peak_bright': 1.16,
+            'flash_sat': 1.40,
+            'flash_bright': 1.28,
+            'settle_sat': 1.08,
+            'settle_bright': 1.04,
+            'end_sat': 1.00,
+            'end_bright': 1.00,
+            'peak_near': 54,
+            'peak_far': 108,
+            'flash_near': 72,
+            'flash_far': 138,
+            'settle_glow': 44,
+            'peak_line': 0.50,
+            'flash_line': 0.62,
+            'settle_line': 0.28,
+            'end_line': 0.18,
+            'ring_size': 15,
+            'ring_alpha': 0.11,
+            'flash_ring_size': 20,
+            'flash_ring_alpha': 0.15,
+            'sheen_opacity': 0.96,
+            'sheen_trail_opacity': 0.82,
+            'sheen_tilt': 9,
+        },
+        'Legendary': {
+            'highlight': 0.48,
+            'duration_ms': 3340,
+            'sheen_ms': 3020,
+            'sheen_delay_ms': 240,
+            'rise_px': 22,
+            'peak_lift_px': -6,
+            'start_scale': 0.948,
+            'peak_scale': 1.034,
+            'start_sat': 0.80,
+            'start_bright': 0.90,
+            'peak_sat': 1.42,
+            'peak_bright': 1.24,
+            'flash_sat': 1.62,
+            'flash_bright': 1.46,
+            'settle_sat': 1.14,
+            'settle_bright': 1.08,
+            'end_sat': 1.00,
+            'end_bright': 1.00,
+            'peak_near': 76,
+            'peak_far': 150,
+            'flash_near': 102,
+            'flash_far': 196,
+            'settle_glow': 56,
+            'peak_line': 0.62,
+            'flash_line': 0.80,
+            'settle_line': 0.34,
+            'end_line': 0.22,
+            'ring_size': 22,
+            'ring_alpha': 0.18,
+            'flash_ring_size': 30,
+            'flash_ring_alpha': 0.24,
+            'sheen_opacity': 1.00,
+            'sheen_trail_opacity': 0.94,
+            'sheen_tilt': 10,
+        },
+        'Unspawnable': {
+            'highlight': 0.54,
+            'duration_ms': 3580,
+            'sheen_ms': 3260,
+            'sheen_delay_ms': 255,
+            'rise_px': 24,
+            'peak_lift_px': -7,
+            'start_scale': 0.944,
+            'peak_scale': 1.038,
+            'start_sat': 0.78,
+            'start_bright': 0.88,
+            'peak_sat': 1.50,
+            'peak_bright': 1.30,
+            'flash_sat': 1.76,
+            'flash_bright': 1.58,
+            'settle_sat': 1.18,
+            'settle_bright': 1.10,
+            'end_sat': 1.00,
+            'end_bright': 1.00,
+            'peak_near': 88,
+            'peak_far': 176,
+            'flash_near': 118,
+            'flash_far': 228,
+            'settle_glow': 64,
+            'peak_line': 0.70,
+            'flash_line': 0.88,
+            'settle_line': 0.38,
+            'end_line': 0.24,
+            'ring_size': 26,
+            'ring_alpha': 0.22,
+            'flash_ring_size': 34,
+            'flash_ring_alpha': 0.28,
+            'sheen_opacity': 1.00,
+            'sheen_trail_opacity': 1.00,
+            'sheen_tilt': 10.5,
+        },
+    }
+    profile = dict(profiles.get(rarity, profiles['Common']))
     return '; '.join([
         f'--mq-drop-rgb: {r}, {g}, {b}',
-        f'--mq-drop-highlight: {highlight:.2f}',
+        f'--mq-drop-highlight: {profile["highlight"]:.2f}',
+        f'--mq-drop-duration: {int(profile["duration_ms"])}ms',
+        f'--mq-drop-sheen-duration: {int(profile["sheen_ms"])}ms',
+        f'--mq-drop-sheen-delay: {int(profile["sheen_delay_ms"])}ms',
+        f'--mq-drop-rise: {profile["rise_px"]:.1f}px',
+        f'--mq-drop-peak-lift: {profile["peak_lift_px"]:.1f}px',
+        f'--mq-drop-start-scale: {profile["start_scale"]:.3f}',
+        f'--mq-drop-peak-scale: {profile["peak_scale"]:.3f}',
+        f'--mq-drop-start-saturate: {profile["start_sat"]:.2f}',
+        f'--mq-drop-start-brightness: {profile["start_bright"]:.2f}',
+        f'--mq-drop-peak-saturate: {profile["peak_sat"]:.2f}',
+        f'--mq-drop-peak-brightness: {profile["peak_bright"]:.2f}',
+        f'--mq-drop-flash-saturate: {profile["flash_sat"]:.2f}',
+        f'--mq-drop-flash-brightness: {profile["flash_bright"]:.2f}',
+        f'--mq-drop-settle-saturate: {profile["settle_sat"]:.2f}',
+        f'--mq-drop-settle-brightness: {profile["settle_bright"]:.2f}',
+        f'--mq-drop-end-saturate: {profile["end_sat"]:.2f}',
+        f'--mq-drop-end-brightness: {profile["end_bright"]:.2f}',
+        f'--mq-drop-peak-near: {profile["peak_near"]:.1f}px',
+        f'--mq-drop-peak-far: {profile["peak_far"]:.1f}px',
+        f'--mq-drop-flash-near: {profile["flash_near"]:.1f}px',
+        f'--mq-drop-flash-far: {profile["flash_far"]:.1f}px',
+        f'--mq-drop-settle-glow: {profile["settle_glow"]:.1f}px',
+        f'--mq-drop-peak-line-alpha: {profile["peak_line"]:.2f}',
+        f'--mq-drop-flash-line-alpha: {profile["flash_line"]:.2f}',
+        f'--mq-drop-settle-line-alpha: {profile["settle_line"]:.2f}',
+        f'--mq-drop-end-line-alpha: {profile["end_line"]:.2f}',
+        f'--mq-drop-ring-size: {profile["ring_size"]:.1f}px',
+        f'--mq-drop-ring-alpha: {profile["ring_alpha"]:.2f}',
+        f'--mq-drop-flash-ring-size: {profile["flash_ring_size"]:.1f}px',
+        f'--mq-drop-flash-ring-alpha: {profile["flash_ring_alpha"]:.2f}',
+        f'--mq-drop-sheen-opacity: {profile["sheen_opacity"]:.2f}',
+        f'--mq-drop-sheen-trail-opacity: {profile["sheen_trail_opacity"]:.2f}',
+        f'--mq-drop-sheen-tilt: {profile["sheen_tilt"]:.2f}deg',
     ])
 ITEM_SLOT_SORT_ORDER = {'weapon': 0, 'armor': 1, 'charm': 2}
 TRANSMUTE_TIER_FILTER_OPTIONS = ['All tiers'] + [f'Tier {bucket}' for bucket in ITEM_BUCKETS]
@@ -9445,7 +9934,9 @@ class SessionState:
         self.arena_selected_level: int = 1
         self.arena_level_offset: int = 0
         self.arena_looted_item_count: int = 0
-        self.arena_combat_log_hidden: bool = True
+        self.arena_combat_log_default_open: bool = False
+        self.disable_last_drop_animation: bool = False
+        self.arena_combat_log_hidden: bool = not self.arena_combat_log_default_open
         self.arena_flee_requested: bool = False
         self.last_monster_drop_item: Optional[Item] = None
         self.last_monster_drop_source: str = ''
@@ -10615,7 +11106,7 @@ class SessionState:
         self.mana_regen_progress = 0.0
         self.life_regen_progress = 0.0
         self.clear_last_monster_drop()
-        self.arena_combat_log_hidden = True
+        self.apply_arena_combat_log_default()
         self.clear_arena_monster_art(True)
         self.game_tab = 'arena'
         self.screen = 'chronicle' if (SUPABASE_ENABLED and self.is_authenticated()) else 'class_select'
@@ -11198,6 +11689,8 @@ class SessionState:
         slot['town_tutorial_seen'] = bool(self.town_tutorial_seen)
         slot['scene_tutorials_seen'] = dict(self.scene_tutorials_seen)
         slot['hotkey_bindings'] = dict(normalize_hotkey_bindings(self.hotkey_bindings))
+        slot['disable_last_drop_animation'] = bool(self.disable_last_drop_animation)
+        slot['arena_combat_log_default_open'] = bool(self.arena_combat_log_default_open)
         slot['ladder_reset_count'] = int(self.current_account_ladder_resets())
         slot['run_started_wall_time'] = float(self.current_run_start_wall_time if self.player is not None else 0.0)
         slot['player'] = None if self.player is None else copy.deepcopy(self.player.to_dict())
@@ -11278,10 +11771,12 @@ class SessionState:
         self.last_monster_drop_item = coerce_item(slot.get('last_monster_drop_item'))
         self.last_monster_drop_source = str(slot.get('last_monster_drop_source', '') or '').strip().lower()
         self.last_monster_drop_sequence = 0
+        self.disable_last_drop_animation = bool(slot.get('disable_last_drop_animation', False))
+        self.arena_combat_log_default_open = bool(slot.get('arena_combat_log_default_open', False))
         self.ladder_stats = normalize_ladder_stats(slot.get('ladder_stats'))
         self.current_global_season_id = max(self.current_global_season_id, sanitize_ladder_season_id(slot.get('season_id', DEFAULT_LADDER_SEASON_ID)))
         self.global_ladder_reset_count = max(self.global_ladder_reset_count, sanitize_ladder_reset_count(slot.get('ladder_reset_count', 0)))
-        self.arena_combat_log_hidden = True
+        self.apply_arena_combat_log_default()
         self.selected_inventory_source = 'inventory'
         self.selected_inventory_key = ''
         self.marketplace_offers = []
@@ -11519,7 +12014,7 @@ class SessionState:
         self.game_tab = tab_name
         self.screen = 'game'
         if tab_name == 'arena':
-            self.arena_combat_log_hidden = True
+            self.apply_arena_combat_log_default()
         if tab_name == 'inn':
             self.ensure_inn_scene_state(True)
         elif tab_name == 'well':
@@ -11875,7 +12370,7 @@ def finish_masterquest_attempt(self, passed: bool) -> None:
     self.arena_flee_requested = False
     self.mana_regen_progress = 0.0
     self.life_regen_progress = 0.0
-    self.arena_combat_log_hidden = True
+    self.apply_arena_combat_log_default()
     self.clear_arena_monster_art(True)
     self.game_tab = 'arena'
     self.marketplace_offers = []
@@ -12165,7 +12660,7 @@ async def queue_well_encounter_async(self, refresh) -> None:
 
         self.screen = 'game'
         self.game_tab = 'arena'
-        self.arena_combat_log_hidden = True
+        self.apply_arena_combat_log_default()
         self.sync_active_slot()
 
         sacrificed_tier = bucket_item_level(int(getattr(removed_item, 'level', 1) or 1))
@@ -12933,7 +13428,7 @@ def start_game(self, player_class: str) -> None:
     self.class_compendium_open = False
     self.class_select_notice = ''
     self.reset_inventory_filters()
-    self.arena_combat_log_hidden = True
+    self.apply_arena_combat_log_default()
     self.game_tab = 'arena'
     self.screen = 'town'
     self.trigger_town_tutorial_if_needed()
@@ -13095,6 +13590,8 @@ def export_save(self) -> None:
         'town_tutorial_seen': bool(self.town_tutorial_seen),
         'scene_tutorials_seen': dict(self.scene_tutorials_seen),
         'hotkey_bindings': dict(normalize_hotkey_bindings(self.hotkey_bindings)),
+        'disable_last_drop_animation': bool(self.disable_last_drop_animation),
+        'arena_combat_log_default_open': bool(self.arena_combat_log_default_open),
     }
     raw = json.dumps(payload, separators=(',', ':')).encode('utf-8')
     self.export_code = base64.urlsafe_b64encode(raw).decode('utf-8')
@@ -13141,6 +13638,8 @@ def import_save(self) -> None:
         self.town_tutorial_open = False
         self.scene_tutorials_seen = normalize_scene_tutorials_seen(payload.get('scene_tutorials_seen'), True)
         self.hotkey_bindings = normalize_hotkey_bindings(payload.get('hotkey_bindings'))
+        self.disable_last_drop_animation = bool(payload.get('disable_last_drop_animation', False))
+        self.arena_combat_log_default_open = bool(payload.get('arena_combat_log_default_open', False))
         self.scene_tutorial_open_key = ''
         self.trigger_town_tutorial_if_needed()
         self.log = [CombatEvent(f'Save imported. Welcome back, level {self.player.level} {self.player.player_class}.', 'success')]
@@ -14120,7 +14619,7 @@ def open_game_tab(self, tab_name: str, note: Optional[str] = None) -> None:
     self.game_tab = requested_tab
     self.screen = 'game'
     if requested_tab == 'arena':
-        self.arena_combat_log_hidden = True
+        self.apply_arena_combat_log_default()
         if previous_screen == 'town':
             self.arena_looted_item_count = 0
     if requested_tab == 'inn':
@@ -15932,6 +16431,22 @@ def get_damage_popup_html(self, target: str) -> str:
     return f"<div class='mq-damage-float {tone}'>{html.escape(text)}</div>"
 
 
+def apply_arena_combat_log_default(self) -> None:
+    self.arena_combat_log_hidden = not bool(getattr(self, 'arena_combat_log_default_open', False))
+
+
+def set_last_drop_animation_disabled(self, value: object) -> None:
+    self.disable_last_drop_animation = bool(value)
+    self.sync_active_slot()
+
+
+def set_arena_combat_log_default_open(self, value: object) -> None:
+    self.arena_combat_log_default_open = bool(value)
+    if str(getattr(self, 'screen', '') or '') == 'game' and str(getattr(self, 'game_tab', '') or '') == 'arena':
+        self.apply_arena_combat_log_default()
+    self.sync_active_slot()
+
+
 def set_hotkey_binding(self, action: str, value: object) -> None:
     if action not in DEFAULT_HOTKEY_BINDINGS:
         return
@@ -15953,6 +16468,7 @@ def reset_hotkey_bindings(self) -> None:
 
 SessionState.set_damage_popup = set_damage_popup
 SessionState.get_damage_popup_html = get_damage_popup_html
+SessionState.apply_arena_combat_log_default = apply_arena_combat_log_default
 SessionState.rest = rest
 SessionState.fight = fight
 SessionState.equip_item = equip_item
@@ -15960,6 +16476,8 @@ SessionState.sell_item = sell_item
 SessionState.allocate = allocate
 SessionState.allocate_multiple = allocate_multiple
 SessionState.export_save = export_save
+SessionState.set_last_drop_animation_disabled = set_last_drop_animation_disabled
+SessionState.set_arena_combat_log_default_open = set_arena_combat_log_default_open
 SessionState.set_hotkey_binding = set_hotkey_binding
 SessionState.reset_hotkey_bindings = reset_hotkey_bindings
 SessionState.ensure_marketplace_offers = ensure_marketplace_offers
@@ -19385,6 +19903,17 @@ def main_page(request: Request) -> None:
                                         ui.label(f"{int(getattr(state, 'background_music_volume', 55) or 0)}%").classes('text-2xl font-semibold text-slate-100 mb-3')
                                         ui.slider(min=0, max=100, step=1, value=int(getattr(state, 'background_music_volume', 55) or 0), on_change=lambda e: (setattr(state, 'background_music_volume', int(float(e.value or 0))), request_render_refresh())).classes('w-full')
                                         ui.label('0 mutes the ambient score completely.').classes('text-slate-400 text-sm mt-3')
+                                    with ui.card().classes('mq-card flex-1 min-w-[320px] p-5'):
+                                        ui.label('Arena Preferences').classes('mq-inv-section-title mb-2')
+                                        ui.label('Tune the combat scene presentation without changing the actual fight flow.').classes('mq-detail-text mb-4')
+                                        disable_anim = ui.checkbox('Disable loot flourish animation', value=bool(getattr(state, 'disable_last_drop_animation', False)))
+                                        disable_anim.classes('text-slate-200')
+                                        disable_anim.on_value_change(lambda e: (state.set_last_drop_animation_disabled(bool(e.value)), request_render_refresh()))
+                                        ui.label('Fine-or-better drops will appear instantly with no flourish.').classes('text-slate-400 text-sm mt-2')
+                                        combat_log_default = ui.checkbox('Combat log open by default', value=bool(getattr(state, 'arena_combat_log_default_open', False)))
+                                        combat_log_default.classes('text-slate-200 mt-4')
+                                        combat_log_default.on_value_change(lambda e: (state.set_arena_combat_log_default_open(bool(e.value)), request_render_refresh()))
+                                        ui.label('When enabled, arena and well fights start with the combat log already open.').classes('text-slate-400 text-sm mt-2')
                             else:
                                 bindings = normalize_hotkey_bindings(getattr(state, 'hotkey_bindings', {}))
                                 with ui.card().classes('mq-card w-full p-5'):
@@ -19493,7 +20022,7 @@ def main_page(request: Request) -> None:
                 recent_drop_item = coerce_item(getattr(state, 'last_monster_drop_item', None))
                 recent_drop_sequence = int(getattr(state, 'last_monster_drop_sequence', 0) or 0)
                 recent_drop_animatable = recent_drop_item is not None and item_rarity_sort_key(recent_drop_item) >= RARITY_ORDER.index('Fine')
-                recent_drop_should_pop = bool(recent_drop_animatable and not state.fight_in_progress)
+                recent_drop_should_pop = bool(recent_drop_animatable and not state.fight_in_progress and not bool(getattr(state, 'disable_last_drop_animation', False)))
                 with ui.element('div').classes('mq-arena-top w-full'):
                     with ui.card().classes('mq-arena-card w-full p-5'):
                         with ui.element('div').classes('mq-player-side-layout'):
