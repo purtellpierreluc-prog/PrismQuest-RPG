@@ -1635,6 +1635,25 @@ body {
   height: min(104vh, 1280px);
   min-height: 980px;
 }
+.mq-bazaar-ledger-scroll {
+  height: min(92vh, 1020px);
+  min-height: 900px;
+}
+.mq-bazaar-ledger-card {
+  min-height: 980px;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(155, 132, 84, 0.08) 0%, rgba(0,0,0,0) 22%),
+    linear-gradient(180deg, rgba(24, 20, 18, 0.38) 0%, rgba(0,0,0,0) 12%),
+    var(--mq-panel-bg);
+}
+.mq-bazaar-ledger-entry {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.0) 22%),
+    rgba(10, 14, 20, 0.82);
+}
+.mq-bazaar-ledger-entry .mq-manifest-flag {
+  letter-spacing: 0.14em;
+}
 @media (max-width: 1250px) {
   .mq-screen-title .mq-title-side-stack,
   .mq-screen-chronicle .mq-title-side-stack {
@@ -1654,8 +1673,16 @@ body {
     min-height: 620px;
     height: 78vh;
   }
+  .mq-bazaar-ledger-scroll {
+    min-height: 560px;
+    height: 72vh;
+  }
 }
 @media (max-width: 780px) {
+  .mq-town-whisper.mq-town-whisper-local {
+    font-size: 1.34rem;
+    line-height: 1.36;
+  }
   .mq-title-kicker {
     left: 14px;
     top: 14px;
@@ -2458,12 +2485,21 @@ body {
   line-height: 1.58;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
+.mq-town-whisper.mq-town-whisper-local {
+  max-width: 980px;
+  font-size: 1.94rem;
+  line-height: 1.34;
+  padding: 0.92rem 1.08rem;
+}
 .mq-town-whisper strong {
   color: #f3e5be;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.82rem;
+}
+.mq-town-whisper.mq-town-whisper-local strong {
+  font-size: 1rem;
 }
 .mq-town-crier-ledger {
   color: #d9e2e9;
@@ -3283,6 +3319,72 @@ body {
 .mq-scene-arena .mq-arena-card:hover,
 .mq-scene-arena .mq-panel-frame:hover {
   border-color: rgba(238,242,247,0.24);
+}
+.mq-scene-well .mq-card {
+  position: relative;
+  overflow: visible;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(225,231,239,0.18);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 14%, rgba(255,255,255,0) 30%),
+    linear-gradient(180deg, rgba(16, 18, 23, 0.98) 0%, rgba(6, 7, 10, 0.995) 100%);
+  box-shadow:
+    0 20px 38px rgba(0,0,0,0.32),
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    inset 0 -18px 34px rgba(0,0,0,0.18),
+    0 0 0 1px rgba(255,255,255,0.02);
+}
+.mq-scene-well .mq-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  border: 1px solid rgba(244,247,250,0.22);
+  box-shadow: none;
+  pointer-events: none;
+}
+.mq-scene-well .mq-card::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 21px;
+  border: 1px solid rgba(116,124,134,0.12);
+  pointer-events: none;
+}
+.mq-scene-well .mq-panel-frame {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 20%, rgba(255,255,255,0) 42%),
+    rgba(6, 8, 11, 0.90);
+  border-color: rgba(255,255,255,0.09);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    inset 0 -18px 34px rgba(0,0,0,0.20),
+    0 14px 26px rgba(0,0,0,0.16);
+}
+.mq-scene-well .mq-card:hover,
+.mq-scene-well .mq-panel-frame:hover {
+  border-color: rgba(238,242,247,0.24);
+}
+.mq-well-spoils-card::before {
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+.mq-well-spoils-card .mq-base-stat-list,
+.mq-well-spoils-card .mq-affix-stat-list {
+  margin-top: 8px;
+}
+.mq-well-spoils-card .mq-affix-stat-list {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.mq-well-spoils-card .mq-affix-stat-list::-webkit-scrollbar {
+  width: 8px;
+}
+.mq-well-spoils-card .mq-affix-stat-list::-webkit-scrollbar-thumb {
+  background: rgba(var(--mq-drop-rgb), 0.22);
+  border-radius: 999px;
 }
 .mq-scene-arena .mq-transition,
 .mq-scene-arena .mq-combat-log {
@@ -4179,8 +4281,18 @@ body {
   48% { opacity: var(--mq-drop-sheen-trail-opacity); }
   100% { opacity: 0; transform: translateX(88%) rotate(var(--mq-drop-sheen-tilt)); }
 }
+@keyframes mqWellSpoilsPulse {
+  0% { opacity: 0.98; transform: scale(0.986); }
+  18% { opacity: 1.00; transform: scale(1.012); }
+  34% { opacity: 0.90; transform: scale(1.002); }
+  56% { opacity: 0.99; transform: scale(1.008); }
+  100% { opacity: 0.98; transform: scale(1.000); }
+}
 .mq-last-drop-card-animate {
   animation: mqLastDropReveal var(--mq-drop-duration) cubic-bezier(0.19, 0.82, 0.24, 1) both;
+}
+.mq-well-spoils-card.mq-last-drop-card-animate::before {
+  animation: mqWellSpoilsPulse calc(var(--mq-drop-duration) * 0.82) cubic-bezier(0.20, 0.82, 0.24, 1) 140ms 1 both;
 }
 .mq-last-drop-card-animate::after {
   animation: mqLastDropSheen var(--mq-drop-sheen-duration) cubic-bezier(0.18, 0.7, 0.24, 1) var(--mq-drop-sheen-delay) both;
@@ -6056,6 +6168,7 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
         'hotkey_bindings': build_default_hotkey_bindings(),
         'disable_last_drop_animation': False,
         'arena_combat_log_default_open': False,
+        'bazaar_ledger_entries': [],
         'season_id': normalized_season,
         'ladder_reset_count': 0,
         'run_started_wall_time': 0.0,
@@ -6149,6 +6262,79 @@ def normalize_town_communications_messages(raw_messages, fallback_text: str = ''
     if fallback and not messages:
         messages.append({'id': '', 'author_user_id': '', 'author': 'You', 'body': fallback, 'stamp': '', 'role': 'player', 'created_at': ''})
     return _recent_chat_messages(messages, 80)
+
+
+BAZAAR_LEDGER_ENTRY_LIMIT = 240
+
+
+def _bazaar_ledger_now() -> str:
+    return time.strftime('%Y-%m-%d %H:%M:%S')
+
+
+def format_bazaar_ledger_stamp(value: object) -> str:
+    raw = str(value or '').strip()
+    if not raw:
+        return '—'
+    return raw.replace('T', ' ').replace('Z', ' UTC')
+
+
+def normalize_bazaar_ledger_entry(raw_entry: object) -> Optional[Dict[str, object]]:
+    if not isinstance(raw_entry, dict):
+        return None
+    entry_id = str(raw_entry.get('id') or '').strip()
+    if not entry_id:
+        return None
+    action_raw = str(raw_entry.get('action') or '').strip().lower()
+    if action_raw in {'buy', 'bought'}:
+        action = 'Bought'
+    elif action_raw in {'sell', 'sold'}:
+        action = 'Sold'
+    else:
+        return None
+    item_name = ' '.join(str(raw_entry.get('item_name') or 'Unknown Item').split())[:80] or 'Unknown Item'
+    item_rarity = str(raw_entry.get('item_rarity') or 'Common').strip() or 'Common'
+    item_type = ' '.join(str(raw_entry.get('item_type') or 'Unknown Type').split())[:48] or 'Unknown Type'
+    item_base_text = ' '.join(str(raw_entry.get('item_base_text') or '').split())[:140]
+    player_name = clean_character_name(str(raw_entry.get('player_name') or 'Hero'))
+    counterparty_default = 'Unknown Adventurer' if action == 'Bought' else 'Bazaar Buyer'
+    counterparty_name = ' '.join(str(raw_entry.get('counterparty_name') or counterparty_default).split())[:64] or counterparty_default
+    mode = normalize_ladder_mode(raw_entry.get('mode'), 'Core')
+    season_id = sanitize_ladder_season_id(raw_entry.get('season_id', DEFAULT_LADDER_SEASON_ID))
+    try:
+        gold = max(0, int(raw_entry.get('gold', 0) or 0))
+    except Exception:
+        gold = 0
+    try:
+        item_tier = max(1, int(raw_entry.get('item_tier', 1) or 1))
+    except Exception:
+        item_tier = 1
+    created_at = str(raw_entry.get('created_at') or '').strip() or _bazaar_ledger_now()
+    return {
+        'id': entry_id,
+        'action': action,
+        'item_name': item_name,
+        'item_rarity': item_rarity,
+        'item_type': item_type,
+        'item_tier': item_tier,
+        'item_base_text': item_base_text,
+        'player_name': player_name,
+        'counterparty_name': counterparty_name,
+        'gold': gold,
+        'mode': mode,
+        'season_id': season_id,
+        'created_at': created_at,
+    }
+
+
+def normalize_bazaar_ledger_entries(raw_entries: object) -> List[Dict[str, object]]:
+    rows: List[Dict[str, object]] = []
+    if isinstance(raw_entries, list):
+        for raw_entry in raw_entries[-(BAZAAR_LEDGER_ENTRY_LIMIT * 4):]:
+            normalized = normalize_bazaar_ledger_entry(raw_entry)
+            if normalized is not None:
+                rows.append(normalized)
+    rows.sort(key=lambda row: (str(row.get('created_at') or ''), str(row.get('id') or '')))
+    return rows[-BAZAAR_LEDGER_ENTRY_LIMIT:]
 
 
 def _pq_ledger_iso_now() -> str:
@@ -6302,6 +6488,7 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
     slot['disable_last_drop_animation'] = bool(disable_last_drop_animation) if isinstance(disable_last_drop_animation, bool) else False
     combat_log_default_open = raw_slot.get('arena_combat_log_default_open', False)
     slot['arena_combat_log_default_open'] = bool(combat_log_default_open) if isinstance(combat_log_default_open, bool) else False
+    slot['bazaar_ledger_entries'] = normalize_bazaar_ledger_entries(raw_slot.get('bazaar_ledger_entries', []))
     slot['ladder_reset_count'] = sanitize_ladder_reset_count(raw_slot.get('ladder_reset_count', 0))
     raw_run_started = raw_slot.get('run_started_wall_time', 0.0)
     try:
@@ -8085,6 +8272,18 @@ def last_monster_drop_card_style(item: Optional[Item]) -> str:
         f'--mq-drop-sheen-opacity: {profile["sheen_opacity"]:.2f}',
         f'--mq-drop-sheen-trail-opacity: {profile["sheen_trail_opacity"]:.2f}',
         f'--mq-drop-sheen-tilt: {profile["sheen_tilt"]:.2f}deg',
+    ])
+
+def well_reward_card_style(item: Optional[Item], outcome: str = '') -> str:
+    base_style = last_monster_drop_card_style(item)
+    normalized_outcome = str(outcome or '').strip().lower()
+    if normalized_outcome != 'miss':
+        return base_style
+    return '; '.join([
+        base_style,
+        'border-color: rgba(214, 170, 98, 0.34)',
+        'box-shadow: inset 0 0 0 1px rgba(214, 170, 98, 0.14), 0 14px 28px rgba(0,0,0,0.26)',
+        'background: linear-gradient(180deg, rgba(214,170,98,0.12) 0%, rgba(214,170,98,0.02) 16%, rgba(10,13,18,0.96) 100%)',
     ])
 ITEM_SLOT_SORT_ORDER = {'weapon': 0, 'armor': 1, 'charm': 2}
 TRANSMUTE_TIER_FILTER_OPTIONS = ['All tiers'] + [f'Tier {bucket}' for bucket in ITEM_BUCKETS]
@@ -9989,6 +10188,11 @@ class SessionState:
         self.last_monster_drop_item: Optional[Item] = None
         self.last_monster_drop_source: str = ''
         self.last_monster_drop_sequence: int = 0
+        self.last_well_reward_item: Optional[Item] = None
+        self.last_well_reward_outcome: str = ''
+        self.last_well_reward_tier: int = 0
+        self.last_well_reward_type: str = ''
+        self.last_well_reward_sequence: int = 0
         self.last_monster_snapshot: Optional[Fighter] = None
         self.last_fight_outcome: str = 'idle'
         self.current_arena_monster_uri: str = ''
@@ -10025,6 +10229,7 @@ class SessionState:
         self.bazaar_price_input: str = ''
         self.bazaar_edit_price_inputs: Dict[str, str] = {}
         self.bazaar_listings: List[BazaarListing] = []
+        self.bazaar_ledger_entries: List[Dict[str, object]] = []
         self.bazaar_status: str = 'Browse adventurer listings or post your own wares.'
         self.bazaar_status_tone: str = 'info'
         self.bazaar_last_refresh_at: float = 0.0
@@ -11154,6 +11359,7 @@ class SessionState:
         self.mana_regen_progress = 0.0
         self.life_regen_progress = 0.0
         self.clear_last_monster_drop()
+        self.clear_last_well_reward()
         self.apply_arena_combat_log_default()
         self.clear_arena_monster_art(True)
         self.game_tab = 'arena'
@@ -11184,6 +11390,7 @@ class SessionState:
         self.bazaar_price_input = ''
         self.bazaar_edit_price_inputs = {}
         self.bazaar_listings = []
+        self.bazaar_ledger_entries = []
         self.bazaar_status = 'Browse adventurer listings or post your own wares.'
         self.bazaar_status_tone = 'info'
         self.bazaar_last_refresh_at = 0.0
@@ -11512,6 +11719,7 @@ class SessionState:
         self.bazaar_price_input = ''
         self.bazaar_edit_price_inputs = {}
         self.bazaar_listings = []
+        self.bazaar_ledger_entries = []
         self.bazaar_status = 'Browse adventurer listings or post your own wares.'
         self.bazaar_status_tone = 'info'
         self.bazaar_last_refresh_at = 0.0
@@ -11739,6 +11947,7 @@ class SessionState:
         slot['hotkey_bindings'] = dict(normalize_hotkey_bindings(self.hotkey_bindings))
         slot['disable_last_drop_animation'] = bool(self.disable_last_drop_animation)
         slot['arena_combat_log_default_open'] = bool(self.arena_combat_log_default_open)
+        slot['bazaar_ledger_entries'] = [dict(entry) for entry in normalize_bazaar_ledger_entries(self.bazaar_ledger_entries)]
         slot['ladder_reset_count'] = int(self.current_account_ladder_resets())
         slot['run_started_wall_time'] = float(self.current_run_start_wall_time if self.player is not None else 0.0)
         slot['player'] = None if self.player is None else copy.deepcopy(self.player.to_dict())
@@ -11819,6 +12028,7 @@ class SessionState:
         self.last_monster_drop_item = coerce_item(slot.get('last_monster_drop_item'))
         self.last_monster_drop_source = str(slot.get('last_monster_drop_source', '') or '').strip().lower()
         self.last_monster_drop_sequence = 0
+        self.clear_last_well_reward()
         self.disable_last_drop_animation = bool(slot.get('disable_last_drop_animation', False))
         self.arena_combat_log_default_open = bool(slot.get('arena_combat_log_default_open', False))
         self.ladder_stats = normalize_ladder_stats(slot.get('ladder_stats'))
@@ -11842,6 +12052,7 @@ class SessionState:
         self.bazaar_price_input = ''
         self.bazaar_edit_price_inputs = {}
         self.bazaar_listings = []
+        self.bazaar_ledger_entries = normalize_bazaar_ledger_entries(slot.get('bazaar_ledger_entries', []))
         self.bazaar_status = 'Browse adventurer listings or post your own wares.'
         self.bazaar_status_tone = 'info'
         self.bazaar_last_refresh_at = 0.0
@@ -11943,6 +12154,7 @@ class SessionState:
         self.bazaar_price_input = ''
         self.bazaar_edit_price_inputs = {}
         self.bazaar_listings = []
+        self.bazaar_ledger_entries = []
         self.bazaar_status = 'Browse adventurer listings or post your own wares.'
         self.bazaar_status_tone = 'info'
         self.bazaar_last_refresh_at = 0.0
@@ -12533,11 +12745,9 @@ def selected_well_sacrifice_ref(self) -> Optional[Tuple[int, Item]]:
 def well_status_text(self) -> str:
     if self.player is None:
         return ''
-    common_count = sum(1 for _index, _item in self.well_sacrifice_item_map().values())
     return (
         "<div class='mq-status-line--stacked'>"
         f"<div class='mq-status-line'><span class='mq-status-identity'>{html.escape(self.player.name)} the {html.escape(self.player.player_class)}</span><span class='mq-status-sep'>•</span>{gold_inline_html(self.player.gold)}<span class='mq-status-sep'>•</span>{resource_inline_html('HP', self.player.hp, self.player.max_hp, 'hp')}<span class='mq-status-sep'>•</span>{resource_inline_html('Mana', self.player.mana, self.player.max_mana, 'mana')}</div>"
-        f"<div class='mq-status-note'>The well now demands 10 gold and one Common item. Common offerings available: {common_count}.</div>"
         "</div>"
     )
 
@@ -13313,10 +13523,12 @@ async def _finish_arena_fight_async(self, refresh) -> None:
                     self.player.inventory.append(item)
                     self.arena_looted_item_count = int(getattr(self, 'arena_looted_item_count', 0) or 0) + 1
                     self.remember_last_monster_drop(item, 'well')
+                    self.remember_last_well_reward_item(item)
                     reward_found = True
                     self.add_log(f'The Well of Evil yields a Tier {sacrificed_tier} {sacrificed_type}.', 'warning')
                     self.add_log(f'Loot found: {item.summary()}.', 'success')
                 else:
+                    self.remember_last_well_reward_miss(sacrificed_tier, sacrificed_type)
                     self.add_log(f'The Well of Evil withholds its shaped Tier {sacrificed_tier} {sacrificed_type} prize this time.', 'warning')
                     self.add_log('The black water shudders, then swallows the reward back into the dark.', 'muted')
             else:
@@ -13431,6 +13643,13 @@ def clear_last_monster_drop(self) -> None:
     self.last_monster_drop_source = ''
     self.last_monster_drop_sequence = 0
 
+def clear_last_well_reward(self) -> None:
+    self.last_well_reward_item = None
+    self.last_well_reward_outcome = ''
+    self.last_well_reward_tier = 0
+    self.last_well_reward_type = ''
+    self.last_well_reward_sequence = 0
+
 def remember_last_monster_drop(self, item: object, source: str = 'arena') -> None:
     drop = coerce_item(item)
     if drop is None:
@@ -13438,6 +13657,27 @@ def remember_last_monster_drop(self, item: object, source: str = 'arena') -> Non
     self.last_monster_drop_item = copy.deepcopy(drop)
     self.last_monster_drop_source = str(source or 'arena').strip().lower()
     self.last_monster_drop_sequence = int(getattr(self, 'last_monster_drop_sequence', 0) or 0) + 1
+
+def remember_last_well_reward_item(self, item: object) -> None:
+    drop = coerce_item(item)
+    if drop is None:
+        return
+    self.last_well_reward_item = copy.deepcopy(drop)
+    self.last_well_reward_outcome = 'item'
+    self.last_well_reward_tier = item_required_level(drop)
+    self.last_well_reward_type = saved_item_type_label(drop)
+    self.last_well_reward_sequence = int(getattr(self, 'last_well_reward_sequence', 0) or 0) + 1
+
+def remember_last_well_reward_miss(self, tier: object, item_type: object) -> None:
+    try:
+        tier_value = max(0, int(tier or 0))
+    except Exception:
+        tier_value = 0
+    self.last_well_reward_item = None
+    self.last_well_reward_outcome = 'miss'
+    self.last_well_reward_tier = tier_value
+    self.last_well_reward_type = str(item_type or '').strip()
+    self.last_well_reward_sequence = int(getattr(self, 'last_well_reward_sequence', 0) or 0) + 1
 
 def start_game(self, player_class: str) -> None:
     if player_class not in self.unlocked_classes:
@@ -13463,6 +13703,7 @@ def start_game(self, player_class: str) -> None:
     self.current_monster_xp = 0
     self.monster_chain_combo = 0
     self.clear_last_monster_drop()
+    self.clear_last_well_reward()
     self.mana_regen_progress = 0.0
     self.life_regen_progress = 0.0
     self.marketplace_offers = []
@@ -13680,6 +13921,7 @@ def import_save(self) -> None:
         self.current_monster = None
         self.current_monster_xp = 0
         self.clear_last_monster_drop()
+        self.clear_last_well_reward()
         self.game_tab = 'arena'
         self.screen = 'town'
         self.town_tutorial_seen = bool(payload.get('town_tutorial_seen', True))
@@ -14094,7 +14336,7 @@ def town_crier_status_html(self) -> str:
             body = 'The Town Crier mutters that true town coffers are only tallied permanently for signed-in adventurers, and this local session has not spent a coin yet.'
         else:
             return (
-                "<div class='mq-town-whisper'><strong>Town Crier</strong><br>"
+                "<div class='mq-town-whisper mq-town-whisper-local'><strong>Town Crier</strong><br>"
                 "The Town Crier warns that this local session has fed only "
                 f"{gold_inline_html(total_gold):s}"
                 " into a temporary purse; the permanent town coffers wake only when the shared ledger is in reach.</div>"
@@ -14126,7 +14368,8 @@ def town_crier_status_html(self) -> str:
             f"{gold_inline_html(total_gold):s}"
             f" now rests in the coffers{tail}</div>"
         )
-    return f"<div class='mq-town-whisper'><strong>Town Crier</strong><br>{html.escape(body)}</div>"
+    whisper_classes = 'mq-town-whisper mq-town-whisper-local' if source == 'local' else 'mq-town-whisper'
+    return f"<div class='{whisper_classes}'><strong>Town Crier</strong><br>{html.escape(body)}</div>"
 
 
 def _sanitize_chat_body(value: object, limit: int = 220) -> str:
@@ -16096,12 +16339,14 @@ def claim_bazaar_proceeds(self) -> int:
     sold_unclaimed = [entry for entry in self.bazaar_listings if entry.seller_id == actor_id and entry.sold and not entry.seller_claimed]
     if not sold_unclaimed:
         return 0
-    total_gold = sum(max(0, int(entry.price)) for entry in sold_unclaimed)
+    total_gold = 0
     paid_count = 0
     for entry in sold_unclaimed:
         if self._bazaar_update_record(entry.listing_id, {'seller_claimed': True}):
             entry.seller_claimed = True
             paid_count += 1
+            total_gold += max(0, int(entry.price))
+            self.record_bazaar_ledger_entry('sold', entry.item, int(entry.price), 'Bazaar Buyer')
     if paid_count <= 0:
         return 0
     self.player.gold += total_gold
@@ -16112,6 +16357,9 @@ def claim_bazaar_proceeds(self) -> int:
 
 def _bazaar_listing_matches_filters(self, listing: BazaarListing) -> bool:
     item = listing.item
+    return self._bazaar_item_matches_filters(item)
+
+def _bazaar_item_matches_filters(self, item: Item) -> bool:
     tier_bucket: Optional[int] = None
     if self.bazaar_tier_filter != 'All tiers':
         try:
@@ -16166,7 +16414,43 @@ def bazaar_own_entries(self) -> List[BazaarListing]:
     self.refresh_bazaar_listings(force=False)
     actor_id = self.current_bazaar_actor_id()
     entries = [entry for entry in self.bazaar_listings if entry.seller_id == actor_id and not entry.seller_claimed]
-    return sorted(entries, key=lambda entry: (entry.sold, str(entry.created_at)), reverse=True)
+    filtered = [entry for entry in entries if self._bazaar_listing_matches_filters(entry)]
+    active_entries = [entry for entry in filtered if not entry.sold]
+    sold_entries = [entry for entry in filtered if entry.sold]
+    return self._bazaar_sorted_entries(active_entries) + self._bazaar_sorted_entries(sold_entries)
+
+def bazaar_sell_inventory_entries(self) -> List[Tuple[int, Item]]:
+    if self.player is None:
+        return []
+    filtered: List[Tuple[int, Item]] = []
+    for inventory_index, raw_item in enumerate(self.player.inventory):
+        item = coerce_item(raw_item)
+        if item is None or not self._bazaar_item_matches_filters(item):
+            continue
+        filtered.append((inventory_index, item))
+
+    def rarity_value(item: Item) -> int:
+        try:
+            return RARITY_ORDER.index(getattr(item, 'rarity', 'Common'))
+        except ValueError:
+            return -1
+
+    sort_name = str(getattr(self, 'bazaar_sort', 'Newest') or 'Newest')
+    if sort_name == 'Price (Low-High)':
+        return sorted(filtered, key=lambda entry: (safe_item_sell_value(entry[1]), -item_required_level(entry[1]), safe_item_name(entry[1]).lower(), entry[0]))
+    if sort_name == 'Price (High-Low)':
+        return sorted(filtered, key=lambda entry: (-safe_item_sell_value(entry[1]), -item_required_level(entry[1]), safe_item_name(entry[1]).lower(), entry[0]))
+    if sort_name == 'Tier (Low-High)':
+        return sorted(filtered, key=lambda entry: (item_required_level(entry[1]), -rarity_value(entry[1]), safe_item_name(entry[1]).lower(), entry[0]))
+    if sort_name == 'Tier (High-Low)':
+        return sorted(filtered, key=lambda entry: (-item_required_level(entry[1]), -rarity_value(entry[1]), safe_item_name(entry[1]).lower(), entry[0]))
+    if sort_name == 'Type':
+        return sorted(filtered, key=lambda entry: (saved_item_type_label(entry[1]).lower(), -item_required_level(entry[1]), safe_item_name(entry[1]).lower(), entry[0]))
+    if sort_name == 'Rarity':
+        return sorted(filtered, key=lambda entry: (-rarity_value(entry[1]), -item_required_level(entry[1]), safe_item_name(entry[1]).lower(), entry[0]))
+    if sort_name == 'Affix Count (High-Low)':
+        return sorted(filtered, key=lambda entry: (-len(getattr(entry[1], 'affix_stats', {})), -item_required_level(entry[1]), safe_item_name(entry[1]).lower(), entry[0]))
+    return sorted(filtered, key=lambda entry: (entry[0], item_required_level(entry[1]), rarity_value(entry[1]), safe_item_name(entry[1]).lower()), reverse=True)
 
 def bazaar_listing_limit(self) -> int:
     return 100
@@ -16176,10 +16460,50 @@ def bazaar_active_listing_count(self) -> int:
     actor_id = self.current_bazaar_actor_id()
     return len([entry for entry in self.bazaar_listings if entry.seller_id == actor_id and not entry.sold])
 
+def record_bazaar_ledger_entry(self, action: str, item: Optional[Item], gold: object, counterparty_name: str = '', created_at: str = '') -> None:
+    normalized_item = coerce_item(item)
+    if normalized_item is None:
+        return
+    action_text = str(action or '').strip().lower()
+    if action_text not in {'buy', 'bought', 'sell', 'sold'}:
+        return
+    action_value = 'Bought' if action_text in {'buy', 'bought'} else 'Sold'
+    actor_name = clean_character_name(self.player.name if self.player else 'Hero')
+    counterparty_default = 'Unknown Adventurer' if action_value == 'Bought' else 'Bazaar Buyer'
+    counterparty = ' '.join(str(counterparty_name or counterparty_default).split())[:64] or counterparty_default
+    try:
+        gold_value = max(0, int(gold or 0))
+    except Exception:
+        gold_value = 0
+    entry = normalize_bazaar_ledger_entry({
+        'id': f"bazaar-ledger-{action_value.lower()}-{int(time.time() * 1000)}-{random.randint(100000, 999999)}",
+        'action': action_value,
+        'item_name': safe_item_name(normalized_item),
+        'item_rarity': str(getattr(normalized_item, 'rarity', 'Common') or 'Common'),
+        'item_type': saved_item_type_label(normalized_item),
+        'item_tier': item_required_level(normalized_item),
+        'item_base_text': safe_item_base_stat_text(normalized_item),
+        'player_name': actor_name,
+        'counterparty_name': counterparty,
+        'gold': gold_value,
+        'mode': self.current_slot_mode(),
+        'season_id': self.current_slot_season_id(),
+        'created_at': str(created_at or '').strip() or _bazaar_ledger_now(),
+    })
+    if entry is None:
+        return
+    self.bazaar_ledger_entries = normalize_bazaar_ledger_entries([*getattr(self, 'bazaar_ledger_entries', []), entry])
+
+def bazaar_ledger_rows(self) -> List[Dict[str, object]]:
+    rows = normalize_bazaar_ledger_entries(getattr(self, 'bazaar_ledger_entries', []))
+    rows.sort(key=lambda row: (str(row.get('created_at') or ''), str(row.get('id') or '')), reverse=True)
+    return rows
+
 def set_bazaar_edit_price_input(self, listing_id: str, raw_value: object) -> None:
     if not isinstance(getattr(self, 'bazaar_edit_price_inputs', None), dict):
         self.bazaar_edit_price_inputs = {}
-    self.bazaar_edit_price_inputs[str(listing_id or '').strip()] = str(raw_value or '').strip()
+    normalized_value = '' if raw_value is None else str(raw_value).strip()
+    self.bazaar_edit_price_inputs[str(listing_id or '').strip()] = normalized_value
 
 def get_bazaar_edit_price_input(self, listing_id: str, current_price: object = 0) -> str:
     if not isinstance(getattr(self, 'bazaar_edit_price_inputs', None), dict):
@@ -16321,6 +16645,12 @@ def buy_bazaar_listing(self, listing_id: str) -> None:
         return
     self.player.gold -= int(listing.price)
     self.player.inventory.append(copy.deepcopy(listing.item))
+    self.record_bazaar_ledger_entry(
+        'bought',
+        listing.item,
+        int(listing.price),
+        f'{listing.seller_name} ({listing.seller_class} Lv {int(listing.seller_level)})',
+    )
     self.add_log(f'Bought {listing.item.summary()} from {listing.seller_name} for {listing.price} gold.', 'success')
     self.sync_active_slot()
     self.refresh_bazaar_listings(force=True)
@@ -16406,6 +16736,7 @@ def _hardcore_death_cleanup(self, encounter_type: str = 'normal') -> None:
     self.mana_regen_progress = 0.0
     self.life_regen_progress = 0.0
     self.clear_last_monster_drop()
+    self.clear_last_well_reward()
     self.arena_flee_requested = False
     self.clear_arena_monster_art(True)
     self.game_tab = 'arena'
@@ -16446,7 +16777,10 @@ SessionState._run_arena_combat_async = _run_arena_combat_async
 SessionState._finish_arena_fight_async = _finish_arena_fight_async
 SessionState.add_log = add_log
 SessionState.clear_last_monster_drop = clear_last_monster_drop
+SessionState.clear_last_well_reward = clear_last_well_reward
 SessionState.remember_last_monster_drop = remember_last_monster_drop
+SessionState.remember_last_well_reward_item = remember_last_well_reward_item
+SessionState.remember_last_well_reward_miss = remember_last_well_reward_miss
 SessionState.start_game = start_game
 SessionState.spawn_monster = spawn_monster
 def set_damage_popup(self, target: str, amount: int, crit: bool = False) -> None:
@@ -16549,11 +16883,15 @@ SessionState._bazaar_delete_record = _bazaar_delete_record
 SessionState.refresh_bazaar_listings = refresh_bazaar_listings
 SessionState.claim_bazaar_proceeds = claim_bazaar_proceeds
 SessionState._bazaar_listing_matches_filters = _bazaar_listing_matches_filters
+SessionState._bazaar_item_matches_filters = _bazaar_item_matches_filters
 SessionState._bazaar_sorted_entries = _bazaar_sorted_entries
 SessionState.bazaar_buy_entries = bazaar_buy_entries
 SessionState.bazaar_own_entries = bazaar_own_entries
+SessionState.bazaar_sell_inventory_entries = bazaar_sell_inventory_entries
 SessionState.bazaar_listing_limit = bazaar_listing_limit
 SessionState.bazaar_active_listing_count = bazaar_active_listing_count
+SessionState.record_bazaar_ledger_entry = record_bazaar_ledger_entry
+SessionState.bazaar_ledger_rows = bazaar_ledger_rows
 SessionState.set_bazaar_edit_price_input = set_bazaar_edit_price_input
 SessionState.get_bazaar_edit_price_input = get_bazaar_edit_price_input
 SessionState.list_item_on_bazaar = list_item_on_bazaar
@@ -17575,6 +17913,44 @@ def main_page(request: Request) -> None:
 
     inn_vault_dialog = ui.dialog()
     inn_vault_render_refs: Dict[str, object] = {'panels': None}
+    bazaar_reprice_dialog = ui.dialog()
+    bazaar_reprice_state: Dict[str, object] = {'listing_id': '', 'current_price': 0, 'item_name': ''}
+
+    with bazaar_reprice_dialog:
+        with ui.card().classes('mq-card max-w-[520px] w-[92vw] p-5'):
+            ui.label('Reprice Listing').classes('text-2xl font-semibold text-slate-100')
+            bazaar_reprice_item_label = ui.label('').classes('text-slate-300 text-lg leading-7 mt-2')
+            bazaar_reprice_current_label = ui.label('').classes('mq-detail-text mt-2')
+            bazaar_reprice_input = ui.input(label='New Price (Gold)').props('type=number min=1 outlined clearable input-style=color: #e2e8f0;').classes('w-full mt-4')
+            bazaar_reprice_input.on_value_change(lambda e: state.set_bazaar_edit_price_input(str(bazaar_reprice_state.get('listing_id', '') or ''), e.value))
+            with ui.row().classes('gap-3 mt-5 justify-end max-[640px]:w-full max-[640px]:flex-wrap'):
+                ui.button('Cancel', on_click=lambda: bazaar_reprice_dialog.close()).classes('mq-btn-secondary max-[640px]:w-full')
+                ui.button('Update Price', on_click=lambda: confirm_bazaar_reprice()).classes('mq-btn-gold max-[640px]:w-full')
+
+    def open_bazaar_reprice_dialog(listing: BazaarListing) -> None:
+        listing_id = str(getattr(listing, 'listing_id', '') or '').strip()
+        if not listing_id:
+            return
+        current_price = int(getattr(listing, 'price', 0) or 0)
+        item_name = safe_item_name(getattr(listing, 'item', None))
+        seed_value = state.get_bazaar_edit_price_input(listing_id, current_price)
+        bazaar_reprice_state['listing_id'] = listing_id
+        bazaar_reprice_state['current_price'] = current_price
+        bazaar_reprice_state['item_name'] = item_name
+        bazaar_reprice_item_label.set_text(item_name)
+        bazaar_reprice_current_label.set_text(f'Current price: {current_price} gold')
+        bazaar_reprice_input.set_value(seed_value)
+        bazaar_reprice_dialog.open()
+
+    def confirm_bazaar_reprice() -> None:
+        listing_id = str(bazaar_reprice_state.get('listing_id', '') or '').strip()
+        if not listing_id:
+            bazaar_reprice_dialog.close()
+            return
+        raw_value = state.get_bazaar_edit_price_input(listing_id, bazaar_reprice_state.get('current_price', 0))
+        bazaar_reprice_dialog.close()
+        state.update_bazaar_listing_price(listing_id, raw_value)
+        request_render_refresh()
 
     def ensure_inn_vault_runtime_state() -> None:
         vault_items = getattr(state, 'vault_items', [])
@@ -17597,9 +17973,19 @@ def main_page(request: Request) -> None:
             setattr(state, field_name, current_value)
         for field_name in ('inn_vault_inventory_selected_index', 'inn_vault_selected_index'):
             try:
-                setattr(state, field_name, int(getattr(state, field_name, -1) or -1))
+                raw_value = getattr(state, field_name, -1)
+                setattr(state, field_name, -1 if raw_value in (None, '') else int(raw_value))
             except Exception:
                 setattr(state, field_name, -1)
+
+    def inn_vault_selected_index_value(field_name: str) -> int:
+        raw_value = getattr(state, field_name, -1)
+        if raw_value in (None, ''):
+            return -1
+        try:
+            return int(raw_value)
+        except Exception:
+            return -1
 
     def sync_inn_vault_selection() -> None:
         ensure_inn_vault_runtime_state()
@@ -17609,15 +17995,15 @@ def main_page(request: Request) -> None:
             return
         inv_len = len(state.player.inventory)
         vault_len = len(state.vault_items)
-        state.inn_vault_inventory_selected_index = max(-1, min(int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1), inv_len - 1)) if inv_len else -1
-        state.inn_vault_selected_index = max(-1, min(int(getattr(state, 'inn_vault_selected_index', -1) or -1), vault_len - 1)) if vault_len else -1
+        state.inn_vault_inventory_selected_index = max(-1, min(inn_vault_selected_index_value('inn_vault_inventory_selected_index'), inv_len - 1)) if inv_len else -1
+        state.inn_vault_selected_index = max(-1, min(inn_vault_selected_index_value('inn_vault_selected_index'), vault_len - 1)) if vault_len else -1
 
     def remember_inn_vault_scroll() -> None:
         ui.run_javascript("window.mqRememberScroll && window.mqRememberScroll('mq-inn-vault-inventory-scroll'); window.mqRememberScroll && window.mqRememberScroll('mq-inn-vault-storage-scroll')")
 
     def sync_inn_vault_client_selection() -> None:
-        selected_inv = int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1)
-        selected_vault = int(getattr(state, 'inn_vault_selected_index', -1) or -1)
+        selected_inv = inn_vault_selected_index_value('inn_vault_inventory_selected_index')
+        selected_vault = inn_vault_selected_index_value('inn_vault_selected_index')
         selected_list = 'inventory' if selected_inv >= 0 else ('storage' if selected_vault >= 0 else '')
         selected_index = selected_inv if selected_inv >= 0 else selected_vault
         ui.run_javascript(
@@ -17679,8 +18065,8 @@ def main_page(request: Request) -> None:
             getattr(state, 'inn_vault_tier_filter', 'All tiers') != 'All tiers'
             or getattr(state, 'inn_vault_type_filter', 'All types') != 'All types'
             or getattr(state, 'inn_vault_affix_filter', 'All attributes') != 'All attributes'
-            or int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1) != -1
-            or int(getattr(state, 'inn_vault_selected_index', -1) or -1) != -1
+            or inn_vault_selected_index_value('inn_vault_inventory_selected_index') != -1
+            or inn_vault_selected_index_value('inn_vault_selected_index') != -1
         )
         if not changed:
             return
@@ -17730,7 +18116,7 @@ def main_page(request: Request) -> None:
         if state.player is None:
             return
         sync_inn_vault_selection()
-        idx = int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1)
+        idx = inn_vault_selected_index_value('inn_vault_inventory_selected_index')
         if idx < 0:
             state.add_log('Select an inventory item to deposit.', 'warning')
             request_render_refresh()
@@ -17746,7 +18132,7 @@ def main_page(request: Request) -> None:
         if state.player is None:
             return
         sync_inn_vault_selection()
-        idx = int(getattr(state, 'inn_vault_selected_index', -1) or -1)
+        idx = inn_vault_selected_index_value('inn_vault_selected_index')
         if idx < 0:
             state.add_log('Select a vault item to withdraw.', 'warning')
             request_render_refresh()
@@ -17758,14 +18144,14 @@ def main_page(request: Request) -> None:
         refresh_inn_vault_views()
 
     def select_inn_vault_inventory(index: int) -> None:
-        if int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1) == int(index) and int(getattr(state, 'inn_vault_selected_index', -1) or -1) == -1:
+        if inn_vault_selected_index_value('inn_vault_inventory_selected_index') == int(index) and inn_vault_selected_index_value('inn_vault_selected_index') == -1:
             return
         state.inn_vault_inventory_selected_index = int(index)
         state.inn_vault_selected_index = -1
         sync_inn_vault_client_selection()
 
     def select_inn_vault_item(index: int) -> None:
-        if int(getattr(state, 'inn_vault_selected_index', -1) or -1) == int(index) and int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1) == -1:
+        if inn_vault_selected_index_value('inn_vault_selected_index') == int(index) and inn_vault_selected_index_value('inn_vault_inventory_selected_index') == -1:
             return
         state.inn_vault_selected_index = int(index)
         state.inn_vault_inventory_selected_index = -1
@@ -17780,8 +18166,8 @@ def main_page(request: Request) -> None:
             ensure_inn_vault_runtime_state()
             sync_inn_vault_selection()
             inn_vault_render_refs['panels'] = render_inn_vault_dialog
-            selected_inv = int(getattr(state, 'inn_vault_inventory_selected_index', -1) or -1)
-            selected_vault = int(getattr(state, 'inn_vault_selected_index', -1) or -1)
+            selected_inv = inn_vault_selected_index_value('inn_vault_inventory_selected_index')
+            selected_vault = inn_vault_selected_index_value('inn_vault_selected_index')
             filtered_inventory_entries = filtered_inn_vault_inventory_entries()
             filtered_vault_entries = filtered_inn_vault_storage_entries()
             vault_capacity = max(int(getattr(state, 'vault_capacity', 0) or 0), len(state.vault_items))
@@ -18762,11 +19148,97 @@ def main_page(request: Request) -> None:
                                 with ui.row().classes('gap-2 mt-4 flex-wrap'):
                                     buy_tab = ui.button('Buy', on_click=lambda: (setattr(state, 'bazaar_view', 'Buy'), state.refresh_bazaar_listings(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
                                     sell_tab = ui.button('Sell', on_click=lambda: (setattr(state, 'bazaar_view', 'Sell'), state.refresh_bazaar_listings(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
+                                    ledger_tab = ui.button('Ledger', on_click=lambda: (setattr(state, 'bazaar_view', 'Ledger'), state.refresh_bazaar_listings(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
                                     refresh_btn = ui.button('Refresh Board', on_click=lambda: (state.refresh_bazaar_listings(force=True), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
                                     if state.bazaar_view == 'Buy':
                                         buy_tab.classes('mq-btn-gold')
+                                    elif state.bazaar_view == 'Ledger':
+                                        ledger_tab.classes('mq-btn-gold')
                                     else:
                                         sell_tab.classes('mq-btn-gold')
+
+                            def apply_bazaar_filter_change(field_name: str, value: object, fallback: str) -> None:
+                                normalized_value = str(value if value is not None else fallback).strip() or fallback
+                                if getattr(state, field_name, fallback) == normalized_value:
+                                    return
+                                setattr(state, field_name, normalized_value)
+                                request_render_refresh()
+
+                            def reset_bazaar_filters() -> None:
+                                changed = (
+                                    getattr(state, 'bazaar_tier_filter', 'All tiers') != 'All tiers'
+                                    or getattr(state, 'bazaar_type_filter', 'All types') != 'All types'
+                                    or getattr(state, 'bazaar_affix_filter', 'All attributes') != 'All attributes'
+                                    or str(getattr(state, 'bazaar_affix_min_value_input', '') or '').strip() != ''
+                                    or getattr(state, 'bazaar_sort', 'Newest') != 'Newest'
+                                )
+                                if not changed:
+                                    return
+                                state.bazaar_tier_filter = 'All tiers'
+                                state.bazaar_type_filter = 'All types'
+                                state.bazaar_affix_filter = 'All attributes'
+                                state.bazaar_affix_min_value_input = ''
+                                state.bazaar_sort = 'Newest'
+                                request_render_refresh()
+
+                            def render_bazaar_filter_card() -> None:
+                                with ui.card().classes('mq-card w-full p-4'):
+                                    ui.label('Sort & Filter').classes('mq-inv-section-title mb-3')
+                                    with ui.element('div').classes('mq-filter-grid w-full'):
+                                        tier_select = ui.select(['All tiers'] + [f'Tier {bucket}' for bucket in ITEM_BUCKETS], value=state.bazaar_tier_filter, label='Tier')
+                                        tier_select.classes('w-full mq-item-select')
+                                        tier_select.props('outlined options-dense popup-content-class=mq-item-select-menu options-selected-class=mq-item-select-option-selected behavior=menu')
+                                        tier_select.on_value_change(lambda e: apply_bazaar_filter_change('bazaar_tier_filter', e.value, 'All tiers'))
+                                        type_select = ui.select(ITEM_TYPE_FILTER_OPTIONS, value=state.bazaar_type_filter, label='Type')
+                                        type_select.classes('w-full mq-item-select')
+                                        type_select.props('outlined options-dense popup-content-class=mq-item-select-menu options-selected-class=mq-item-select-option-selected behavior=menu')
+                                        type_select.on_value_change(lambda e: apply_bazaar_filter_change('bazaar_type_filter', e.value, 'All types'))
+                                        affix_select = ui.select(ATTRIBUTE_FILTER_OPTIONS, value=state.bazaar_affix_filter, label='Affix')
+                                        affix_select.classes('w-full mq-item-select')
+                                        affix_select.props('outlined options-dense popup-content-class=mq-item-select-menu options-selected-class=mq-item-select-option-selected behavior=menu')
+                                        affix_select.on_value_change(lambda e: apply_bazaar_filter_change('bazaar_affix_filter', e.value, 'All attributes'))
+                                        ui.input(label='Min Affix Value', value=state.bazaar_affix_min_value_input, placeholder='% for percent stats, flat for others').props('outlined clearable input-style=color: #e2e8f0;').classes('w-full').on_value_change(lambda e: apply_bazaar_filter_change('bazaar_affix_min_value_input', str(e.value or '').strip(), ''))
+                                        sort_select = ui.select(BAZAAR_SORT_OPTIONS, value=state.bazaar_sort, label='Sort')
+                                        sort_select.classes('w-full mq-item-select')
+                                        sort_select.props('outlined options-dense popup-content-class=mq-item-select-menu options-selected-class=mq-item-select-option-selected behavior=menu')
+                                        sort_select.on_value_change(lambda e: apply_bazaar_filter_change('bazaar_sort', e.value, 'Newest'))
+                                    with ui.row().classes('gap-2 mt-4 flex-wrap'):
+                                        ui.button('Reset Filters', on_click=reset_bazaar_filters).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
+                            def render_bazaar_ledger_card() -> None:
+                                ledger_rows = state.bazaar_ledger_rows()
+                                with ui.card().classes('mq-card mq-bazaar-ledger-card w-full p-4'):
+                                    ui.label(f'Ledger ({len(ledger_rows)})').classes('mq-inv-section-title mb-3')
+                                    ui.label('Every completed bazaar buy and sale for this chronicle is etched here, newest first.').classes('text-slate-300 leading-7 mb-3')
+                                    if not ledger_rows:
+                                        ui.label('No bazaar transactions are etched for this chronicle yet.').classes('text-slate-300 leading-7')
+                                        return
+                                    with ui.scroll_area().classes('w-full mq-bazaar-ledger-scroll pr-2'):
+                                        for row in ledger_rows:
+                                            action = str(row.get('action') or 'Bought')
+                                            action_flag_class = 'selected' if action == 'Sold' else ''
+                                            item_name = html.escape(str(row.get('item_name') or 'Unknown Item'))
+                                            item_rarity = html.escape(str(row.get('item_rarity') or 'Common'))
+                                            item_type = html.escape(str(row.get('item_type') or 'Unknown Type'))
+                                            item_tier = max(1, int(row.get('item_tier', 1) or 1))
+                                            item_base_text = str(row.get('item_base_text') or '').strip()
+                                            stamp = html.escape(format_bazaar_ledger_stamp(row.get('created_at')))
+                                            player_name = html.escape(str(row.get('player_name') or 'Hero'))
+                                            counterparty_name = html.escape(str(row.get('counterparty_name') or ('Unknown Adventurer' if action == 'Bought' else 'Bazaar Buyer')))
+                                            counterpart_label = 'Seller' if action == 'Bought' else 'Buyer'
+                                            gold_value = max(0, int(row.get('gold', 0) or 0))
+                                            with ui.card().classes('mq-item-card mq-bazaar-ledger-entry w-full p-4 mb-3'):
+                                                with ui.row().classes('w-full items-start gap-3 max-[860px]:flex-wrap'):
+                                                    with ui.column().classes('gap-1 flex-grow'):
+                                                        ui.html(f"<span class='mq-manifest-flag {action_flag_class}'>{html.escape(action)}</span>")
+                                                        ui.label(item_name).classes('mq-inv-entry-title')
+                                                        ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{item_rarity}</span> • <span class='mq-inv-label-tier'>Tier {item_tier}</span> • <span class='mq-inv-label-set'>{item_type}</span></div>")
+                                                        if item_base_text:
+                                                            ui.label(item_base_text).classes('mq-inv-entry-base')
+                                                    with ui.column().classes('items-end max-[860px]:items-start gap-2 min-w-[230px]'):
+                                                        ui.html(f"<div class='mq-inv-meta'><span class='mq-inv-label-gold'>Gold</span> {gold_value}g</div>")
+                                                        ui.html(f"<div class='mq-inv-meta'><span class='mq-inv-label-tier'>Date</span> {stamp}</div>")
+                                                        ui.html(f"<div class='mq-inv-meta'><span class='mq-inv-label-tier'>Player</span> {player_name}</div>")
+                                                        ui.html(f"<div class='mq-inv-meta'><span class='mq-inv-label-tier'>{counterpart_label}</span> {counterparty_name}</div>")
                             with ui.row().classes('mq-bazaar-layout w-full items-start gap-4 max-[1250px]:flex-wrap'):
                                 with ui.column().classes('mq-bazaar-side gap-4'):
                                     with ui.card().classes('mq-card mq-bazaar-scene-card w-full p-4'):
@@ -18786,16 +19258,7 @@ def main_page(request: Request) -> None:
                                             ui.button('Return to Town', on_click=lambda: (state.enter_town('You leave the bazaar and return to the town square.'), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
                                 with ui.column().classes('mq-bazaar-main gap-4'):
                                     if state.bazaar_view == 'Buy':
-                                        with ui.card().classes('mq-card w-full p-4'):
-                                            ui.label('Sort & Filter').classes('mq-inv-section-title mb-3')
-                                            with ui.element('div').classes('mq-filter-grid w-full'):
-                                                ui.select(['All tiers'] + [f'Tier {bucket}' for bucket in ITEM_BUCKETS], value=state.bazaar_tier_filter, label='Tier', on_change=lambda e: (setattr(state, 'bazaar_tier_filter', e.value), request_render_refresh())).classes('w-full')
-                                                ui.select(ITEM_TYPE_FILTER_OPTIONS, value=state.bazaar_type_filter, label='Type', on_change=lambda e: (setattr(state, 'bazaar_type_filter', e.value), request_render_refresh())).classes('w-full')
-                                                ui.select(ATTRIBUTE_FILTER_OPTIONS, value=state.bazaar_affix_filter, label='Affix', on_change=lambda e: (setattr(state, 'bazaar_affix_filter', e.value), request_render_refresh())).classes('w-full')
-                                                ui.input(label='Min Affix Value', value=state.bazaar_affix_min_value_input, placeholder='% for percent stats, flat for others').props('outlined clearable input-style=color: #e2e8f0;').classes('w-full').on_value_change(lambda e: (setattr(state, 'bazaar_affix_min_value_input', str(e.value or '').strip()), request_render_refresh()))
-                                                ui.select(BAZAAR_SORT_OPTIONS, value=state.bazaar_sort, label='Sort', on_change=lambda e: (setattr(state, 'bazaar_sort', e.value), request_render_refresh())).classes('w-full')
-                                            with ui.row().classes('gap-2 mt-4 flex-wrap'):
-                                                ui.button('Reset Filters', on_click=lambda: (setattr(state, 'bazaar_tier_filter', 'All tiers'), setattr(state, 'bazaar_type_filter', 'All types'), setattr(state, 'bazaar_affix_filter', 'All attributes'), setattr(state, 'bazaar_affix_min_value_input', ''), setattr(state, 'bazaar_sort', 'Newest'), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
+                                        render_bazaar_filter_card()
                                         buy_entries = state.bazaar_buy_entries()
                                         with ui.card().classes('mq-card mq-bazaar-live-card w-full p-4'):
                                             ui.label(f'Live Listings ({len(buy_entries)})').classes('mq-inv-section-title mb-3')
@@ -18817,8 +19280,11 @@ def main_page(request: Request) -> None:
                                                                     ui.html(f"<div class='mq-inv-meta'><span class='mq-inv-label-gold'>Price</span> {listing.price}g</div>")
                                                                     ui.html(f"<div class='mq-inv-meta'><span class='mq-inv-label-tier'>Seller</span> {html.escape(listing.seller_class)} Lv {int(listing.seller_level)}</div>")
                                                                     ui.button('Buy Listing', on_click=lambda listing_id=listing.listing_id: (state.buy_bazaar_listing(listing_id), request_render_refresh())).classes('mq-btn-gold rounded-lg')
-                                    else:
+                                    elif state.bazaar_view == 'Sell':
+                                        actor_id = state.current_bazaar_actor_id()
+                                        raw_own_entries = [entry for entry in state.bazaar_listings if entry.seller_id == actor_id and not entry.seller_claimed]
                                         own_entries = state.bazaar_own_entries()
+                                        filtered_inventory_entries = state.bazaar_sell_inventory_entries()
                                         active_listing_count = state.bazaar_active_listing_count()
                                         listing_limit = state.bazaar_listing_limit()
                                         with ui.card().classes('mq-card w-full p-4'):
@@ -18827,16 +19293,16 @@ def main_page(request: Request) -> None:
                                             ui.label(f'Active listings: {active_listing_count}/{listing_limit}').classes('mq-detail-text mt-2')
                                             price_input = ui.input(label='Listing Price (Gold)', value=state.bazaar_price_input, on_change=lambda e: setattr(state, 'bazaar_price_input', str(e.value or '').strip())).props('type=number min=1 outlined clearable input-style=color: #e2e8f0;').classes('w-full mt-4')
                                             price_input.on_value_change(lambda e: setattr(state, 'bazaar_price_input', str(e.value or '').strip()))
+                                        render_bazaar_filter_card()
                                         with ui.card().classes('mq-card w-full p-4'):
-                                            ui.label(f'Inventory ({len(player.inventory)})').classes('mq-inv-section-title mb-3')
+                                            ui.label(f'Inventory ({len(filtered_inventory_entries)}/{len(player.inventory)})').classes('mq-inv-section-title mb-3')
                                             if not player.inventory:
                                                 ui.label('Your inventory is empty.').classes('text-slate-300 leading-7')
+                                            elif not filtered_inventory_entries:
+                                                ui.label('No inventory items match the active sell filters.').classes('text-slate-300 leading-7')
                                             else:
                                                 with ui.scroll_area().classes('w-full mq-bazaar-panel-scroll pr-2'):
-                                                    for inventory_index, raw_item in enumerate(player.inventory):
-                                                        item = coerce_item(raw_item)
-                                                        if item is None:
-                                                            continue
+                                                    for inventory_index, item in filtered_inventory_entries:
                                                         with ui.card().classes('mq-item-card w-full p-4 mb-3').style(rarity_edge_style(item)):
                                                             with ui.row().classes('w-full items-start gap-3 max-[860px]:flex-wrap'):
                                                                 with ui.column().classes('gap-1 flex-grow'):
@@ -18853,7 +19319,10 @@ def main_page(request: Request) -> None:
                                         with ui.card().classes('mq-card w-full p-4'):
                                             ui.label(f'Your Listings ({len(own_entries)})').classes('mq-inv-section-title mb-3')
                                             if not own_entries:
-                                                ui.label('You do not have any active bazaar postings right now. Paid-out sales are cleared from this board automatically.').classes('text-slate-300 leading-7')
+                                                if raw_own_entries:
+                                                    ui.label('No current listings match the active sell filters.').classes('text-slate-300 leading-7')
+                                                else:
+                                                    ui.label('You do not have any active bazaar postings right now. Paid-out sales are cleared from this board automatically.').classes('text-slate-300 leading-7')
                                             else:
                                                 with ui.scroll_area().classes('w-full mq-bazaar-panel-scroll pr-2'):
                                                     for listing in own_entries:
@@ -18871,11 +19340,11 @@ def main_page(request: Request) -> None:
                                                                     if listing.sold:
                                                                         ui.html(f"<span class='mq-manifest-flag selected'>{'Paid Out' if listing.seller_claimed else 'Sold'}</span>")
                                                                     else:
-                                                                        edit_input = ui.input(label='Edit Price', value=state.get_bazaar_edit_price_input(listing.listing_id, listing.price), on_change=lambda e, listing_id=listing.listing_id: state.set_bazaar_edit_price_input(listing_id, e.value)).props('type=number min=1 outlined dense input-style=color: #e2e8f0;').classes('w-full')
-                                                                        edit_input.on_value_change(lambda e, listing_id=listing.listing_id: state.set_bazaar_edit_price_input(listing_id, e.value))
                                                                         with ui.row().classes('gap-2 flex-wrap justify-end max-[860px]:justify-start'):
-                                                                            ui.button('Update Price', on_click=lambda listing_id=listing.listing_id: (state.update_bazaar_listing_price(listing_id, state.get_bazaar_edit_price_input(listing_id, listing.price)), request_render_refresh())).classes('mq-btn-gold rounded-lg')
+                                                                            ui.button('Edit Price', on_click=lambda entry=listing: open_bazaar_reprice_dialog(entry)).classes('mq-btn-gold rounded-lg')
                                                                             ui.button('Remove Listing', on_click=lambda listing_id=listing.listing_id: (state.cancel_bazaar_listing(listing_id), request_render_refresh())).classes('mq-btn-secondary rounded-lg')
+                                    else:
+                                        render_bazaar_ledger_card()
                         return
                     elif state.game_tab == 'marketplace':
                         state.ensure_marketplace_offers(force_reroll=False, allow_cached=True)
@@ -19165,17 +19634,50 @@ def main_page(request: Request) -> None:
                         state.ensure_well_scene_state(False)
                         tempt_line = state.current_well_scene_line or "The handmaiden waits beside the well, smiling at the sound of coin."
                         status_text = state.well_status_text()
-                        with ui.column().classes('w-full gap-4'):
+                        recent_well_reward_item = coerce_item(getattr(state, 'last_well_reward_item', None))
+                        recent_well_reward_outcome = str(getattr(state, 'last_well_reward_outcome', '') or '').strip().lower()
+                        recent_well_reward_sequence = int(getattr(state, 'last_well_reward_sequence', 0) or 0)
+                        recent_well_reward_tier = max(0, int(getattr(state, 'last_well_reward_tier', 0) or 0))
+                        recent_well_reward_type = str(getattr(state, 'last_well_reward_type', '') or '').strip()
+                        recent_well_reward_animatable = recent_well_reward_item is not None and item_rarity_sort_key(recent_well_reward_item) >= RARITY_ORDER.index('Fine')
+                        recent_well_reward_should_pop = bool(recent_well_reward_animatable and not bool(getattr(state, 'disable_last_drop_animation', False)))
+                        with ui.column().classes('mq-scene-well w-full gap-4'):
                             with ui.card().classes('mq-card w-full p-5'):
                                 ui.label('Well of Evil').classes('mq-inv-title')
-                                ui.label('A cursed well whispers promises of treasure to anyone reckless enough to feed it coin and a common keepsake.').classes('text-slate-300 text-lg leading-8 mt-2')
-                                ui.label("'Ten gold and a common treasure, darling. Toss them in and the well will send something dreadful to adore your blade.'").classes('text-slate-100 text-xl leading-9 mt-2 italic')
-                                with ui.card().classes('mq-panel-frame p-4 mt-4'):
-                                    ui.label('TEMPTATION').classes('mq-panel-caption')
-                                    ui.label(tempt_line).classes('text-slate-100 text-xl leading-9 mt-2')
-                                with ui.card().classes('mq-panel-frame p-4 mt-4'):
-                                    ui.label('STATUS').classes('mq-panel-caption')
-                                    ui.html(f"<div class='mq-detail-text text-slate-200 text-lg leading-8 mt-2'>{status_text}</div>")
+                                with ui.row().classes('w-full items-stretch gap-4 mt-4 max-[1100px]:flex-wrap'):
+                                    with ui.column().classes('flex-[1.22] min-w-[360px] gap-4'):
+                                        with ui.card().classes('mq-panel-frame p-4'):
+                                            ui.label('TEMPTATION').classes('mq-panel-caption')
+                                            ui.label(tempt_line).classes('text-slate-100 text-xl leading-9 mt-2')
+                                        with ui.card().classes('mq-panel-frame p-4'):
+                                            ui.label('STATUS').classes('mq-panel-caption')
+                                            ui.html(f"<div class='mq-detail-text text-slate-200 text-lg leading-8 mt-2'>{status_text}</div>")
+                                    with ui.card().classes('mq-panel-frame mq-last-drop-card mq-well-spoils-card flex-[0.98] min-w-[360px] p-4').style(well_reward_card_style(recent_well_reward_item, recent_well_reward_outcome)).props('id=mq-well-last-drop-card'):
+                                        ui.label('LAST SPOILS').classes('mq-panel-caption')
+                                        if recent_well_reward_item is not None:
+                                            ui.html(safe_rarity_badge_html(recent_well_reward_item)).classes('mt-2')
+                                            ui.label(safe_item_name(recent_well_reward_item)).classes('mq-inv-section-title mt-2')
+                                            ui.html(
+                                                "<div class='mq-inv-entry-sub mt-1'>"
+                                                f"<span class='mq-inv-label-accent'>{html.escape(saved_item_type_label(recent_well_reward_item))}</span> • "
+                                                f"<span class='mq-inv-label-tier'>Tier {item_required_level(recent_well_reward_item)}</span> • "
+                                                "<span class='mq-inv-label-set'>Well of Evil</span>"
+                                                "</div>"
+                                            )
+                                            ui.label(safe_item_short_stat_text(recent_well_reward_item)).classes('mq-detail-text mt-2')
+                                            ui.separator().classes('my-3 opacity-20')
+                                            ui.label('Base Profile').classes('mq-inv-block-title mb-2')
+                                            ui.html(inventory_base_detail_html(recent_well_reward_item))
+                                            ui.separator().classes('my-3 opacity-20')
+                                            ui.label('Affixes').classes('mq-inv-block-title mb-2')
+                                            ui.html(inventory_affix_detail_html(recent_well_reward_item))
+                                        elif recent_well_reward_outcome == 'miss':
+                                            ui.label('The well kept its prize.').classes('mq-last-drop-empty mt-2')
+                                            miss_meta = f'Tier {recent_well_reward_tier} {recent_well_reward_type}'.strip()
+                                            ui.label(f'No item returned from the last ritual. {miss_meta}'.strip()).classes('mq-last-drop-hint mt-2')
+                                        else:
+                                            ui.label('No recent well spoils yet.').classes('mq-last-drop-empty mt-2')
+                                            ui.label('Winning rituals may still return nothing.').classes('mq-last-drop-hint mt-2')
                             with ui.row().classes('w-full items-start gap-4 max-[1250px]:flex-wrap'):
                                 with ui.column().classes('flex-[0.95] min-w-[350px] gap-4'):
                                     with ui.card().classes('mq-card w-full p-4'):
@@ -19242,6 +19744,29 @@ def main_page(request: Request) -> None:
                                             'Its rarity still bows to the ordinary laws of chance, but the affixes rise touched by the well\'s dark favor.',
                                         ]
                                         ui.label('\n'.join(lines)).classes('text-slate-200 text-lg leading-8')
+                            if recent_well_reward_should_pop:
+                                ui.run_javascript(f"""
+(() => {{
+  const el = document.getElementById('mq-well-last-drop-card');
+  if (!el) return;
+  const seq = {recent_well_reward_sequence};
+  const state = window.mqWellLastDropRevealState = window.mqWellLastDropRevealState || {{ seenSeq: 0, timer: 0 }};
+  if (seq <= 0 || seq <= Number(state.seenSeq || 0)) return;
+  state.seenSeq = seq;
+  if (state.timer) {{
+    clearTimeout(state.timer);
+  }}
+  el.classList.remove('mq-last-drop-card-animate');
+  void el.offsetWidth;
+  state.timer = window.setTimeout(() => {{
+    const target = document.getElementById('mq-well-last-drop-card');
+    if (!target) return;
+    target.classList.remove('mq-last-drop-card-animate');
+    void target.offsetWidth;
+    target.classList.add('mq-last-drop-card-animate');
+  }}, 500);
+}})();
+""")
                             return
                     elif state.game_tab == 'inn':
                         state.ensure_inn_scene_state(False)
