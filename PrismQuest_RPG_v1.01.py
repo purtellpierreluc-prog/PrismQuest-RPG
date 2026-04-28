@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta, timezone
+from io import BytesIO
 from typing import Any, Callable, Dict, List, Optional, Tuple
 import asyncio
 import base64
@@ -13,6 +14,7 @@ import math
 import os
 import random
 import time
+import uuid
 from logging.handlers import RotatingFileHandler
 from urllib.parse import urlencode
 
@@ -177,6 +179,14 @@ SCENE_TUTORIAL_TAB_MAP = {
     'well': 'well',
     'ladder': 'ladder',
 }
+GUIDED_INTRO_TOWN_START = 'town_start'
+GUIDED_INTRO_ARENA_FIRST_FIGHT = 'arena_first_fight'
+GUIDED_INTRO_COMPLETE = 'complete'
+GUIDED_INTRO_STAGES = {
+    GUIDED_INTRO_TOWN_START,
+    GUIDED_INTRO_ARENA_FIRST_FIGHT,
+    GUIDED_INTRO_COMPLETE,
+}
 SCENE_TUTORIAL_CONTENT = {
     'arena': {
         'title': 'Arena Tutorial',
@@ -232,6 +242,30 @@ SCENE_TUTORIAL_CONTENT = {
         'body': [
             'The Ladder records how far your chronicle has climbed against everyone else. Highest class reached comes first, then level within that class.',
             'It is the public memory of your run. When you push toward Prismatic Quest, the Ladder is where the game turns private progress into visible status.',
+        ],
+    },
+    'arena_reward': {
+        'title': 'Arena Tutorial',
+        'lead': 'Congratulations. That first Arena victory paid out a guaranteed Rare item.',
+        'body': [
+            'You just received a Rare item. Open your Inventory, inspect it, and equip it if it fits your build. Early upgrades matter more than almost anything else in the climb.',
+            'Your goal is simple: reach level 60. As you rise, keep replacing weak gear, chase higher item tiers, and keep your build sharp enough to survive the harder routes that open later.',
+        ],
+    },
+    'discord_join': {
+        'title': 'Level 5 Reached',
+        'lead': 'Congratulations. Level 5 means your chronicle is properly underway.',
+        'body': [
+            'This is a great moment to join the community if you want advice, trade talk, build ideas, or help understanding the deeper systems.',
+            f'Community Discord: {COMMUNITY_DISCORD_URL}',
+        ],
+    },
+    'first_death_inn': {
+        'title': 'A Hard Lesson',
+        'lead': 'Your first defeat does not end the climb, but it does teach the rhythm of recovery.',
+        'body': [
+            'When a fight goes badly, the Inn is the fastest place to recover HP and Mana before you throw yourself back into danger.',
+            'Head there now, heal up, and then return when you are ready to keep climbing.',
         ],
     },
 }
@@ -485,6 +519,19 @@ def normalize_scene_tutorials_seen(raw_value: object, default_seen: bool = False
             if key in raw_value:
                 base[key] = bool(raw_value.get(key))
     return base
+
+
+def normalize_guided_intro_stage(raw_value: object, has_existing_player: bool = False) -> str:
+    value = str(raw_value or '').strip().lower()
+    if value in GUIDED_INTRO_STAGES:
+        return value
+    return GUIDED_INTRO_COMPLETE if has_existing_player else GUIDED_INTRO_TOWN_START
+
+
+def normalize_guided_discord_prompt_seen(raw_value: object, has_existing_player: bool = False) -> bool:
+    if isinstance(raw_value, bool):
+        return raw_value
+    return bool(has_existing_player)
 
 
 def build_default_hotkey_bindings() -> Dict[str, str]:
@@ -2966,6 +3013,30 @@ body {
   opacity: 0.52;
   filter: grayscale(0.22);
 }
+.q-btn.q-btn:disabled:hover,
+.q-btn.q-btn.q-btn--disabled:hover,
+.q-btn.q-btn.mq-route-btn:disabled:hover,
+.q-btn.q-btn.mq-btn-gold:disabled:hover,
+.q-btn.q-btn.mq-arena-btn:disabled:hover,
+.q-btn.q-btn.mq-arena-btn.q-btn--disabled:hover,
+.q-btn.q-btn.mq-btn-secondary:disabled:hover,
+.q-btn.q-btn.mq-btn-affirm:disabled:hover,
+.q-btn.q-btn.mq-btn-warn:disabled:hover,
+.q-btn.q-btn.mq-btn-danger:disabled:hover,
+.q-btn.q-btn:disabled:active,
+.q-btn.q-btn.q-btn--disabled:active,
+.q-btn.q-btn.mq-route-btn:disabled:active,
+.q-btn.q-btn.mq-btn-gold:disabled:active,
+.q-btn.q-btn.mq-arena-btn:disabled:active,
+.q-btn.q-btn.mq-arena-btn.q-btn--disabled:active,
+.q-btn.q-btn.mq-btn-secondary:disabled:active,
+.q-btn.q-btn.mq-btn-affirm:disabled:active,
+.q-btn.q-btn.mq-btn-warn:disabled:active,
+.q-btn.q-btn.mq-btn-danger:disabled:active {
+  transform: none !important;
+  filter: grayscale(0.22) !important;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -10px 18px rgba(0,0,0,0.22) !important;
+}
 .q-btn.q-btn.mq-route-btn,
 .q-btn.q-btn.mq-btn-gold,
 .q-btn.q-btn.mq-arena-btn {
@@ -2980,6 +3051,18 @@ body {
   background-color: rgba(24, 28, 33, 0.99) !important;
   color: #e7ecf4 !important;
   border-color: rgba(176, 184, 197, 0.22) !important;
+}
+.q-btn.q-btn.mq-arena-btn.mq-arena-btn-primary {
+  min-height: 60px !important;
+  min-width: 154px;
+  padding: 0 22px !important;
+  border-radius: 10px !important;
+  font-size: 1.10rem;
+  letter-spacing: 0.05em;
+  box-shadow: 0 16px 28px rgba(0,0,0,0.34), 0 0 0 1px rgba(224, 194, 122, 0.12), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -12px 18px rgba(0,0,0,0.24) !important;
+}
+.q-btn.q-btn.mq-arena-btn.mq-arena-btn-primary:hover {
+  transform: translateY(-1px) scale(1.01);
 }
 .q-btn.q-btn.mq-btn-affirm {
   background-image: linear-gradient(180deg, rgba(138, 195, 132, 0.22) 0%, rgba(28, 56, 33, 0.97) 22%, rgba(10, 20, 12, 0.995) 100%) !important;
@@ -4085,7 +4168,8 @@ body {
   font-size: 1.02rem !important;
   font-weight: 700 !important;
 }
-.mq-item-select-menu {
+.mq-item-select-menu,
+.mq-hotkey-select-menu {
   background:
     radial-gradient(circle at 50% 0%, rgba(236,214,154,0.08) 0%, rgba(0,0,0,0) 42%),
     linear-gradient(180deg, rgba(27, 21, 16, 0.985) 0%, rgba(10, 12, 16, 0.995) 100%) !important;
@@ -4093,18 +4177,28 @@ body {
   border-radius: 20px !important;
   box-shadow: 0 24px 54px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.04) !important;
   overflow: hidden;
+  overscroll-behavior: contain;
 }
-.mq-item-select-menu .q-virtual-scroll__content {
+.mq-item-select-menu .q-virtual-scroll,
+.mq-item-select-menu .scroll,
+.mq-hotkey-select-menu .q-virtual-scroll,
+.mq-hotkey-select-menu .scroll {
+  overscroll-behavior: contain;
+}
+.mq-item-select-menu .q-virtual-scroll__content,
+.mq-hotkey-select-menu .q-virtual-scroll__content {
   padding: 8px;
 }
-.mq-item-select-menu .q-item {
+.mq-item-select-menu .q-item,
+.mq-hotkey-select-menu .q-item {
   min-height: 58px;
   margin: 2px 0;
   border-radius: 14px;
   padding: 10px 14px;
   transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
-.mq-item-select-menu .q-item__label {
+.mq-item-select-menu .q-item__label,
+.mq-hotkey-select-menu .q-item__label {
   color: #f3ead6 !important;
   font-size: 0.99rem !important;
   font-weight: 680 !important;
@@ -4113,7 +4207,10 @@ body {
 }
 .mq-item-select-menu .q-item:hover,
 .mq-item-select-menu .q-item.q-manual-focusable--focused,
-.mq-item-select-menu .q-item.q-hoverable:hover {
+.mq-item-select-menu .q-item.q-hoverable:hover,
+.mq-hotkey-select-menu .q-item:hover,
+.mq-hotkey-select-menu .q-item.q-manual-focusable--focused,
+.mq-hotkey-select-menu .q-item.q-hoverable:hover {
   background:
     linear-gradient(180deg, rgba(236,214,154,0.12) 0%, rgba(236,214,154,0.04) 100%),
     rgba(255,255,255,0.02) !important;
@@ -4358,6 +4455,9 @@ body {
 .mq-prof-tooltip-wrap:focus-within {
   z-index: 9800;
 }
+.mq-prof-tooltip-wrap-persist .mq-prof-tooltip-panel {
+  display: none !important;
+}
 .mq-prof-tooltip-panel {
   position: absolute;
   bottom: calc(100% + 14px);
@@ -4410,6 +4510,14 @@ body {
 }
 .mq-core-stat-tooltip-card .mq-prof-active-value {
   font-size: 1.08rem;
+}
+.mq-prof-tooltip-floating {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9955;
+  pointer-events: none;
+  width: min(520px, 82vw);
 }
 .mq-prof-title {
   font-size: 1.10rem;
@@ -4709,6 +4817,33 @@ window.mqBindVaultList = function(id) {
     }
   });
 };
+window.mqSelectMenuScrollHost = function(target) {
+  const menu = target && target.closest ? target.closest('.mq-item-select-menu, .mq-hotkey-select-menu') : null;
+  if (!menu) return null;
+  return menu.querySelector('.q-virtual-scroll') || menu.querySelector('.scroll') || menu;
+};
+if (!window.__mqSelectMenuWheelBound) {
+  window.__mqSelectMenuWheelBound = true;
+  document.addEventListener('wheel', function(event) {
+    const target = event && event.target;
+    if (!target || !target.closest) return;
+    const menu = target.closest('.mq-item-select-menu, .mq-hotkey-select-menu');
+    if (!menu) return;
+    const scrollHost = window.mqSelectMenuScrollHost(target);
+    if (!scrollHost) return;
+    const canScrollY = (Number(scrollHost.scrollHeight) || 0) > ((Number(scrollHost.clientHeight) || 0) + 1);
+    const canScrollX = (Number(scrollHost.scrollWidth) || 0) > ((Number(scrollHost.clientWidth) || 0) + 1);
+    if (!canScrollY && !canScrollX) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (canScrollY && Number(event.deltaY || 0)) {
+      scrollHost.scrollTop += Number(event.deltaY || 0);
+    }
+    if (canScrollX && Number(event.deltaX || 0)) {
+      scrollHost.scrollLeft += Number(event.deltaX || 0);
+    }
+  }, {passive: false, capture: true});
+}
 window.__mqMeterControllers = window.__mqMeterControllers || {};
 window.mqClampUnit = function(value) {
   return Math.max(0, Math.min(1, Number(value) || 0));
@@ -5597,8 +5732,9 @@ ARENA_HERO_STATIC_IMAGE_TARGET_MAX = 960
 ARENA_MONSTER_STATIC_IMAGE_TARGET_MAX = 960
 MASTERQUEST_STATIC_IMAGE_TARGET_MAX = 768
 
-_STATIC_IMAGE_URL_CACHE: Dict[Tuple[str, bool, int], str] = {}
+_STATIC_IMAGE_URL_CACHE: Dict[Tuple[str, bool, int, bool, str], str] = {}
 _ASSET_URL_LAZY_CACHE: Dict[str, str] = {}
+_STATIC_FILE_DIGEST_CACHE: Dict[str, Tuple[int, int, str]] = {}
 
 
 def _lazy_asset_url(key: str, factory: Callable[[], str]) -> str:
@@ -5618,6 +5754,34 @@ def _safe_static_stem(name: str, fallback: str = 'asset') -> str:
     return stem or fallback
 
 
+def _static_file_digest(path: Optional[str]) -> str:
+    if not path:
+        return ''
+    normalized_path = os.path.abspath(path)
+    try:
+        stat = os.stat(normalized_path)
+    except Exception:
+        return ''
+    cached = _STATIC_FILE_DIGEST_CACHE.get(normalized_path)
+    if cached is not None:
+        cached_mtime_ns, cached_size, cached_digest = cached
+        if cached_mtime_ns == int(stat.st_mtime_ns) and cached_size == int(stat.st_size):
+            return cached_digest
+    hasher = hashlib.md5()
+    try:
+        with open(normalized_path, 'rb') as handle:
+            while True:
+                chunk = handle.read(1024 * 1024)
+                if not chunk:
+                    break
+                hasher.update(chunk)
+    except Exception:
+        return ''
+    digest = hasher.hexdigest()
+    _STATIC_FILE_DIGEST_CACHE[normalized_path] = (int(stat.st_mtime_ns), int(stat.st_size), digest)
+    return digest
+
+
 def _register_static_image(path: Optional[str], *, crop_alpha: bool = False, target_max: Optional[int] = None, preserve_original: bool = False) -> str:
     if not path:
         return ''
@@ -5629,16 +5793,16 @@ def _register_static_image(path: Optional[str], *, crop_alpha: bool = False, tar
             or (CROPPED_STATIC_IMAGE_TARGET_MAX if crop_alpha else DEFAULT_STATIC_IMAGE_TARGET_MAX)
         ),
     )
-    cache_key = (source_path, bool(crop_alpha), resolved_target_max)
+    source_digest = _static_file_digest(source_path) or hashlib.md5(source_path.encode('utf-8')).hexdigest()
+    cache_key = (source_path, bool(crop_alpha), resolved_target_max, bool(preserve_original), source_digest)
     cached = _STATIC_IMAGE_URL_CACHE.get(cache_key)
     if cached is not None:
         return cached
     try:
         serve_path = source_path
+        serve_digest = source_digest
         if Image is not None:
             try:
-                source_stat = os.stat(source_path)
-                digest_seed = f'{source_path}:{source_stat.st_mtime_ns}:{source_stat.st_size}'
                 with Image.open(source_path) as raw_image:
                     has_alpha = bool(getattr(raw_image, 'getbands', lambda: ())() and 'A' in raw_image.getbands()) or ('transparency' in getattr(raw_image, 'info', {}))
                     image = raw_image.convert('RGBA' if has_alpha else 'RGB')
@@ -5668,20 +5832,30 @@ def _register_static_image(path: Optional[str], *, crop_alpha: bool = False, tar
                         should_reencode = False
                     if should_reencode:
                         generated_ext = '.webp'
-                        generated_name = f"{_safe_static_stem(os.path.splitext(os.path.basename(source_path))[0], 'image')}_{hashlib.md5((digest_seed + generated_ext + str(resolved_target_max)).encode('utf-8')).hexdigest()}{generated_ext}"
+                        generated_buffer = BytesIO()
+                        if has_alpha:
+                            image.save(generated_buffer, format='WEBP', lossless=True, method=6)
+                        else:
+                            image.save(generated_buffer, format='WEBP', quality=82, method=6)
+                        generated_bytes = generated_buffer.getvalue()
+                        serve_digest = hashlib.md5(generated_bytes).hexdigest()
+                        generated_name = f"{_safe_static_stem(os.path.splitext(os.path.basename(source_path))[0], 'image')}_{serve_digest}{generated_ext}"
                         generated_path = os.path.join(GENERATED_STATIC_DIR, generated_name)
                         if not os.path.exists(generated_path):
-                            if has_alpha:
-                                image.save(generated_path, format='WEBP', lossless=True, method=6)
-                            else:
-                                image.save(generated_path, format='WEBP', quality=82, method=6)
+                            with open(generated_path, 'wb') as generated_file:
+                                generated_file.write(generated_bytes)
                         serve_path = generated_path
             except Exception:
                 serve_path = source_path
-        serve_stat = os.stat(serve_path)
         ext = os.path.splitext(serve_path)[1].lower() or '.bin'
-        digest = hashlib.md5(f'{serve_path}:{serve_stat.st_mtime_ns}:{serve_stat.st_size}'.encode('utf-8')).hexdigest()
-        static_name = f"{_safe_static_stem(os.path.splitext(os.path.basename(serve_path))[0], 'image')}_{digest}{ext}"
+        if not serve_digest:
+            serve_digest = _static_file_digest(serve_path) or hashlib.md5(serve_path.encode('utf-8')).hexdigest()
+        generated_static_root = os.path.abspath(GENERATED_STATIC_DIR)
+        serve_root = os.path.abspath(os.path.dirname(serve_path))
+        if serve_root == generated_static_root:
+            static_name = f"{_safe_static_stem(os.path.splitext(os.path.basename(serve_path))[0], 'image')}{ext}"
+        else:
+            static_name = f"{_safe_static_stem(os.path.splitext(os.path.basename(serve_path))[0], 'image')}_{serve_digest}{ext}"
         url_path = f'/mq-assets/{static_name}'
         registered_url = app.add_static_file(local_file=serve_path, url_path=url_path)
         resolved = str(registered_url or url_path)
@@ -5743,12 +5917,8 @@ def get_title_screen_asset_meta() -> Tuple[str, int, int]:
     path = _find_title_screen_path()
     if not path:
         return ('', 0, 0)
-    try:
-        source_path = os.path.abspath(path)
-        source_stat = os.stat(source_path)
-        cache_key = f'{source_path}:{source_stat.st_mtime_ns}:{source_stat.st_size}'
-    except Exception:
-        cache_key = os.path.abspath(path)
+    source_path = os.path.abspath(path)
+    cache_key = f'{source_path}:{_static_file_digest(source_path) or "missing"}'
     cached = _TITLE_SCREEN_ASSET_META_CACHE.get(cache_key)
     if cached is not None:
         return cached
@@ -6165,6 +6335,9 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
         'current_run_kills': 0,
         'town_tutorial_seen': False,
         'scene_tutorials_seen': build_default_scene_tutorials_seen(False),
+        'guided_intro_stage': GUIDED_INTRO_TOWN_START,
+        'guided_discord_prompt_seen': False,
+        'first_death_inn_tutorial_seen': False,
         'hotkey_bindings': build_default_hotkey_bindings(),
         'disable_last_drop_animation': False,
         'arena_combat_log_default_open': False,
@@ -6177,6 +6350,74 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
 
 def _chat_iso_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
+
+
+VAULT_CODE_PREFIX = 'PQV'
+VAULT_CODE_MODE_TAGS: Dict[str, str] = {
+    'Core': 'C',
+    'SSF': 'S',
+    'HC': 'H',
+}
+VAULT_CODE_MODE_BY_TAG: Dict[str, str] = {tag: mode for mode, tag in VAULT_CODE_MODE_TAGS.items()}
+VAULT_TRANSFER_TABLE = 'player_vault_transfers'
+
+
+def build_vault_code(user_id: object, mode: object = '', slot_index: object = None) -> str:
+    cleaned_user_id = str(user_id or '').strip()
+    fallback_mode = slot_mode_from_slot_index(slot_index) if slot_index is not None else ''
+    cleaned_mode = normalize_ladder_mode(mode or fallback_mode, '')
+    mode_tag = VAULT_CODE_MODE_TAGS.get(cleaned_mode, '')
+    if not cleaned_user_id or not mode_tag:
+        return ''
+    try:
+        user_bytes = uuid.UUID(cleaned_user_id).bytes
+    except Exception:
+        return ''
+    checksum = hashlib.blake2s(user_bytes + cleaned_mode.encode('utf-8'), digest_size=1).digest()
+    payload = base64.b32encode(user_bytes + checksum).decode('ascii').rstrip('=')
+    groups = [payload[index:index + 4] for index in range(0, len(payload), 4)]
+    return f'{VAULT_CODE_PREFIX}-{mode_tag}-' + '-'.join(groups)
+
+
+def decode_vault_code(raw_code: object) -> Dict[str, object]:
+    text = str(raw_code or '').strip().upper()
+    if not text:
+        return {}
+    cleaned = ''.join(ch for ch in text if ch.isalnum() or ch == '-')
+    parts = [part for part in cleaned.split('-') if part]
+    if len(parts) < 3 or parts[0] != VAULT_CODE_PREFIX:
+        return {}
+    mode = VAULT_CODE_MODE_BY_TAG.get(parts[1], '')
+    if not mode:
+        return {}
+    payload = ''.join(parts[2:])
+    if not payload:
+        return {}
+    padded = payload + ('=' * ((8 - (len(payload) % 8)) % 8))
+    try:
+        decoded = base64.b32decode(padded, casefold=True)
+    except Exception:
+        return {}
+    if len(decoded) != 17:
+        return {}
+    user_bytes = decoded[:16]
+    checksum = decoded[16:17]
+    expected = hashlib.blake2s(user_bytes + mode.encode('utf-8'), digest_size=1).digest()
+    if checksum != expected:
+        return {}
+    try:
+        user_id = str(uuid.UUID(bytes=user_bytes))
+    except Exception:
+        return {}
+    slot_index = SLOT_INDEX_BY_MODE.get(mode, -1) + 1
+    if slot_index <= 0:
+        return {}
+    return {
+        'user_id': user_id,
+        'mode': mode,
+        'slot_index': slot_index,
+        'vault_code': build_vault_code(user_id, mode, slot_index),
+    }
 
 
 def _chat_cutoff_datetime(now: Optional[datetime] = None) -> datetime:
@@ -6483,6 +6724,10 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
     else:
         slot['town_tutorial_seen'] = bool(slot['player'])
     slot['scene_tutorials_seen'] = normalize_scene_tutorials_seen(raw_slot.get('scene_tutorials_seen'), bool(slot['player']))
+    slot['guided_intro_stage'] = normalize_guided_intro_stage(raw_slot.get('guided_intro_stage'), bool(slot['player']))
+    slot['guided_discord_prompt_seen'] = normalize_guided_discord_prompt_seen(raw_slot.get('guided_discord_prompt_seen'), bool(slot['player']))
+    first_death_tutorial_seen = raw_slot.get('first_death_inn_tutorial_seen', False)
+    slot['first_death_inn_tutorial_seen'] = bool(first_death_tutorial_seen) if isinstance(first_death_tutorial_seen, bool) else False
     slot['hotkey_bindings'] = normalize_hotkey_bindings(raw_slot.get('hotkey_bindings'))
     disable_last_drop_animation = raw_slot.get('disable_last_drop_animation', False)
     slot['disable_last_drop_animation'] = bool(disable_last_drop_animation) if isinstance(disable_last_drop_animation, bool) else False
@@ -9615,6 +9860,42 @@ def marketplace_intro_offer_subtype_for_class(player_class: str, slot: str) -> s
     choices = ITEM_SUBTYPES.get(slot, [])
     return random.choice(choices or ['Axe'])
 
+
+def generate_guided_intro_rare_item(player: Player) -> Item:
+    player_class = normalize_player_class_name(getattr(player, 'player_class', ''), str(getattr(player, 'player_class', '') or 'Black Guard'))
+    item_level = max(1, bucket_item_level(int(getattr(player, 'level', 1) or 1)))
+    preferred_slot = marketplace_intro_offer_slot_for_class(player_class)
+    candidate_slots = [preferred_slot] + [slot for slot in ('weapon', 'armor', 'charm') if slot != preferred_slot]
+    for slot in candidate_slots:
+        allowed = CLASS_EQUIP_RULES.get(player_class, {}).get(slot)
+        if not isinstance(allowed, set) or not allowed:
+            continue
+        preferred_subtype = marketplace_intro_offer_subtype_for_class(player_class, slot)
+        candidate_subtypes = [preferred_subtype] + [subtype for subtype in ITEM_SUBTYPES.get(slot, []) if subtype != preferred_subtype]
+        for subtype in candidate_subtypes:
+            if subtype not in allowed:
+                continue
+            item = generate_specific_item(item_level, slot, subtype, 'Rare')
+            if can_player_equip_item(player, item)[0]:
+                return item
+    fallback_slot = 'weapon'
+    fallback_subtype = ITEM_SUBTYPES.get(fallback_slot, ['Axe'])[0]
+    return generate_specific_item(item_level, fallback_slot, fallback_subtype, 'Rare')
+
+
+def soften_guided_intro_monster(monster: Fighter) -> Fighter:
+    softened = copy.deepcopy(monster)
+    softened.max_hp = max(6, int(round(softened.max_hp * 0.45)))
+    softened.hp = softened.max_hp
+    softened.attack_min = max(1, int(round(softened.attack_min * 0.55)))
+    softened.attack_max = max(softened.attack_min, int(round(softened.attack_max * 0.60)))
+    softened.physical_armor = max(0, int(round(softened.physical_armor * 0.60)))
+    softened.magic_resistance = max(0, int(round(softened.magic_resistance * 0.60)))
+    softened.speed = max(0, int(round(softened.speed * 0.85)))
+    softened.accuracy = clamp(softened.accuracy * 0.92, 0.35, 1.0)
+    softened.crit_chance = clamp(softened.crit_chance * 0.65, 0.0, 1.0)
+    return softened
+
 def generate_marketplace_offer(slot_index: int, player_level: int, player_class: str = 'Black Guard', has_attempted_masterquest: bool = False) -> MarketplaceOffer:
     available_buckets = get_available_drop_buckets(player_level)
     if not available_buckets:
@@ -10258,6 +10539,10 @@ class SessionState:
         self.inn_vault_inventory_selected_index: int = -1
         self.inn_vault_selected_index: int = -1
         self.inn_vault_dialog_requested: bool = False
+        self.inn_vault_transfer_code_draft: str = ''
+        self.inn_vault_transfer_status: str = ''
+        self.inn_vault_transfer_rows: List[Dict[str, object]] = []
+        self.inn_vault_transfer_last_loaded_at: float = 0.0
         self.current_ladder_line: str = ''
         self.town_communications_text: str = ''
         self.town_communications_messages: List[Dict[str, str]] = []
@@ -10297,6 +10582,10 @@ class SessionState:
         self.town_tutorial_open: bool = False
         self.scene_tutorials_seen: Dict[str, bool] = build_default_scene_tutorials_seen(False)
         self.scene_tutorial_open_key: str = ''
+        self.guided_intro_stage: str = GUIDED_INTRO_TOWN_START
+        self.guided_discord_prompt_seen: bool = False
+        self.first_death_inn_tutorial_seen: bool = False
+        self.suppress_discord_tutorial_once: bool = False
         self.current_masterquest_line: str = ''
         self.masterquest_message: str = ''
         self.masterquest_attempt_active: bool = False
@@ -11944,6 +12233,9 @@ class SessionState:
         slot['town_communications_messages'] = [dict(message) for message in _recent_chat_messages(self.town_communications_messages, 80)]
         slot['town_tutorial_seen'] = bool(self.town_tutorial_seen)
         slot['scene_tutorials_seen'] = dict(self.scene_tutorials_seen)
+        slot['guided_intro_stage'] = normalize_guided_intro_stage(self.guided_intro_stage, self.player is not None)
+        slot['guided_discord_prompt_seen'] = bool(self.guided_discord_prompt_seen)
+        slot['first_death_inn_tutorial_seen'] = bool(self.first_death_inn_tutorial_seen)
         slot['hotkey_bindings'] = dict(normalize_hotkey_bindings(self.hotkey_bindings))
         slot['disable_last_drop_animation'] = bool(self.disable_last_drop_animation)
         slot['arena_combat_log_default_open'] = bool(self.arena_combat_log_default_open)
@@ -12081,6 +12373,9 @@ class SessionState:
         self.town_tutorial_seen = bool(slot.get('town_tutorial_seen', False))
         self.town_tutorial_open = False
         self.scene_tutorials_seen = normalize_scene_tutorials_seen(slot.get('scene_tutorials_seen'), bool(slot.get('player')))
+        self.guided_intro_stage = normalize_guided_intro_stage(slot.get('guided_intro_stage'), bool(slot.get('player')))
+        self.guided_discord_prompt_seen = normalize_guided_discord_prompt_seen(slot.get('guided_discord_prompt_seen'), bool(slot.get('player')))
+        self.first_death_inn_tutorial_seen = bool(slot.get('first_death_inn_tutorial_seen', False))
         self.hotkey_bindings = normalize_hotkey_bindings(slot.get('hotkey_bindings'))
         self.scene_tutorial_open_key = ''
         self.reset_masterquest_scene_state()
@@ -12241,6 +12536,48 @@ class SessionState:
         self.town_tutorial_open = True
         self.sync_active_slot()
 
+    def guided_town_tutorial_primary_label(self) -> str:
+        if self.player is not None and self.guided_intro_stage == GUIDED_INTRO_TOWN_START:
+            return 'Go to Arena'
+        return 'Begin the Climb'
+
+    def begin_guided_arena_intro(self) -> None:
+        if self.player is None:
+            return
+        self.town_tutorial_open = False
+        if self.guided_intro_stage == GUIDED_INTRO_TOWN_START:
+            self.guided_intro_stage = GUIDED_INTRO_ARENA_FIRST_FIGHT
+            self.scene_tutorials_seen['arena'] = True
+        self.open_game_tab('arena', 'Your journey starts in the Arena. Win here, gear up, and the rest of the climb begins to open.')
+
+    def should_open_discord_join_tutorial(self) -> bool:
+        if self.player is None:
+            return False
+        return int(getattr(self.player, 'level', 0) or 0) >= 5 and not bool(self.guided_discord_prompt_seen)
+
+    def maybe_open_discord_join_tutorial(self, sync: bool = True) -> bool:
+        if bool(getattr(self, 'suppress_discord_tutorial_once', False)):
+            self.suppress_discord_tutorial_once = False
+            return False
+        if not self.should_open_discord_join_tutorial():
+            return False
+        if self.scene_tutorial_open_key and self.scene_tutorial_open_key != 'discord_join':
+            return False
+        self.guided_discord_prompt_seen = True
+        self.scene_tutorial_open_key = 'discord_join'
+        if sync:
+            self.sync_active_slot()
+        return True
+
+    def maybe_open_first_death_inn_tutorial(self, sync: bool = True) -> bool:
+        if self.player is None or bool(self.first_death_inn_tutorial_seen):
+            return False
+        self.first_death_inn_tutorial_seen = True
+        self.scene_tutorial_open_key = 'first_death_inn'
+        if sync:
+            self.sync_active_slot()
+        return True
+
     def trigger_scene_tutorial_if_needed(self, scene_key: str) -> None:
         if self.player is None or scene_key not in SCENE_TUTORIAL_CONTENT:
             return
@@ -12250,7 +12587,10 @@ class SessionState:
         self.scene_tutorial_open_key = scene_key
 
     def dismiss_scene_tutorial(self) -> None:
+        dismissed_key = str(self.scene_tutorial_open_key or '')
         self.scene_tutorial_open_key = ''
+        if dismissed_key != 'discord_join':
+            self.maybe_open_discord_join_tutorial(sync=False)
         self.sync_active_slot()
 
     def open_scene_tutorial(self, scene_key: str) -> None:
@@ -13350,6 +13690,9 @@ async def queue_arena_encounter_async(self, refresh) -> None:
         refresh()
         await asyncio.sleep(0)
         monster, xp_reward = generate_monster(self.player.level, forced_level=target_level, player_class=self.player.player_class)
+        if getattr(self, 'guided_intro_stage', '') == GUIDED_INTRO_ARENA_FIRST_FIGHT:
+            monster = soften_guided_intro_monster(monster)
+            self.add_log('The arena opens with a gentler first challenger so your journey can begin in blood instead of disaster.', 'muted')
         self.current_encounter_type = 'normal'
         self.current_monster = monster
         self.current_monster_xp = xp_reward
@@ -13541,6 +13884,7 @@ async def _finish_arena_fight_async(self, refresh) -> None:
                 self._set_arena_transition('The wellspawn collapses, but the dark below keeps its prize.', 'warning')
                 self.add_log('The well recoils, then settles into a disappointed hush.', 'warning')
         else:
+            guided_intro_fight = getattr(self, 'guided_intro_stage', '') == GUIDED_INTRO_ARENA_FIRST_FIGHT
             base_drop_chance = clamp(0.333 + self.player.magic_find * 0.10, 0.333, 0.60)
             has_attempted_mq = has_any_masterquest_attempts(self.ladder_stats)
             drop_penalty = effective_class_run_drop_debuff_fraction(self.player.player_class, self.current_run_kills, has_attempted_mq)
@@ -13554,22 +13898,53 @@ async def _finish_arena_fight_async(self, refresh) -> None:
                     threshold_scale = class_run_drop_debuff_threshold_multiplier(has_attempted_mq)
                     threshold_text = f'{threshold_scale:g}x farther out'
                     self.add_log(f'Feeder fatigue weighs on the run: item drops are reduced by {penalty_pct}% at {self.current_run_kills} kills ({threshold_text}).', 'warning')
-            drop_chance = clamp(base_drop_chance * (1.0 - drop_penalty), 0.0, 0.60)
-            if drop_chance > 0 and random.random() < drop_chance:
-                item = generate_item_drop(self.current_monster.level, self.player.player_class, self.player.magic_find, affix_roll_mode='disadvantage')
+            if guided_intro_fight:
+                item = generate_guided_intro_rare_item(self.player)
                 self.player.inventory.append(item)
                 self.arena_looted_item_count = int(getattr(self, 'arena_looted_item_count', 0) or 0) + 1
                 self.remember_last_monster_drop(item, 'arena')
-                self.add_log(f'Loot found: {item.summary()}.', 'success')
+                self.guided_intro_stage = GUIDED_INTRO_COMPLETE
+                self.scene_tutorial_open_key = 'arena_reward'
+                self.add_log(f'Guided reward earned: {item.summary()}.', 'success')
             else:
-                if drop_penalty >= 1.0:
-                    self.add_log('No item dropped. The run has hit the full feeder-class drop lockout.', 'muted')
+                drop_chance = clamp(base_drop_chance * (1.0 - drop_penalty), 0.0, 0.60)
+                if drop_chance > 0 and random.random() < drop_chance:
+                    item = generate_item_drop(self.current_monster.level, self.player.player_class, self.player.magic_find, affix_roll_mode='disadvantage')
+                    self.player.inventory.append(item)
+                    self.arena_looted_item_count = int(getattr(self, 'arena_looted_item_count', 0) or 0) + 1
+                    self.remember_last_monster_drop(item, 'arena')
+                    self.add_log(f'Loot found: {item.summary()}.', 'success')
                 else:
-                    self.add_log('No item dropped this time.', 'muted')
+                    if drop_penalty >= 1.0:
+                        self.add_log('No item dropped. The run has hit the full feeder-class drop lockout.', 'muted')
+                    else:
+                        self.add_log('No item dropped this time.', 'muted')
             self.last_fight_outcome = 'victory'
             self._set_arena_transition('Victory settles over the sand. The next gate awaits your call.', 'success')
             self.add_log('Victory settles over the sand.', 'success')
+            if not self.scene_tutorial_open_key:
+                self.maybe_open_discord_join_tutorial(sync=False)
     else:
+        if encounter_type == 'normal' and getattr(self, 'guided_intro_stage', '') == GUIDED_INTRO_ARENA_FIRST_FIGHT:
+            self.player.hp = max(1, min(self.player.max_hp, int(round(self.player.max_hp * 0.65))))
+            self.player.mana = min(self.player.max_mana, max(self.player.mana, int(round(self.player.max_mana * 0.50))))
+            self.current_monster = None
+            self.current_monster_xp = 0
+            self.clear_arena_monster_art(False)
+            self.last_fight_outcome = 'defeat'
+            self.last_monster_snapshot = defeated_monster
+            self.last_encounter_type = encounter_type
+            self.player_damage_popup_text = ''
+            self.monster_damage_popup_text = ''
+            self._set_arena_transition('The arena grants you a first mercy. Breathe, rearm, and call the challenger again.', 'warning')
+            self.add_log('The first challenger nearly drops you, but the arena grants a one-time mercy so your climb can continue.', 'warning')
+            self.sync_active_slot()
+            refresh()
+            await asyncio.sleep(0)
+            self.fight_in_progress = False
+            self.current_encounter_type = 'normal'
+            refresh()
+            return
         class_stats = self.ladder_stats.setdefault(self.player.player_class, build_default_ladder_stats().get(self.player.player_class, {}))
         class_stats['total_deaths'] = int(class_stats.get('total_deaths', 0) or 0) + 1
         if self.current_slot_mode() == 'HC':
@@ -13600,6 +13975,8 @@ async def _finish_arena_fight_async(self, refresh) -> None:
         else:
             self._set_arena_transition('You survive. The next gate awaits when you are ready.', 'danger')
             self.add_log('You drag yourself upright and the arena waits.', 'warning')
+        if not self.scene_tutorial_open_key:
+            self.maybe_open_first_death_inn_tutorial(sync=False)
     self.last_monster_snapshot = defeated_monster
     self.last_encounter_type = encounter_type
     if encounter_type != 'well':
@@ -13878,6 +14255,9 @@ def export_save(self) -> None:
         'selection_return_class': self.selection_return_class,
         'town_tutorial_seen': bool(self.town_tutorial_seen),
         'scene_tutorials_seen': dict(self.scene_tutorials_seen),
+        'guided_intro_stage': normalize_guided_intro_stage(self.guided_intro_stage, True),
+        'guided_discord_prompt_seen': bool(self.guided_discord_prompt_seen),
+        'first_death_inn_tutorial_seen': bool(self.first_death_inn_tutorial_seen),
         'hotkey_bindings': dict(normalize_hotkey_bindings(self.hotkey_bindings)),
         'disable_last_drop_animation': bool(self.disable_last_drop_animation),
         'arena_combat_log_default_open': bool(self.arena_combat_log_default_open),
@@ -13927,6 +14307,9 @@ def import_save(self) -> None:
         self.town_tutorial_seen = bool(payload.get('town_tutorial_seen', True))
         self.town_tutorial_open = False
         self.scene_tutorials_seen = normalize_scene_tutorials_seen(payload.get('scene_tutorials_seen'), True)
+        self.guided_intro_stage = normalize_guided_intro_stage(payload.get('guided_intro_stage'), True)
+        self.guided_discord_prompt_seen = normalize_guided_discord_prompt_seen(payload.get('guided_discord_prompt_seen'), True)
+        self.first_death_inn_tutorial_seen = bool(payload.get('first_death_inn_tutorial_seen', False))
         self.hotkey_bindings = normalize_hotkey_bindings(payload.get('hotkey_bindings'))
         self.disable_last_drop_animation = bool(payload.get('disable_last_drop_animation', False))
         self.arena_combat_log_default_open = bool(payload.get('arena_combat_log_default_open', False))
@@ -14476,6 +14859,269 @@ def resolve_public_profile_target(self, raw_name: str, prefer_mode: str = '') ->
         return {}
 
 
+def ensure_vault_transfer_state(self) -> None:
+    defaults = {
+        'inn_vault_transfer_code_draft': '',
+        'inn_vault_transfer_status': '',
+        'inn_vault_transfer_rows': [],
+        'inn_vault_transfer_last_loaded_at': 0.0,
+    }
+    for key, value in defaults.items():
+        if hasattr(self, key):
+            continue
+        setattr(self, key, copy.deepcopy(value))
+
+
+def current_vault_code(self) -> str:
+    if self.supabase is None or not self.is_authenticated():
+        return ''
+    mode = self.current_slot_mode() if hasattr(self, 'current_slot_mode') else ''
+    slot_index = (self.active_slot_index + 1) if self.active_slot_index is not None else None
+    return build_vault_code(getattr(self, 'auth_user_id', ''), mode, slot_index)
+
+
+def resolve_vault_code_target(self, raw_code: str) -> Dict[str, str]:
+    ensure_vault_transfer_state(self)
+    parsed = decode_vault_code(raw_code)
+    if not parsed or self.supabase is None or not self.is_authenticated():
+        return {}
+    user_id = str(parsed.get('user_id') or '').strip()
+    mode = normalize_ladder_mode(parsed.get('mode') or '', '')
+    slot_index = max(1, int(parsed.get('slot_index', SLOT_INDEX_BY_MODE.get(mode, 0) + 1) or (SLOT_INDEX_BY_MODE.get(mode, 0) + 1)))
+    if not user_id or not mode:
+        return {}
+    try:
+        rows = _supabase_response_data(
+            self.supabase.table('public_player_profiles')
+            .select('user_id, character_name, slot_index, mode')
+            .eq('user_id', user_id)
+            .eq('mode', mode)
+            .limit(1)
+            .execute()
+        )
+        row = rows[0] if isinstance(rows, list) and rows else (rows if isinstance(rows, dict) else {})
+    except Exception:
+        row = {}
+    if not isinstance(row, dict) or not row:
+        return {}
+    target_slot_index = max(1, int(row.get('slot_index', slot_index) or slot_index))
+    target_mode = normalize_ladder_mode(row.get('mode') or mode, mode)
+    return {
+        'user_id': str(row.get('user_id') or user_id).strip(),
+        'character_name': clean_character_name(str(row.get('character_name') or 'Nameless Hero')) or 'Nameless Hero',
+        'slot_index': str(target_slot_index),
+        'mode': target_mode,
+        'vault_code': build_vault_code(str(row.get('user_id') or user_id).strip(), target_mode, target_slot_index),
+    }
+
+
+def load_pending_vault_transfers(self, force: bool = False) -> bool:
+    ensure_vault_transfer_state(self)
+    self.inn_vault_transfer_rows = []
+    if self.player is None or self.active_slot_index is None:
+        self.inn_vault_transfer_status = 'Open a live chronicle to receive direct vault deliveries.'
+        return False
+    current_mode = self.current_slot_mode()
+    current_slot_index = int((self.active_slot_index or 0) + 1)
+    if current_mode == 'SSF':
+        self.inn_vault_transfer_status = 'Vault couriers are sealed in SSF.'
+        return False
+    if self.supabase is None or not self.is_authenticated():
+        self.inn_vault_transfer_status = 'Sign in to unlock direct vault couriers.'
+        return False
+    try:
+        response = (
+            self.supabase.table(VAULT_TRANSFER_TABLE)
+            .select('id, sender_user_id, sender_character_name, sender_mode, sender_slot_index, recipient_user_id, recipient_character_name, recipient_mode, recipient_slot_index, recipient_vault_code, item_payload, item_summary, item_tier, item_rarity, status, created_at')
+            .eq('recipient_user_id', self.auth_user_id)
+            .eq('recipient_mode', current_mode)
+            .eq('recipient_slot_index', current_slot_index)
+            .eq('status', 'pending')
+            .order('created_at', desc=False)
+            .limit(80)
+            .execute()
+        )
+        rows = _supabase_response_data(response)
+        normalized_rows: List[Dict[str, object]] = []
+        if isinstance(rows, list):
+            for raw_row in rows:
+                if not isinstance(raw_row, dict):
+                    continue
+                item = coerce_item(raw_row.get('item_payload'))
+                normalized_rows.append({
+                    'id': str(raw_row.get('id') or '').strip(),
+                    'sender_user_id': str(raw_row.get('sender_user_id') or '').strip(),
+                    'sender_character_name': clean_character_name(str(raw_row.get('sender_character_name') or 'Unknown Adventurer')) or 'Unknown Adventurer',
+                    'sender_mode': normalize_ladder_mode(raw_row.get('sender_mode') or '', ''),
+                    'sender_slot_index': max(1, int(raw_row.get('sender_slot_index', 1) or 1)),
+                    'recipient_character_name': clean_character_name(str(raw_row.get('recipient_character_name') or '')) or '',
+                    'recipient_mode': normalize_ladder_mode(raw_row.get('recipient_mode') or current_mode, current_mode),
+                    'recipient_slot_index': max(1, int(raw_row.get('recipient_slot_index', current_slot_index) or current_slot_index)),
+                    'recipient_vault_code': str(raw_row.get('recipient_vault_code') or '').strip(),
+                    'item': item,
+                    'item_summary': str(raw_row.get('item_summary') or (item.summary() if item is not None else 'Unknown item')).strip() or 'Unknown item',
+                    'item_tier': int(raw_row.get('item_tier', item_required_level(item) if item is not None else 0) or 0),
+                    'item_rarity': str(raw_row.get('item_rarity') or (item.rarity if item is not None else '')).strip(),
+                    'status': str(raw_row.get('status') or 'pending').strip(),
+                    'created_at': str(raw_row.get('created_at') or '').strip(),
+                    'stamp': _chat_stamp_from_created_at(raw_row.get('created_at')),
+                })
+        self.inn_vault_transfer_rows = normalized_rows
+        self.inn_vault_transfer_last_loaded_at = time.monotonic()
+        delivery_count = len(normalized_rows)
+        if delivery_count:
+            noun = 'delivery' if delivery_count == 1 else 'deliveries'
+            self.inn_vault_transfer_status = f'{delivery_count} pending vault courier {noun} waiting.'
+        elif force:
+            self.inn_vault_transfer_status = 'No pending vault courier deliveries.'
+        return True
+    except Exception as exc:
+        self.inn_vault_transfer_rows = []
+        self.inn_vault_transfer_status = f'Vault couriers are waiting on database setup: {exc}'
+        return False
+
+
+def send_vault_item_to_player(self, vault_index: int, raw_code: str) -> bool:
+    ensure_vault_transfer_state(self)
+    if self.player is None or self.active_slot_index is None:
+        self.inn_vault_transfer_status = 'Open a live chronicle before dispatching a vault courier.'
+        return False
+    if self.current_slot_mode() == 'SSF':
+        self.inn_vault_transfer_status = 'Vault couriers are sealed in SSF.'
+        return False
+    if self.supabase is None or not self.is_authenticated():
+        self.inn_vault_transfer_status = 'Sign in before sending items directly to another adventurer.'
+        return False
+    if vault_index < 0 or vault_index >= len(self.vault_items):
+        self.inn_vault_transfer_status = 'Select a vault item to send first.'
+        return False
+    target = resolve_vault_code_target(self, raw_code)
+    if not target.get('user_id'):
+        self.inn_vault_transfer_status = 'That Vault Code does not map to a synced public profile yet.'
+        return False
+    target_mode = normalize_ladder_mode(target.get('mode') or '', '')
+    if target_mode == 'SSF':
+        self.inn_vault_transfer_status = 'SSF chronicles cannot receive direct player transfers.'
+        return False
+    if str(target.get('user_id') or '').strip() == str(self.auth_user_id or '').strip():
+        self.inn_vault_transfer_status = 'You cannot courier items to your own account.'
+        return False
+    item = coerce_item(self.vault_items[vault_index])
+    if item is None:
+        self.inn_vault_transfer_status = 'That vault item could not be prepared for courier dispatch.'
+        return False
+    sender_mode = self.current_slot_mode()
+    sender_slot_index = int((self.active_slot_index or 0) + 1)
+    sender_name = clean_character_name(self.player.name if self.player else 'You') or 'You'
+    vault_code = build_vault_code(str(target.get('user_id') or '').strip(), target_mode, int(target.get('slot_index', 1) or 1))
+    try:
+        response = self.supabase.table(VAULT_TRANSFER_TABLE).insert({
+            'sender_user_id': self.auth_user_id,
+            'sender_character_name': sender_name,
+            'sender_mode': sender_mode,
+            'sender_slot_index': sender_slot_index,
+            'recipient_user_id': str(target.get('user_id') or '').strip(),
+            'recipient_character_name': target.get('character_name') or 'Nameless Hero',
+            'recipient_mode': target_mode,
+            'recipient_slot_index': int(target.get('slot_index', 1) or 1),
+            'recipient_vault_code': vault_code,
+            'item_payload': item.to_dict(),
+            'item_summary': item.summary(),
+            'item_tier': item_required_level(item),
+            'item_rarity': str(item.rarity or ''),
+            'status': 'pending',
+        }).execute()
+        err = _supabase_response_error(response)
+        if err:
+            self.inn_vault_transfer_status = _supabase_error_text(err) or 'The vault courier could not be dispatched.'
+            return False
+    except Exception as exc:
+        self.inn_vault_transfer_status = f'Vault couriers are waiting on database setup: {exc}'
+        return False
+    sent_item = self.vault_items.pop(vault_index)
+    self.inn_vault_selected_index = -1
+    self.inn_vault_transfer_code_draft = ''
+    self.inn_vault_transfer_status = f'Sent {sent_item.summary()} to {target.get("character_name") or "that adventurer"} via vault courier.'
+    self.add_log(self.inn_vault_transfer_status, 'success')
+    self.sync_active_slot()
+    return True
+
+
+def claim_pending_vault_transfer(self, transfer_id: str) -> bool:
+    ensure_vault_transfer_state(self)
+    cleaned_transfer_id = str(transfer_id or '').strip()
+    if self.player is None or self.active_slot_index is None:
+        self.inn_vault_transfer_status = 'Open a live chronicle before claiming a vault courier delivery.'
+        return False
+    if self.current_slot_mode() == 'SSF':
+        self.inn_vault_transfer_status = 'Vault couriers are sealed in SSF.'
+        return False
+    if self.supabase is None or not self.is_authenticated():
+        self.inn_vault_transfer_status = 'Sign in before claiming a vault courier delivery.'
+        return False
+    transfer_row = None
+    for row in list(getattr(self, 'inn_vault_transfer_rows', []) or []):
+        if str(row.get('id') or '').strip() == cleaned_transfer_id:
+            transfer_row = row
+            break
+    if not isinstance(transfer_row, dict):
+        self.inn_vault_transfer_status = 'That vault courier delivery is no longer available.'
+        return False
+    item = coerce_item(transfer_row.get('item'))
+    if item is None:
+        item = coerce_item(transfer_row.get('item_payload'))
+    if item is None:
+        self.inn_vault_transfer_status = 'That vault courier delivery no longer carries a readable item.'
+        return False
+    try:
+        response = (
+            self.supabase.table(VAULT_TRANSFER_TABLE)
+            .update({'status': 'claimed', 'claimed_at': _chat_iso_now()})
+            .eq('id', cleaned_transfer_id)
+            .eq('recipient_user_id', self.auth_user_id)
+            .eq('status', 'pending')
+            .execute()
+        )
+        err = _supabase_response_error(response)
+        if err:
+            self.inn_vault_transfer_status = _supabase_error_text(err) or 'That vault courier delivery could not be claimed.'
+            return False
+        status_rows = _supabase_response_data(
+            self.supabase.table(VAULT_TRANSFER_TABLE)
+            .select('status')
+            .eq('id', cleaned_transfer_id)
+            .eq('recipient_user_id', self.auth_user_id)
+            .limit(1)
+            .execute()
+        )
+        status_row = status_rows[0] if isinstance(status_rows, list) and status_rows else (status_rows if isinstance(status_rows, dict) else {})
+        if not isinstance(status_row, dict) or str(status_row.get('status') or '').strip().lower() != 'claimed':
+            self.inn_vault_transfer_status = 'That vault courier delivery could not be secured before the handoff.'
+            return False
+    except Exception as exc:
+        self.inn_vault_transfer_status = f'Vault couriers are waiting on database setup: {exc}'
+        return False
+    destination = 'inventory'
+    if max(int(getattr(self, 'vault_capacity', 0) or 0), len(self.vault_items), 0) > len(self.vault_items):
+        self.vault_items.append(item)
+        destination = 'vault'
+    else:
+        self.player.inventory.append(item)
+    self.inn_vault_transfer_rows = [
+        row for row in list(getattr(self, 'inn_vault_transfer_rows', []) or [])
+        if str(row.get('id') or '').strip() != cleaned_transfer_id
+    ]
+    sender_name = str(transfer_row.get('sender_character_name') or 'Unknown Adventurer').strip() or 'Unknown Adventurer'
+    self.inn_vault_transfer_status = (
+        f'Claimed {item.summary()} from {sender_name} into your Inn Vault.'
+        if destination == 'vault'
+        else f'Claimed {item.summary()} from {sender_name} into your inventory because the Inn Vault had no open slot.'
+    )
+    self.add_log(self.inn_vault_transfer_status, 'success')
+    self.sync_active_slot()
+    return True
+
+
 def load_private_messages(self) -> bool:
     ensure_social_chat_state(self)
     self.private_message_rows = []
@@ -14883,6 +15529,8 @@ def enter_town(self, note: Optional[str] = None) -> None:
         self.set_guild_status(f'Guild Hall is waiting on Supabase setup: {exc}', 'warning')
     if note:
         self.add_log(note, 'info')
+    if not self.scene_tutorial_open_key:
+        self.maybe_open_discord_join_tutorial(sync=False)
     self.sync_active_slot()
 
 def open_game_tab(self, tab_name: str, note: Optional[str] = None) -> None:
@@ -14938,6 +15586,8 @@ def open_game_tab(self, tab_name: str, note: Optional[str] = None) -> None:
     elif requested_tab == 'marketplace':
         self.ensure_marketplace_offers(False, allow_cached=True)
     self.trigger_scene_tutorial_if_needed(requested_tab)
+    if not self.scene_tutorial_open_key:
+        self.maybe_open_discord_join_tutorial(sync=False)
     if note:
         self.add_log(note, 'info')
     self.sync_active_slot()
@@ -16993,6 +17643,12 @@ SessionState.ensure_social_chat_state = ensure_social_chat_state
 SessionState.load_chat_preferences = load_chat_preferences
 SessionState.set_chat_do_not_disturb = set_chat_do_not_disturb
 SessionState.resolve_public_profile_target = resolve_public_profile_target
+SessionState.ensure_vault_transfer_state = ensure_vault_transfer_state
+SessionState.current_vault_code = current_vault_code
+SessionState.resolve_vault_code_target = resolve_vault_code_target
+SessionState.load_pending_vault_transfers = load_pending_vault_transfers
+SessionState.send_vault_item_to_player = send_vault_item_to_player
+SessionState.claim_pending_vault_transfer = claim_pending_vault_transfer
 SessionState.load_private_messages = load_private_messages
 SessionState.send_private_message = send_private_message
 SessionState.load_guild_chat_messages = load_guild_chat_messages
@@ -17106,6 +17762,36 @@ def main_page(request: Request) -> None:
     scene_tutorial_dialog = ui.dialog().props('persistent')
     _scene_tutorial_dialog_render_key = {'value': None}
 
+    async def run_guided_intro_arena() -> None:
+        state.begin_guided_arena_intro()
+        town_tutorial_dialog.close()
+        request_render_refresh(force=True)
+        await asyncio.sleep(0.05)
+        if state.player is None or state.guided_intro_stage != GUIDED_INTRO_ARENA_FIRST_FIGHT:
+            return
+        await state.queue_arena_encounter_async(lambda *_args, **_kwargs: request_render_refresh(force=True))
+
+    def handle_town_tutorial_primary() -> None:
+        if state.player is not None and state.guided_intro_stage == GUIDED_INTRO_TOWN_START:
+            asyncio.create_task(run_guided_intro_arena())
+            return
+        state.dismiss_town_tutorial()
+        town_tutorial_dialog.close()
+        request_render_refresh()
+
+    def handle_scene_tutorial_primary() -> None:
+        scene_key = str(getattr(state, 'scene_tutorial_open_key', '') or '')
+        if scene_key == 'first_death_inn':
+            state.scene_tutorial_open_key = ''
+            scene_tutorial_dialog.close()
+            state.suppress_discord_tutorial_once = True
+            state.open_game_tab('inn', 'The Inn is the quickest way to recover after a bad defeat. Rest, reset, and head back out when you are ready.')
+            request_render_refresh()
+            return
+        state.dismiss_scene_tutorial()
+        scene_tutorial_dialog.close()
+        request_render_refresh()
+
     with town_tutorial_dialog:
         with ui.card().classes('mq-card max-w-[860px] w-[95vw] p-7 md:p-8'):
             ui.label('Welcome to Prismatic Quest').classes('text-4xl md:text-5xl font-semibold text-slate-100')
@@ -17113,7 +17799,7 @@ def main_page(request: Request) -> None:
                 'Beyond the lantern-lit safety of Town, the roads are broken, the arena is merciless, and the old rites of Prismatic Quest still call to anyone reckless enough to climb.'
             ).classes('text-slate-300 text-xl md:text-2xl leading-9 mt-4')
             ui.label(
-                'You are an adventurer entering that climb. Fight through the arena, gather stronger gear, bargain in the bazaar, tempt fate at the Well of Evil, and sharpen your build until you are strong enough to face the final ritual.'
+                'You are an adventurer entering that climb. Your journey starts in the Arena: win there first, gather stronger gear, and only then spread outward into the Bazaar, the Well of Evil, and the final ritual.'
             ).classes('text-slate-300 text-xl md:text-2xl leading-9 mt-4')
             with ui.card().classes('mq-panel-frame p-5 mt-6'):
                 ui.label('Your Goal').classes('mq-panel-caption text-2xl md:text-3xl')
@@ -17121,10 +17807,10 @@ def main_page(request: Request) -> None:
                     'Reach level 60, perfect your equipment, and attempt Prismatic Quest. Passing the ritual advances your chronicle and unlocks the next step in the climb.'
                 ).classes('text-slate-200 text-xl md:text-2xl leading-9 mt-3')
             ui.label(
-                'Every run is about momentum: survive, scale, and decide when you are ready to risk everything on Prismatic Quest.'
+                'Every run is about momentum: survive, scale, and decide when you are ready to risk everything on Prismatic Quest. For this first step, go to the Arena and let the climb begin there.'
             ).classes('text-slate-400 text-lg md:text-xl leading-8 mt-5')
             with ui.row().classes('justify-end gap-3 mt-7 max-[640px]:w-full max-[640px]:flex-wrap'):
-                ui.button('Begin the Climb', on_click=lambda: (state.dismiss_town_tutorial(), town_tutorial_dialog.close(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-6 py-3 font-semibold text-lg md:text-xl max-[640px]:w-full')
+                ui.button(state.guided_town_tutorial_primary_label(), on_click=handle_town_tutorial_primary).classes('mq-btn-gold rounded-xl px-6 py-3 font-semibold text-lg md:text-xl max-[640px]:w-full')
 
     with scene_tutorial_dialog:
         with ui.card().classes('mq-card max-w-[900px] w-[95vw] p-7 md:p-8'):
@@ -17133,7 +17819,7 @@ def main_page(request: Request) -> None:
             with ui.column().classes('w-full gap-0') as scene_tutorial_body_column:
                 pass
             with ui.row().classes('justify-end gap-3 mt-7 max-[640px]:w-full max-[640px]:flex-wrap'):
-                ui.button('Back to the Climb', on_click=lambda: (state.dismiss_scene_tutorial(), scene_tutorial_dialog.close(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-6 py-3 font-semibold text-lg md:text-xl max-[640px]:w-full')
+                scene_tutorial_primary_button = ui.button('Back to the Climb', on_click=handle_scene_tutorial_primary).classes('mq-btn-gold rounded-xl px-6 py-3 font-semibold text-lg md:text-xl max-[640px]:w-full')
 
     def sync_scene_tutorial_dialog(force: bool = False) -> None:
         scene_key = state.scene_tutorial_open_key if state.scene_tutorial_open_key in SCENE_TUTORIAL_CONTENT else ''
@@ -17155,6 +17841,9 @@ def main_page(request: Request) -> None:
                     for line in body:
                         with ui.card().classes('mq-panel-frame p-5 mt-5'):
                             ui.label(line).classes('text-slate-200 text-xl md:text-2xl leading-9')
+                    if scene_key == 'discord_join':
+                        ui.button('Join Community Discord').props(f'href={COMMUNITY_DISCORD_URL} target=_blank').classes('mq-btn-gold rounded-xl px-6 py-3 font-semibold text-lg md:text-xl mt-5 self-start')
+            scene_tutorial_primary_button.set_text('Go to Inn' if scene_key == 'first_death_inn' else 'Back to the Climb')
         if scene_key:
             scene_tutorial_dialog.open()
         else:
@@ -17936,6 +18625,8 @@ def main_page(request: Request) -> None:
     inn_vault_render_refs: Dict[str, object] = {'panels': None}
     bazaar_reprice_dialog = ui.dialog()
     bazaar_reprice_state: Dict[str, object] = {'listing_id': '', 'current_price': 0, 'item_name': ''}
+    vault_send_dialog = ui.dialog()
+    vault_send_state: Dict[str, object] = {'selected_index': -1, 'item_name': ''}
 
     with bazaar_reprice_dialog:
         with ui.card().classes('mq-card max-w-[520px] w-[92vw] p-5'):
@@ -18001,6 +18692,59 @@ def main_page(request: Request) -> None:
                 setattr(state, field_name, -1 if raw_value in (None, '') else int(raw_value))
             except Exception:
                 setattr(state, field_name, -1)
+        if not hasattr(state, 'ensure_vault_transfer_state'):
+            return
+        state.ensure_vault_transfer_state()
+
+    with vault_send_dialog:
+        with ui.card().classes('mq-card max-w-[560px] w-[92vw] p-5'):
+            ui.label('Vault Courier').classes('text-2xl font-semibold text-slate-100')
+            vault_send_item_label = ui.label('').classes('text-slate-300 text-lg leading-7 mt-2')
+            ui.label('Enter the recipient Vault Code from their public profile. Couriered items bypass the Bazaar and cannot be sniped.').classes('mq-detail-text mt-2')
+            vault_send_input = ui.input(label='Recipient Vault Code').props('outlined clearable input-style=color: #e2e8f0;').classes('w-full mt-4')
+            vault_send_input.on_value_change(lambda e: setattr(state, 'inn_vault_transfer_code_draft', str(e.value or '').strip().upper()))
+            vault_send_status_label = ui.label('').classes('mq-detail-text mt-3')
+            with ui.row().classes('gap-3 mt-5 justify-end max-[640px]:w-full max-[640px]:flex-wrap'):
+                ui.button('Cancel', on_click=lambda: vault_send_dialog.close()).classes('mq-btn-secondary max-[640px]:w-full')
+                ui.button('Send Item', on_click=lambda: confirm_inn_vault_send_dialog()).classes('mq-btn-gold max-[640px]:w-full')
+
+    def open_inn_vault_send_dialog() -> None:
+        if state.player is None:
+            return
+        sync_inn_vault_selection()
+        idx = inn_vault_selected_index_value('inn_vault_selected_index')
+        if idx < 0:
+            state.inn_vault_transfer_status = 'Select a vault item to send first.'
+            state.add_log(state.inn_vault_transfer_status, 'warning')
+            refresh_inn_vault_views()
+            return
+        item = coerce_item(state.vault_items[idx]) if 0 <= idx < len(state.vault_items) else None
+        if item is None:
+            state.inn_vault_transfer_status = 'That vault item could not be prepared for courier dispatch.'
+            state.add_log(state.inn_vault_transfer_status, 'warning')
+            refresh_inn_vault_views()
+            return
+        vault_send_state['selected_index'] = idx
+        vault_send_state['item_name'] = item.summary()
+        vault_send_item_label.set_text(item.summary())
+        vault_send_input.set_value(str(getattr(state, 'inn_vault_transfer_code_draft', '') or ''))
+        vault_send_status_label.set_text('Vault Codes are mode-specific, so the courier lands in the right chronicle lane.')
+        vault_send_dialog.open()
+
+    def confirm_inn_vault_send_dialog() -> None:
+        idx = int(vault_send_state.get('selected_index', -1) or -1)
+        raw_code = str(getattr(vault_send_input, 'value', '') or getattr(state, 'inn_vault_transfer_code_draft', '') or '').strip()
+        state.inn_vault_transfer_code_draft = raw_code.upper()
+        if state.send_vault_item_to_player(idx, raw_code):
+            vault_send_dialog.close()
+            refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True)
+            return
+        vault_send_status_label.set_text(str(getattr(state, 'inn_vault_transfer_status', '') or 'Courier dispatch failed.'))
+
+    def refresh_inn_vault_transfers() -> None:
+        if hasattr(state, 'load_pending_vault_transfers'):
+            state.load_pending_vault_transfers(force=True)
+        refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True)
 
     def inn_vault_selected_index_value(field_name: str) -> int:
         raw_value = getattr(state, field_name, -1)
@@ -18113,6 +18857,8 @@ def main_page(request: Request) -> None:
     def open_inn_vault_dialog() -> None:
         ensure_inn_vault_runtime_state()
         sync_inn_vault_selection()
+        if hasattr(state, 'load_pending_vault_transfers'):
+            state.load_pending_vault_transfers(force=True)
         state.inn_vault_dialog_requested = True
         render_inn_vault_dialog.refresh()
         inn_vault_dialog.open()
@@ -18196,6 +18942,10 @@ def main_page(request: Request) -> None:
             filtered_vault_entries = filtered_inn_vault_storage_entries()
             vault_capacity = max(int(getattr(state, 'vault_capacity', 0) or 0), len(state.vault_items))
             vault_count = len(state.vault_items)
+            vault_code = state.current_vault_code() if hasattr(state, 'current_vault_code') else ''
+            transfer_rows = list(getattr(state, 'inn_vault_transfer_rows', []) or [])
+            transfer_status = str(getattr(state, 'inn_vault_transfer_status', '') or '')
+            courier_locked = bool(state.supabase is None or not state.is_authenticated() or state.current_slot_mode() == 'SSF')
             with ui.card().classes('mq-card max-w-[1380px] w-[96vw] p-5 mx-auto'):
                 ui.label('Inn Vault').classes('mq-inv-title')
                 if state.player is None:
@@ -18206,15 +18956,15 @@ def main_page(request: Request) -> None:
                 with ui.row().classes('w-full gap-3 mt-4 flex-wrap'):
                     tier_select = ui.select(['All tiers'] + [f'Tier {bucket}' for bucket in ITEM_BUCKETS], value=getattr(state, 'inn_vault_tier_filter', 'All tiers'), label='Tier')
                     tier_select.classes('mq-item-select min-w-[150px] flex-1')
-                    tier_select.props('dense outlined options-dense')
+                    tier_select.props('dense outlined options-dense popup-content-class=mq-item-select-menu options-selected-class=mq-item-select-option-selected behavior=menu')
                     tier_select.on_value_change(lambda e: apply_inn_vault_filter_change('inn_vault_tier_filter', e.value, 'All tiers'))
                     type_select = ui.select(ITEM_TYPE_FILTER_OPTIONS, value=getattr(state, 'inn_vault_type_filter', 'All types'), label='Type')
                     type_select.classes('mq-item-select min-w-[170px] flex-1')
-                    type_select.props('dense outlined options-dense')
+                    type_select.props('dense outlined options-dense popup-content-class=mq-item-select-menu options-selected-class=mq-item-select-option-selected behavior=menu')
                     type_select.on_value_change(lambda e: apply_inn_vault_filter_change('inn_vault_type_filter', e.value, 'All types'))
                     affix_select = ui.select(ATTRIBUTE_FILTER_OPTIONS, value=getattr(state, 'inn_vault_affix_filter', 'All attributes'), label='Affix')
                     affix_select.classes('mq-item-select min-w-[180px] flex-1')
-                    affix_select.props('dense outlined options-dense')
+                    affix_select.props('dense outlined options-dense popup-content-class=mq-item-select-menu options-selected-class=mq-item-select-option-selected behavior=menu')
                     affix_select.on_value_change(lambda e: apply_inn_vault_filter_change('inn_vault_affix_filter', e.value, 'All attributes'))
                     ui.button('Reset Filters', on_click=reset_inn_vault_filters).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
                 with ui.row().classes('w-full items-stretch gap-4 mt-4 no-wrap max-[1180px]:flex-wrap'):
@@ -18241,7 +18991,7 @@ def main_page(request: Request) -> None:
                                                     ui.label(safe_item_base_stat_text(item)).classes('mq-inv-entry-base')
                                                     ui.label(safe_item_affix_preview_text(item)).classes('mq-inv-entry-affix')
                                                 ui.html(inn_vault_selected_flag_html(selected))
-                    with ui.column().classes('w-full max-w-[280px] gap-4 items-stretch justify-center'):
+                    with ui.column().classes('w-full max-w-[320px] gap-4 items-stretch justify-start'):
                         with ui.card().classes('mq-card p-4'):
                             ui.label('Vault Actions').classes('mq-inv-section-title mb-3 text-center')
                             buy_slots_btn = ui.button(f'Buy {VAULT_SLOT_BUNDLE_SIZE} Slots ({VAULT_SLOT_BUNDLE_COST} Gold)', on_click=buy_inn_vault_slots).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold w-full')
@@ -18249,11 +18999,48 @@ def main_page(request: Request) -> None:
                                 buy_slots_btn.disable()
                             ui.button('Deposit Selected', on_click=store_selected_inn_vault_item).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold w-full mt-3')
                             ui.button('Withdraw Selected', on_click=withdraw_selected_inn_vault_item).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold w-full mt-3')
+                            send_btn = ui.button('Send Selected to Player', on_click=open_inn_vault_send_dialog).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold w-full mt-3')
+                            if courier_locked or selected_vault < 0:
+                                send_btn.disable()
                             ui.button('Close', on_click=close_inn_vault_dialog).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold w-full mt-3')
                             ui.separator().classes('my-4 opacity-20')
                             ui.label(f'Gold {state.player.gold}').classes('mq-detail-text text-center')
                             ui.label(f'Vault {vault_count}/{vault_capacity}').classes('mq-detail-text text-center')
                             ui.label(f'Open Slots {max(vault_capacity - vault_count, 0)}').classes('mq-detail-text text-center')
+                        with ui.card().classes('mq-card p-4'):
+                            ui.label('Vault Courier').classes('mq-inv-section-title mb-3 text-center')
+                            if vault_code:
+                                ui.label('Your Vault Code').classes('mq-detail-text text-center uppercase tracking-[0.18em]')
+                                ui.label(vault_code).classes('text-slate-100 text-[0.96rem] font-semibold tracking-[0.16em] leading-6 text-center break-all mt-2')
+                            elif courier_locked and state.current_slot_mode() == 'SSF':
+                                ui.label('Vault couriers are sealed in SSF.').classes('mq-detail-text text-center mt-1')
+                            else:
+                                ui.label('Sign in on a live non-SSF chronicle to reveal your Vault Code.').classes('mq-detail-text text-center mt-1')
+                            if transfer_status:
+                                ui.label(transfer_status).classes('mq-detail-text text-center mt-3')
+                            refresh_btn = ui.button('Refresh Deliveries', on_click=refresh_inn_vault_transfers).classes('mq-btn-secondary rounded-xl px-4 py-2 font-semibold w-full mt-4')
+                            if courier_locked:
+                                refresh_btn.disable()
+                            ui.separator().classes('my-4 opacity-20')
+                            ui.label(f'Incoming Deliveries ({len(transfer_rows)})').classes('mq-detail-text text-center uppercase tracking-[0.16em]')
+                            if not transfer_rows:
+                                ui.label('No pending direct vault deliveries.').classes('mq-inv-empty mt-3 text-center')
+                            else:
+                                with ui.scroll_area().classes('w-full max-h-[270px] pr-1 mt-3'):
+                                    with ui.column().classes('w-full gap-2'):
+                                        for transfer in transfer_rows:
+                                            transfer_item = coerce_item(transfer.get('item'))
+                                            transfer_summary = str(transfer.get('item_summary') or (transfer_item.summary() if transfer_item is not None else 'Unknown item')).strip() or 'Unknown item'
+                                            sender_name = str(transfer.get('sender_character_name') or 'Unknown Adventurer').strip() or 'Unknown Adventurer'
+                                            claim_btn_label = 'Claim to Vault'
+                                            if max(vault_capacity, len(state.vault_items)) <= len(state.vault_items):
+                                                claim_btn_label = 'Claim to Inventory'
+                                            with ui.card().classes('mq-panel-frame w-full p-3'):
+                                                ui.label(transfer_summary).classes('mq-inv-entry-title')
+                                                ui.label(f'From {sender_name} • {_chat_stamp_from_created_at(transfer.get("created_at")) or "Recent"}').classes('mq-detail-text mt-1')
+                                                if transfer_item is not None:
+                                                    ui.label(f'{saved_item_type_label(transfer_item)} • Tier {item_required_level(transfer_item)}').classes('mq-detail-text mt-1')
+                                                ui.button(claim_btn_label, on_click=lambda transfer_id=str(transfer.get('id') or ''): (state.claim_pending_vault_transfer(transfer_id), refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True))).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold w-full mt-3')
                     with ui.card().classes('mq-card flex-1 min-w-[340px] p-4'):
                         ui.label(f'Vault Storage ({len(filtered_vault_entries)}/{vault_count})').classes('mq-inv-section-title mb-3')
                         with ui.element('div').props('id=mq-inn-vault-storage-scroll data-mq-vault-list=storage tabindex=0 onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-storage-scroll")').classes('w-full mq-pack-manifest-scroll').style('max-height: 520px; overflow-y: auto; padding-right: 6px; padding-top: 2px;'):
@@ -18440,7 +19227,7 @@ def main_page(request: Request) -> None:
     refresh_state = {'pending': False, 'last_at': 0.0, 'dirty': False, 'token': 0}
 
     def request_render_refresh(*_args, force: bool = False, delay: float = 0.0) -> None:
-        min_gap = 0.06
+        min_gap = 0.25
 
         def _schedule_follow_up(wait_time: float = 0.0) -> None:
             refresh_state['pending'] = True
@@ -20323,6 +21110,9 @@ def main_page(request: Request) -> None:
                                     pq_points = int(snapshot.get('pq_points', 0) or 0)
                                     ladder_resets = int(snapshot.get('ladder_resets', 0) or 0)
                                     season_id = int(snapshot.get('season_id', 1) or 1)
+                                    profile_mode = normalize_ladder_mode(snapshot.get('mode') or '', '')
+                                    profile_slot_index = int(snapshot.get('slot_index', SLOT_INDEX_BY_MODE.get(profile_mode, 0) + 1) or (SLOT_INDEX_BY_MODE.get(profile_mode, 0) + 1))
+                                    vault_code = build_vault_code(snapshot.get('user_id') or '', profile_mode, profile_slot_index)
                                     updated_at = str(snapshot.get('updated_at') or '').strip()
                                     equipped = snapshot.get('equipped_items', {}) if isinstance(snapshot.get('equipped_items'), dict) else {}
                                     inventory_items = normalize_public_profile_inventory(snapshot.get('inventory_items', []))
@@ -20352,6 +21142,7 @@ def main_page(request: Request) -> None:
                                                 f'Level: {level}',
                                                 f'PQ Points: {pq_points}',
                                                 f'Ladder Resets: {ladder_resets}',
+                                                f'Vault Code: {vault_code or "Unavailable"}',
                                                 f'Inventory Items: {len(inventory_items)}',
                                                 f'Saved Slots: {len(saved_rows)}',
                                             ])).classes('mq-detail-text mt-3 whitespace-pre-line')
@@ -20603,7 +21394,7 @@ def main_page(request: Request) -> None:
                                             ui.button('YouTube', icon='smart_display').classes('w-full mq-btn-secondary rounded-xl px-5 py-3 font-semibold justify-between')
                                         with ui.link(target='https://x.com/PrismQuestRPG', new_tab=True):
                                             ui.button('X / Twitter', icon='alternate_email').classes('w-full mq-btn-secondary rounded-xl px-5 py-3 font-semibold justify-between')
-                                        with ui.link(target='https://www.tiktok.com/@prismquest_rpg', new_tab=True):
+                                        with ui.link(target='https://www.tiktok.com/@prismquestrpg', new_tab=True):
                                             ui.button('TikTok', icon='music_note').classes('w-full mq-btn-secondary rounded-xl px-5 py-3 font-semibold justify-between')
                             with ui.card().classes('mq-card w-full p-4'):
                                 with ui.row().classes('gap-2 flex-wrap items-center justify-between max-[760px]:justify-start'):
@@ -20843,6 +21634,106 @@ def main_page(request: Request) -> None:
     };
   })();
   document.querySelectorAll('.mq-item-hover-wrap-persist').forEach((el) => manager.bind(el));
+  const profManager = window.mqArenaProfHoverManager = window.mqArenaProfHoverManager || (() => {
+    let overlay = null;
+    const state = {
+      activeKey: '',
+      activeSide: 'left',
+      anchor: null,
+      pointerX: -1,
+      pointerY: -1,
+      hideTimer: 0,
+    };
+    const ensureOverlay = () => {
+      if (overlay && document.body.contains(overlay)) return overlay;
+      overlay = document.createElement('div');
+      overlay.className = 'mq-prof-tooltip-floating';
+      overlay.style.display = 'none';
+      document.body.appendChild(overlay);
+      return overlay;
+    };
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+    const place = (el, side) => {
+      const target = ensureOverlay();
+      if (!el || target.style.display === 'none') return;
+      const rect = el.getBoundingClientRect();
+      const box = target.getBoundingClientRect();
+      const gap = 16;
+      const width = box.width || 420;
+      const height = box.height || 150;
+      let left = side === 'left' ? rect.left - width - gap : rect.right + gap;
+      left = clamp(left, 12, Math.max(12, window.innerWidth - width - 12));
+      const top = clamp(rect.top + (rect.height / 2) - (height / 2), 12, Math.max(12, window.innerHeight - height - 12));
+      target.style.left = `${Math.round(left)}px`;
+      target.style.top = `${Math.round(top)}px`;
+    };
+    const pointerInside = (el) => {
+      if (!el) return false;
+      const rect = el.getBoundingClientRect();
+      return state.pointerX >= rect.left && state.pointerX <= rect.right && state.pointerY >= rect.top && state.pointerY <= rect.bottom;
+    };
+    const show = (el) => {
+      const panel = el ? el.querySelector('.mq-prof-tooltip-panel') : null;
+      if (!panel) return;
+      clearTimeout(state.hideTimer);
+      const target = ensureOverlay();
+      target.innerHTML = panel.innerHTML;
+      target.style.display = 'block';
+      state.activeKey = String(el.dataset.hoverKey || '');
+      state.activeSide = String(el.dataset.hoverSide || 'left');
+      state.anchor = el;
+      requestAnimationFrame(() => place(el, state.activeSide));
+    };
+    const hide = (force = false) => {
+      clearTimeout(state.hideTimer);
+      const run = () => {
+        const target = ensureOverlay();
+        target.style.display = 'none';
+        target.innerHTML = '';
+        state.activeKey = '';
+        state.anchor = null;
+      };
+      if (force) {
+        run();
+      } else {
+        state.hideTimer = window.setTimeout(run, 80);
+      }
+    };
+    if (!window.__mqArenaProfHoverPointerBound) {
+      document.addEventListener('pointermove', (event) => {
+        state.pointerX = event.clientX;
+        state.pointerY = event.clientY;
+        if (state.anchor) place(state.anchor, state.activeSide);
+      }, { passive: true });
+      window.addEventListener('scroll', () => {
+        if (state.anchor) place(state.anchor, state.activeSide);
+      }, { passive: true });
+      window.addEventListener('resize', () => {
+        if (state.anchor) place(state.anchor, state.activeSide);
+      }, { passive: true });
+      window.__mqArenaProfHoverPointerBound = true;
+    }
+    return {
+      bind(el) {
+        if (!el) return;
+        if (el.dataset.profHoverBound !== '1') {
+          el.dataset.profHoverBound = '1';
+          el.addEventListener('mouseenter', () => show(el));
+          el.addEventListener('mouseleave', () => hide());
+          el.addEventListener('focusin', () => show(el));
+          el.addEventListener('focusout', () => hide());
+        }
+        if (state.activeKey && state.activeKey === String(el.dataset.hoverKey || '')) {
+          if (pointerInside(el) || el.matches(':hover')) {
+            show(el);
+          } else if (state.anchor && String(state.anchor.dataset.hoverKey || '') === state.activeKey) {
+            hide(true);
+          }
+        }
+      },
+    };
+  })();
+  document.querySelectorAll('.mq-prof-tooltip-wrap-persist').forEach((el) => profManager.bind(el));
 })();
 """)
                         if recent_drop_should_pop:
@@ -20956,7 +21847,7 @@ def main_page(request: Request) -> None:
                         ui.label(f'Target {penalty_text}').classes('text-slate-400 text-sm')
                     with ui.row().classes('mq-arena-buttons w-full mt-4'):
                         with ui.row().classes('mq-arena-buttons-primary'):
-                            fight_btn = ui.button('Fight', on_click=handle_fight).classes('mq-arena-btn')
+                            fight_btn = ui.button('Fight', on_click=handle_fight).classes('mq-arena-btn mq-arena-btn-primary')
                             if state.fight_in_progress:
                                 fight_btn.disable()
                             flee_btn = ui.button('Flee', on_click=lambda: (state.request_arena_flee(), request_render_refresh())).classes('mq-arena-btn secondary')
@@ -20967,7 +21858,7 @@ def main_page(request: Request) -> None:
                             inventory_btn = ui.button('Inventory', on_click=lambda: open_inventory_scene()).classes('mq-arena-btn secondary')
                             if state.fight_in_progress:
                                 inventory_btn.disable()
-                            with ui.element('div').classes('mq-prof-tooltip-wrap'):
+                            with ui.element('div').classes('mq-prof-tooltip-wrap mq-prof-tooltip-wrap-persist').props('data-hover-key=arena-proficiency data-hover-side=left'):
                                 proficiency_btn = ui.button('Proficiency', on_click=lambda: None).classes('mq-arena-btn secondary')
                                 ui.html(build_proficiency_tooltip_html(player)).classes('mq-prof-tooltip-panel')
                             return_town = ui.button('Return to Town', on_click=lambda: (state.enter_town('You return to town to choose your next route.'), request_render_refresh())).classes('mq-arena-btn secondary')
