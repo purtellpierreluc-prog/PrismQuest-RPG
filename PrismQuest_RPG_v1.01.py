@@ -18741,6 +18741,31 @@ def main_page(request: Request) -> None:
             return
         vault_send_status_label.set_text(str(getattr(state, 'inn_vault_transfer_status', '') or 'Courier dispatch failed.'))
 
+    def send_selected_inn_vault_item() -> None:
+        if state.player is None:
+            return
+        sync_inn_vault_selection()
+        idx = inn_vault_selected_index_value('inn_vault_selected_index')
+        raw_code = str(getattr(state, 'inn_vault_transfer_code_draft', '') or '').strip()
+        if not raw_code:
+            state.inn_vault_transfer_status = 'Enter a recipient Vault Code in the Vault Courier panel first.'
+            state.add_log(state.inn_vault_transfer_status, 'warning')
+            request_render_refresh()
+            refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True)
+            return
+        if idx < 0:
+            state.inn_vault_transfer_status = 'Select a vault item to send first.'
+            state.add_log(state.inn_vault_transfer_status, 'warning')
+            request_render_refresh()
+            refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True)
+            return
+        if state.send_vault_item_to_player(idx, raw_code):
+            request_render_refresh()
+            refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True)
+            return
+        request_render_refresh()
+        refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True)
+
     def refresh_inn_vault_transfers() -> None:
         if hasattr(state, 'load_pending_vault_transfers'):
             state.load_pending_vault_transfers(force=True)
@@ -18946,7 +18971,7 @@ def main_page(request: Request) -> None:
             transfer_rows = list(getattr(state, 'inn_vault_transfer_rows', []) or [])
             transfer_status = str(getattr(state, 'inn_vault_transfer_status', '') or '')
             courier_locked = bool(state.supabase is None or not state.is_authenticated() or state.current_slot_mode() == 'SSF')
-            with ui.card().classes('mq-card max-w-[1380px] w-[96vw] p-5 mx-auto'):
+            with ui.card().classes('mq-card max-w-[1380px] w-[96vw] p-5 mx-auto').style('max-height: 92vh; overflow-y: auto;'):
                 ui.label('Inn Vault').classes('mq-inv-title')
                 if state.player is None:
                     ui.label('No active adventurer is available.').classes('mq-inv-empty mt-3')
@@ -18999,8 +19024,8 @@ def main_page(request: Request) -> None:
                                 buy_slots_btn.disable()
                             ui.button('Deposit Selected', on_click=store_selected_inn_vault_item).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold w-full mt-3')
                             ui.button('Withdraw Selected', on_click=withdraw_selected_inn_vault_item).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold w-full mt-3')
-                            send_btn = ui.button('Send Selected to Player', on_click=open_inn_vault_send_dialog).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold w-full mt-3')
-                            if courier_locked or selected_vault < 0:
+                            send_btn = ui.button('Send Selected to Player', on_click=send_selected_inn_vault_item).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold w-full mt-3')
+                            if courier_locked:
                                 send_btn.disable()
                             ui.button('Close', on_click=close_inn_vault_dialog).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold w-full mt-3')
                             ui.separator().classes('my-4 opacity-20')
@@ -19018,6 +19043,15 @@ def main_page(request: Request) -> None:
                                 ui.label('Sign in on a live non-SSF chronicle to reveal your Vault Code.').classes('mq-detail-text text-center mt-1')
                             if transfer_status:
                                 ui.label(transfer_status).classes('mq-detail-text text-center mt-3')
+                            if not courier_locked:
+                                ui.label('Recipient Vault Code').classes('mq-detail-text text-center uppercase tracking-[0.16em] mt-4')
+                                courier_input = ui.input(
+                                    value=str(getattr(state, 'inn_vault_transfer_code_draft', '') or ''),
+                                    placeholder='PQV-...'
+                                ).props('outlined clearable input-style=color: #e2e8f0;').classes('w-full mt-2')
+                                courier_input.on_value_change(lambda e: setattr(state, 'inn_vault_transfer_code_draft', str(e.value or '').strip().upper()))
+                                ui.label('Select an item from Vault Storage, enter the other player’s Vault Code, then send.').classes('mq-detail-text text-center mt-2')
+                                ui.button('Dispatch Selected Item', on_click=send_selected_inn_vault_item).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold w-full mt-3')
                             refresh_btn = ui.button('Refresh Deliveries', on_click=refresh_inn_vault_transfers).classes('mq-btn-secondary rounded-xl px-4 py-2 font-semibold w-full mt-4')
                             if courier_locked:
                                 refresh_btn.disable()
