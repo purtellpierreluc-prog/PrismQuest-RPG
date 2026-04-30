@@ -1176,6 +1176,187 @@ body {
   --mq-scene-edge: rgba(9, 11, 18, 0.99);
   --mq-scene-glow: rgba(65, 96, 188, 0.15);
 }
+.mq-scene-labyrinth {
+  --mq-accent: #d4ecff;
+  --mq-accent-rgb: 212, 236, 255;
+  --mq-panel-bg: rgba(15, 18, 27, 0.90);
+  --mq-scene-core: rgba(18, 22, 33, 0.98);
+  --mq-scene-edge: rgba(8, 10, 16, 0.995);
+  --mq-scene-glow: rgba(136, 191, 255, 0.14);
+}
+.mq-lab-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(420px, 1.1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.mq-lab-party-stack,
+.mq-lab-side-stack {
+  display: grid;
+  gap: 0.85rem;
+}
+.mq-lab-member-card,
+.mq-lab-grid-card,
+.mq-lab-reward-card {
+  position: relative;
+  overflow: hidden;
+}
+.mq-lab-member-card::before,
+.mq-lab-grid-card::before,
+.mq-lab-reward-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 34%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
+  pointer-events: none;
+}
+.mq-lab-member-top {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.mq-lab-member-portrait {
+  width: 76px;
+  min-width: 76px;
+  height: 76px;
+  border-radius: 22px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.0) 56%),
+    linear-gradient(180deg, rgba(18, 24, 36, 0.98), rgba(8, 10, 16, 1));
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 18px 32px rgba(0,0,0,0.28);
+}
+.mq-lab-member-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(1.06);
+  filter: grayscale(0.94) contrast(1.12) brightness(0.82) drop-shadow(0 18px 24px rgba(0,0,0,0.52));
+}
+.mq-lab-grid-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.9rem;
+}
+.mq-lab-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.mq-lab-tile {
+  aspect-ratio: 1;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.06);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
+    linear-gradient(180deg, rgba(14, 19, 28, 0.98), rgba(8, 10, 16, 1));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), inset 0 -18px 28px rgba(0,0,0,0.18);
+  color: rgba(214, 224, 235, 0.88);
+}
+.mq-lab-tile.unseen {
+  color: rgba(114, 127, 145, 0.52);
+  border-style: dashed;
+}
+.mq-lab-tile.safe {
+  border-color: rgba(126, 211, 160, 0.22);
+  background:
+    linear-gradient(180deg, rgba(109, 196, 137, 0.08), rgba(0,0,0,0) 38%),
+    linear-gradient(180deg, rgba(14, 19, 28, 0.98), rgba(8, 10, 16, 1));
+}
+.mq-lab-tile.encounter {
+  border-color: rgba(231, 120, 134, 0.26);
+  background:
+    linear-gradient(180deg, rgba(231, 120, 134, 0.10), rgba(0,0,0,0) 40%),
+    linear-gradient(180deg, rgba(20, 16, 22, 0.98), rgba(8, 10, 16, 1));
+}
+.mq-lab-tile.start {
+  border-color: rgba(214, 236, 255, 0.24);
+}
+.mq-lab-tile.current {
+  border-color: rgba(255, 248, 202, 0.54);
+  box-shadow:
+    0 0 0 1px rgba(255,248,202,0.18),
+    0 0 28px rgba(255,248,202,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  transform: translateY(-1px);
+}
+.mq-lab-tile.current.safe,
+.mq-lab-tile.current.encounter,
+.mq-lab-tile.current.start {
+  background:
+    radial-gradient(circle at 50% 26%, rgba(255, 248, 202, 0.12) 0%, rgba(0,0,0,0) 54%),
+    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
+    linear-gradient(180deg, rgba(16, 20, 30, 0.98), rgba(8, 10, 16, 1));
+}
+.mq-lab-direction-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 76px);
+  gap: 0.45rem;
+  justify-content: center;
+}
+.mq-lab-dir-btn.q-btn {
+  min-height: 66px;
+  border-radius: 18px;
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.mq-lab-dir-spacer {
+  visibility: hidden;
+}
+.mq-lab-reward-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+.mq-lab-reward-card.active {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 0 1px rgba(246, 214, 148, 0.16),
+    0 18px 34px rgba(0,0,0,0.28),
+    0 0 26px rgba(246,214,148,0.12);
+}
+.mq-lab-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.06);
+  color: #dbe7f3;
+}
+.mq-lab-feed {
+  display: grid;
+  gap: 0.55rem;
+}
+.mq-lab-feed-entry {
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  padding: 0.8rem 0.95rem;
+  color: #d7e1ec;
+  line-height: 1.55;
+}
+@media (max-width: 1120px) {
+  .mq-lab-layout,
+  .mq-lab-reward-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .mq-scene-glossary {
   --mq-accent: #a8d2df;
   --mq-accent-rgb: 168, 210, 223;
@@ -5253,6 +5434,53 @@ ui.add_head_html('''
 ''', shared=True)
 
 ui.add_head_html('''
+<script>
+(() => {
+  function isTypingTarget(target){
+    if (!(target instanceof HTMLElement)) return false;
+    if (target.isContentEditable) return true;
+    if (target.closest('[contenteditable="true"]')) return true;
+    if (target.closest('input, textarea, select, [role="textbox"], .q-field, .q-menu, .q-dialog')) return true;
+    return false;
+  }
+
+  function clickLabyrinthButton(id){
+    const el = document.getElementById(id);
+    if (!(el instanceof HTMLElement)) return false;
+    if (el.hasAttribute('disabled') || el.getAttribute('aria-disabled') === 'true' || el.classList.contains('disabled')) return false;
+    el.click();
+    return true;
+  }
+
+  function handleLabyrinthKeys(event){
+    if (!window.__mqLabyrinthKeysEnabled) return;
+    if (event.defaultPrevented || event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (isTypingTarget(event.target)) return;
+    const key = String(event.key || '').toLowerCase();
+    let buttonId = '';
+    if (key === 'arrowup' || key === 'w') buttonId = 'mq-lab-move-up';
+    else if (key === 'arrowdown' || key === 's') buttonId = 'mq-lab-move-down';
+    else if (key === 'arrowleft' || key === 'a') buttonId = 'mq-lab-move-left';
+    else if (key === 'arrowright' || key === 'd') buttonId = 'mq-lab-move-right';
+    if (!buttonId) return;
+    if (clickLabyrinthButton(buttonId)) {
+      event.preventDefault();
+    }
+  }
+
+  window.mqSetLabyrinthKeysEnabled = function(enabled){
+    window.__mqLabyrinthKeysEnabled = !!enabled;
+  };
+
+  if (!window.__mqLabyrinthListenerBound) {
+    document.addEventListener('keydown', handleLabyrinthKeys, true);
+    window.__mqLabyrinthListenerBound = true;
+  }
+})();
+</script>
+''', shared=True)
+
+ui.add_head_html('''
 <style>
 .mq-scene-masterquest {
   --mq-accent: #7fe7ff;
@@ -6342,6 +6570,9 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
         'disable_last_drop_animation': False,
         'arena_combat_log_default_open': False,
         'bazaar_ledger_entries': [],
+        'labyrinth_session_id': '',
+        'labyrinth_join_code': '',
+        'labyrinth_floor': 0,
         'season_id': normalized_season,
         'ladder_reset_count': 0,
         'run_started_wall_time': 0.0,
@@ -6360,6 +6591,84 @@ VAULT_CODE_MODE_TAGS: Dict[str, str] = {
 }
 VAULT_CODE_MODE_BY_TAG: Dict[str, str] = {tag: mode for mode, tag in VAULT_CODE_MODE_TAGS.items()}
 VAULT_TRANSFER_TABLE = 'player_vault_transfers'
+LABYRINTH_UNLOCK_LEVEL = 45
+LABYRINTH_GRID_SIZE = 7
+LABYRINTH_MAX_PARTY_SIZE = 5
+LABYRINTH_SESSION_TABLE = 'labyrinth_sessions'
+LABYRINTH_SESSION_MEMBER_TABLE = 'labyrinth_session_members'
+LABYRINTH_SESSION_VOTE_TABLE = 'labyrinth_session_votes'
+LABYRINTH_JOIN_CODE_PREFIX = 'LUX'
+LABYRINTH_CONTROLLER_DIRECTIONS: Dict[str, Tuple[int, int]] = {
+    'up': (0, -1),
+    'down': (0, 1),
+    'left': (-1, 0),
+    'right': (1, 0),
+}
+LABYRINTH_REWARD_POOL: List[Dict[str, object]] = [
+    {
+        'id': 'fang',
+        'title': 'Fang of the Lantern Wolf',
+        'boon': '+18% Labyrinth damage',
+        'bane': '-12% maximum health',
+        'effects': {'damage_mult': 0.18, 'hp_mult': -0.12},
+    },
+    {
+        'id': 'carapace',
+        'title': 'Silver Carapace',
+        'boon': '+20% maximum health',
+        'bane': '-10 speed',
+        'effects': {'hp_mult': 0.20, 'speed_flat': -10},
+    },
+    {
+        'id': 'scholar',
+        'title': 'Scholar of the Glass Maze',
+        'boon': '+24% Labyrinth XP',
+        'bane': '-18% Labyrinth gold',
+        'effects': {'xp_mult': 0.24, 'gold_mult': -0.18},
+    },
+    {
+        'id': 'tribute',
+        'title': 'Glittering Tribute',
+        'boon': '+30% Labyrinth gold',
+        'bane': '-12% Labyrinth damage',
+        'effects': {'gold_mult': 0.30, 'damage_mult': -0.12},
+    },
+    {
+        'id': 'quickstep',
+        'title': 'Quickstep Mosaic',
+        'boon': '+16 speed',
+        'bane': '-14% armor and resistance',
+        'effects': {'speed_flat': 16, 'armor_mult': -0.14, 'mres_mult': -0.14},
+    },
+    {
+        'id': 'ward',
+        'title': 'Ward of Quiet Mirrors',
+        'boon': '+18% armor and resistance',
+        'bane': '-10% Labyrinth damage',
+        'effects': {'armor_mult': 0.18, 'mres_mult': 0.18, 'damage_mult': -0.10},
+    },
+    {
+        'id': 'hoard',
+        'title': 'Hoardlight Prism',
+        'boon': '+15% item drop chance',
+        'bane': '-12% Labyrinth XP',
+        'effects': {'drop_bonus': 0.15, 'xp_mult': -0.12},
+    },
+    {
+        'id': 'mercy',
+        'title': 'Mercy of Shattered Dawn',
+        'boon': '+22% encounter recovery healing',
+        'bane': '-10% Labyrinth gold',
+        'effects': {'heal_between_mult': 0.22, 'gold_mult': -0.10},
+    },
+    {
+        'id': 'overcharge',
+        'title': 'Overcharged Halo',
+        'boon': '+14% boss damage dealt',
+        'bane': '+10% boss damage taken',
+        'effects': {'boss_damage_mult': 0.14, 'boss_taken_mult': 0.10},
+    },
+]
 
 
 def build_vault_code(user_id: object, mode: object = '', slot_index: object = None) -> str:
@@ -6734,6 +7043,12 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
     combat_log_default_open = raw_slot.get('arena_combat_log_default_open', False)
     slot['arena_combat_log_default_open'] = bool(combat_log_default_open) if isinstance(combat_log_default_open, bool) else False
     slot['bazaar_ledger_entries'] = normalize_bazaar_ledger_entries(raw_slot.get('bazaar_ledger_entries', []))
+    slot['labyrinth_session_id'] = str(raw_slot.get('labyrinth_session_id', '') or '').strip()
+    slot['labyrinth_join_code'] = str(raw_slot.get('labyrinth_join_code', '') or '').strip().upper()
+    try:
+        slot['labyrinth_floor'] = max(0, int(raw_slot.get('labyrinth_floor', 0) or 0))
+    except Exception:
+        slot['labyrinth_floor'] = 0
     slot['ladder_reset_count'] = sanitize_ladder_reset_count(raw_slot.get('ladder_reset_count', 0))
     raw_run_started = raw_slot.get('run_started_wall_time', 0.0)
     try:
@@ -10018,7 +10333,7 @@ def resolve_turn(attacker: Fighter, defender: Fighter) -> CombatEvent:
             text += f' {proficiency_key} proficiency reaches {new_level} (+{new_level}% enhanced effect).'
     damage_to = 'player' if isinstance(defender, Player) else 'monster'
     return CombatEvent(text, 'danger' if crit else 'info', damage_to=damage_to, damage_amount=damage, crit=crit)
-def gain_xp(player: Player, amount: int) -> List[str]:
+def gain_xp(player: Player, amount: int, level_cap: Optional[int] = 60) -> List[str]:
     messages: List[str] = []
     if amount <= 0:
         messages.append('You gain no XP from this fight.')
@@ -10026,7 +10341,7 @@ def gain_xp(player: Player, amount: int) -> List[str]:
     player.xp += amount
     hp_gain_by_class = {'Black Guard': 8, 'Shadow Mage': 5, 'Jade Samurai': 7, 'Solaris Paladin': 9, 'Monk of Selune': 7, 'Night Assassin': 6, 'Warlock': 6, 'Chroma Reaver': 7, 'Prismatic Sorceress': 8, 'Shadow Warrior': 7, 'Night Angel': 5, 'Frost Oracle': 6, 'Alecloak Thief': 7, 'Shadow Arcanist': 6, 'Executioner': 7, 'Ember Fae': 6, 'Shadowfang Stalker': 7, 'Prismatic Templar': 9}
     mana_gain_by_class = {'Black Guard': 0, 'Shadow Mage': 2, 'Jade Samurai': 1, 'Solaris Paladin': 1, 'Monk of Selune': 1, 'Night Assassin': 1, 'Warlock': 3, 'Chroma Reaver': 1, 'Prismatic Sorceress': 2, 'Shadow Warrior': 1, 'Night Angel': 2, 'Frost Oracle': 2, 'Alecloak Thief': 1, 'Shadow Arcanist': 2, 'Executioner': 1, 'Ember Fae': 3, 'Shadowfang Stalker': 1, 'Prismatic Templar': 1}
-    while player.level < 60 and player.xp >= player.xp_to_next:
+    while player.xp >= player.xp_to_next and (level_cap is None or player.level < int(level_cap)):
         player.xp -= player.xp_to_next
         player.level += 1
         player.unspent_stat_points += 1
@@ -11130,7 +11445,7 @@ class SessionState:
             screen = ''
         game_tab = str(stored.get('game_tab') or '').strip().lower()
         valid_tabs = {
-            'arena', 'inventory', 'bazaar', 'marketplace', 'transmute', 'inn', 'well',
+            'arena', 'inventory', 'bazaar', 'marketplace', 'transmute', 'inn', 'well', 'labyrinth',
             'masterquest', 'guild_hall', 'ladder', 'profile', 'glossary', 'settings',
             'donate', 'stats',
         }
@@ -12240,6 +12555,14 @@ class SessionState:
         slot['disable_last_drop_animation'] = bool(self.disable_last_drop_animation)
         slot['arena_combat_log_default_open'] = bool(self.arena_combat_log_default_open)
         slot['bazaar_ledger_entries'] = [dict(entry) for entry in normalize_bazaar_ledger_entries(self.bazaar_ledger_entries)]
+        if bool(getattr(self, 'labyrinth_is_local', False)):
+            slot['labyrinth_session_id'] = ''
+            slot['labyrinth_join_code'] = ''
+            slot['labyrinth_floor'] = 0
+        else:
+            slot['labyrinth_session_id'] = str(getattr(self, 'labyrinth_session_id', '') or '').strip()
+            slot['labyrinth_join_code'] = str(getattr(self, 'labyrinth_join_code', '') or '').strip().upper()
+            slot['labyrinth_floor'] = max(0, int(getattr(self, 'labyrinth_floor', 0) or 0))
         slot['ladder_reset_count'] = int(self.current_account_ladder_resets())
         slot['run_started_wall_time'] = float(self.current_run_start_wall_time if self.player is not None else 0.0)
         slot['player'] = None if self.player is None else copy.deepcopy(self.player.to_dict())
@@ -12345,6 +12668,21 @@ class SessionState:
         self.bazaar_edit_price_inputs = {}
         self.bazaar_listings = []
         self.bazaar_ledger_entries = normalize_bazaar_ledger_entries(slot.get('bazaar_ledger_entries', []))
+        ensure_labyrinth_state(self)
+        self.labyrinth_is_local = False
+        self.labyrinth_session_id = str(slot.get('labyrinth_session_id', '') or '').strip()
+        self.labyrinth_join_code = str(slot.get('labyrinth_join_code', '') or '').strip().upper()
+        self.labyrinth_floor = max(0, int(slot.get('labyrinth_floor', 0) or 0))
+        self.labyrinth_session_row = {}
+        self.labyrinth_member_rows = []
+        self.labyrinth_vote_rows = []
+        self.labyrinth_recent_events = []
+        self.labyrinth_local_combat_log = []
+        self.labyrinth_local_resolution_text = ''
+        self.labyrinth_last_snapshot_hash = ''
+        self.labyrinth_last_sync_at = 0.0
+        self.labyrinth_last_member_sync_at = 0.0
+        self.labyrinth_acknowledged_floor = max(0, int(self.labyrinth_floor or 0) - 1)
         self.bazaar_status = 'Browse adventurer listings or post your own wares.'
         self.bazaar_status_tone = 'info'
         self.bazaar_last_refresh_at = 0.0
@@ -13602,12 +13940,13 @@ def _set_arena_transition(self, text: str = '', tone: str = 'muted') -> None:
 def arena_target_level(self) -> int:
     if self.player is None:
         return 1
+    arena_cap = max(1, min(60, int(self.player.level or 1)))
     if self.arena_same_level:
-        max_offset = max(0, int(self.player.level or 1) - 1)
+        max_offset = max(0, arena_cap - 1)
         self.arena_level_offset = max(0, min(max_offset, int(getattr(self, 'arena_level_offset', 0) or 0)))
-        self.arena_selected_level = max(1, int(self.player.level or 1) - self.arena_level_offset)
+        self.arena_selected_level = max(1, arena_cap - self.arena_level_offset)
         return self.arena_selected_level
-    self.arena_selected_level = max(1, min(self.player.level, int(self.arena_selected_level or self.player.level)))
+    self.arena_selected_level = max(1, min(arena_cap, int(self.arena_selected_level or arena_cap)))
     return self.arena_selected_level
 def arena_display_monster(self) -> Optional[Fighter]:
     if self.monster_page_turn_active and self.page_turn_previous_monster is not None and self.monster_page_turn_progress < 0.5:
@@ -15122,6 +15461,1472 @@ def claim_pending_vault_transfer(self, transfer_id: str) -> bool:
     return True
 
 
+def _labyrinth_now_iso() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
+
+
+def _labyrinth_join_code() -> str:
+    alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    return f'{LABYRINTH_JOIN_CODE_PREFIX}-' + ''.join(random.choice(alphabet) for _ in range(6))
+
+
+def _labyrinth_tile_key(x: object, y: object) -> str:
+    try:
+        return f'{int(x)},{int(y)}'
+    except Exception:
+        return '0,0'
+
+
+def _labyrinth_spawn_xy(size: object = LABYRINTH_GRID_SIZE) -> Tuple[int, int]:
+    try:
+        safe_size = max(3, int(size or LABYRINTH_GRID_SIZE))
+    except Exception:
+        safe_size = LABYRINTH_GRID_SIZE
+    center = safe_size // 2
+    return center, center
+
+
+def _labyrinth_build_tile_states(size: object = LABYRINTH_GRID_SIZE) -> Dict[str, Dict[str, object]]:
+    x, y = _labyrinth_spawn_xy(size)
+    return {
+        _labyrinth_tile_key(x, y): {
+            'visited': True,
+            'resolved': True,
+            'kind': 'start',
+        }
+    }
+
+
+def _labyrinth_append_event(events: object, text: object) -> List[str]:
+    normalized: List[str] = [str(entry or '').strip() for entry in list(events or []) if str(entry or '').strip()]
+    message = ' '.join(str(text or '').split())
+    if message:
+        normalized.insert(0, message[:220])
+    return normalized[:12]
+
+
+def _labyrinth_reward_effect_totals(raw_rewards: object) -> Dict[str, float]:
+    totals = {
+        'damage_mult': 0.0,
+        'hp_mult': 0.0,
+        'xp_mult': 0.0,
+        'gold_mult': 0.0,
+        'speed_flat': 0.0,
+        'armor_mult': 0.0,
+        'mres_mult': 0.0,
+        'drop_bonus': 0.0,
+        'heal_between_mult': 0.0,
+        'boss_damage_mult': 0.0,
+        'boss_taken_mult': 0.0,
+    }
+    if not isinstance(raw_rewards, list):
+        return totals
+    for reward in raw_rewards:
+        if not isinstance(reward, dict):
+            continue
+        effects = reward.get('effects', {})
+        if not isinstance(effects, dict):
+            continue
+        for key in list(totals.keys()):
+            try:
+                totals[key] += float(effects.get(key, 0.0) or 0.0)
+            except Exception:
+                continue
+    return totals
+
+
+def _labyrinth_build_reward_choices(floor: object) -> List[Dict[str, object]]:
+    try:
+        safe_floor = max(1, int(floor or 1))
+    except Exception:
+        safe_floor = 1
+    pool = [dict(entry) for entry in LABYRINTH_REWARD_POOL]
+    if len(pool) <= 3:
+        choices = pool
+    else:
+        choices = random.sample(pool, 3)
+    output: List[Dict[str, object]] = []
+    for index, entry in enumerate(choices):
+        reward = dict(entry)
+        reward['offered_floor'] = safe_floor
+        reward['choice_index'] = index
+        output.append(reward)
+    return output
+
+
+def _labyrinth_normalize_tile_states(raw_states: object) -> Dict[str, Dict[str, object]]:
+    if not isinstance(raw_states, dict):
+        return _labyrinth_build_tile_states()
+    output: Dict[str, Dict[str, object]] = {}
+    for raw_key, raw_value in raw_states.items():
+        key = str(raw_key or '').strip()
+        if not key:
+            continue
+        value = raw_value if isinstance(raw_value, dict) else {}
+        output[key] = {
+            'visited': bool(value.get('visited', True)),
+            'resolved': bool(value.get('resolved', False)),
+            'kind': str(value.get('kind') or 'free').strip().lower() or 'free',
+        }
+    if not output:
+        return _labyrinth_build_tile_states()
+    return output
+
+
+def _labyrinth_floor_fully_cleared(tile_states: object, size: object = LABYRINTH_GRID_SIZE) -> bool:
+    if not isinstance(tile_states, dict):
+        return False
+    try:
+        safe_size = max(3, int(size or LABYRINTH_GRID_SIZE))
+    except Exception:
+        safe_size = LABYRINTH_GRID_SIZE
+    if len(tile_states) < safe_size * safe_size:
+        return False
+    return all(bool((value if isinstance(value, dict) else {}).get('resolved', False)) for value in tile_states.values())
+
+
+def _labyrinth_choose_template(boss: bool = False) -> str:
+    boss_pool = ['Runebound Sentinel', 'Spell Eater', 'Blackscale Drakekin', 'Void Carapace', 'Blackiron Templar', 'Dread Marionette']
+    if boss:
+        return random.choice(boss_pool)
+    return str(random.choice(MONSTER_ARCHETYPES).get('type') or 'Templar')
+
+
+def _labyrinth_archetype_for_type(monster_type: object) -> Dict[str, object]:
+    target = str(monster_type or '').strip().lower()
+    for archetype in MONSTER_ARCHETYPES:
+        if str(archetype.get('type') or '').strip().lower() == target:
+            return archetype
+    return dict(random.choice(MONSTER_ARCHETYPES))
+
+
+def _generate_labyrinth_monster(monster_type: object, target_level: object, floor: object = 1, boss: bool = False, player_class: str = '') -> Tuple[Fighter, int]:
+    archetype = _labyrinth_archetype_for_type(monster_type)
+    damage_school = str(archetype.get('school') or 'physical')
+    try:
+        requested_level = max(1, int(target_level or LABYRINTH_UNLOCK_LEVEL))
+    except Exception:
+        requested_level = LABYRINTH_UNLOCK_LEVEL
+    try:
+        safe_floor = max(1, int(floor or 1))
+    except Exception:
+        safe_floor = 1
+    base_level = max(1, requested_level)
+    difficulty_multiplier = 1.08 + ((safe_floor - 1) * 0.06) + (0.38 if boss else 0.0)
+    max_hp = random.randint(28, 40) + (base_level - 1) * random.randint(8, 11)
+    attack_min = 4 + (base_level - 1) * 2
+    attack_max = 8 + (base_level - 1) * 3
+    physical_armor = 1 + (base_level - 1)
+    magic_resistance = 1 + max(0, (base_level - 1) // 2)
+    speed = 8 + base_level + (2 if difficulty_multiplier > 1.0 else 0)
+    accuracy = 0.80 + min(0.12, base_level * 0.01) + (0.02 if difficulty_multiplier > 1.0 else 0.0)
+    crit_chance = 0.05 + min(0.10, base_level * 0.01) + (0.02 if difficulty_multiplier > 1.0 else 0.0)
+    crit_damage = 1.50 + (0.15 if difficulty_multiplier > 1.0 else 0.0)
+    evasion = 0.0
+    if damage_school == 'magic':
+        attack_min += 1
+        attack_max += 2
+        magic_resistance += 1
+    max_hp = int(round(max_hp * difficulty_multiplier))
+    attack_min = max(1, int(round(attack_min * difficulty_multiplier)))
+    attack_max = max(attack_min + 1, int(round(attack_max * difficulty_multiplier)))
+    armor_scale = 1.0 + (difficulty_multiplier - 1.0) * 0.75
+    physical_armor = max(1, int(round(physical_armor * armor_scale)))
+    magic_resistance = max(1, int(round(magic_resistance * armor_scale)))
+    base_power = estimate_monster_power(max_hp, attack_min, attack_max, physical_armor, magic_resistance, speed, accuracy, crit_chance, crit_damage, evasion)
+    archetype_power_mult = float(archetype.get('power_mult', 1.0))
+    if boss:
+        archetype_power_mult *= 1.14
+    avg_attack = (attack_min + attack_max) / 2.0
+    attack_span = max(2.0, float(attack_max - attack_min))
+    avg_attack *= float(archetype.get('damage_mult', 1.0))
+    attack_span *= float(archetype.get('variance_mult', 1.0))
+    max_hp = max(10, int(round(max_hp * float(archetype.get('hp_mult', 1.0)))))
+    physical_armor = max(0, int(round(physical_armor * float(archetype.get('phys_mult', 1.0)))))
+    magic_resistance = max(0, int(round(magic_resistance * float(archetype.get('mres_mult', 1.0)))))
+    speed = max(4, speed + int(archetype.get('speed_bonus', 0)))
+    accuracy = max(0.65, min(0.99, accuracy + float(archetype.get('accuracy_bonus', 0.0))))
+    crit_chance = max(0.02, min(0.35, crit_chance + float(archetype.get('crit_bonus', 0.0))))
+    evasion = max(0.0, min(0.22, evasion + float(archetype.get('evasion_bonus', 0.0))))
+    attack_min = max(1, int(round(avg_attack - attack_span / 2.0)))
+    attack_max = max(attack_min + 1, int(round(avg_attack + attack_span / 2.0)))
+    modified_power = estimate_monster_power(max_hp, attack_min, attack_max, physical_armor, magic_resistance, speed, accuracy, crit_chance, crit_damage, evasion)
+    for _ in range(4):
+        if modified_power <= 0:
+            break
+        target_power = base_power * archetype_power_mult
+        balance_scale = target_power / modified_power
+        if 0.995 <= balance_scale <= 1.005:
+            break
+        hp_scale = max(0.55, min(1.95, balance_scale ** 0.42))
+        atk_scale = max(0.55, min(1.95, balance_scale ** 0.58))
+        max_hp = max(10, int(round(max_hp * hp_scale)))
+        avg_attack = max(1.0, ((attack_min + attack_max) / 2.0) * atk_scale)
+        attack_min = max(1, int(round(avg_attack - attack_span / 2.0)))
+        attack_max = max(attack_min + 1, int(round(avg_attack + attack_span / 2.0)))
+        modified_power = estimate_monster_power(max_hp, attack_min, attack_max, physical_armor, magic_resistance, speed, accuracy, crit_chance, crit_damage, evasion)
+    late_game_scale = monster_late_game_scale(base_level)
+    physical_armor = max(0, int(round(physical_armor * late_game_scale)))
+    magic_resistance = max(0, int(round(magic_resistance * late_game_scale)))
+    max_hp = max(10, int(round(max_hp * monster_bonus_health_scale(base_level))))
+    overcap_scale = 1.0 + (max(0, requested_level - 60) * 0.07) + (max(0, safe_floor - 1) * 0.08) + (0.30 if boss else 0.0)
+    max_hp = max(18, int(round(max_hp * overcap_scale)))
+    attack_min = max(1, int(round(attack_min * (1.0 + (overcap_scale - 1.0) * 0.62))))
+    attack_max = max(attack_min + 1, int(round(attack_max * (1.0 + (overcap_scale - 1.0) * 0.70))))
+    physical_armor = max(0, int(round(physical_armor * (1.0 + (overcap_scale - 1.0) * 0.42))))
+    magic_resistance = max(0, int(round(magic_resistance * (1.0 + (overcap_scale - 1.0) * 0.42))))
+    progressive_health_scale = 1.0 + masterquest_enemy_health_buff_fraction(player_class)
+    max_hp = max(18, int(round(max_hp * progressive_health_scale)))
+    species = str(archetype.get('type') or 'Lantern Beast')
+    if boss:
+        species = f'Radiant {species}'
+    personal_name = build_monster_personal_name()
+    monster = Fighter(
+        name=personal_name,
+        level=requested_level,
+        max_hp=max_hp,
+        hp=max_hp,
+        attack_min=attack_min,
+        attack_max=attack_max,
+        physical_armor=physical_armor,
+        magic_resistance=magic_resistance,
+        speed=max(4, speed + (2 if boss else 0)),
+        accuracy=accuracy,
+        crit_chance=crit_chance,
+        crit_damage=crit_damage + (0.12 if boss else 0.0),
+        armor_penetration=max(0, requested_level // 14) + (2 if boss else 1),
+        lifesteal=0.0,
+        evasion=evasion,
+        thorns=0.0,
+        damage_school=damage_school,
+        monster_type=f'{species} Lv {requested_level}',
+        monster_personal_name=personal_name,
+        monster_kit=str(archetype.get('kit') or ''),
+        monster_profile=str(archetype.get('profile') or ''),
+        monster_dialogue=build_monster_dialogue(str(archetype.get('type') or species)),
+    )
+    xp_reward = int(round(base_monster_xp(requested_level) * random.uniform(0.94, 1.06) * (1.32 if boss else 1.05) * archetype_power_mult))
+    return monster, xp_reward
+
+
+def ensure_labyrinth_state(self) -> None:
+    defaults = {
+        'labyrinth_status': 'The hedges are still and silent.',
+        'labyrinth_join_code_draft': '',
+        'labyrinth_session_id': '',
+        'labyrinth_join_code': '',
+        'labyrinth_floor': 0,
+        'labyrinth_is_local': False,
+        'labyrinth_session_row': {},
+        'labyrinth_member_rows': [],
+        'labyrinth_vote_rows': [],
+        'labyrinth_recent_events': [],
+        'labyrinth_local_combat_log': [],
+        'labyrinth_local_resolution_text': '',
+        'labyrinth_last_snapshot_hash': '',
+        'labyrinth_last_sync_at': 0.0,
+        'labyrinth_last_member_sync_at': 0.0,
+        'labyrinth_acknowledged_floor': 0,
+        'labyrinth_controller_target': '',
+    }
+    for key, value in defaults.items():
+        if hasattr(self, key):
+            continue
+        setattr(self, key, copy.deepcopy(value))
+
+
+def labyrinth_route_blocker(self) -> str:
+    ensure_labyrinth_state(self)
+    if self.player is None:
+        return 'Open a live chronicle first.'
+    if self.player.level < LABYRINTH_UNLOCK_LEVEL:
+        return f'Labyrinth of Light unlocks at level {LABYRINTH_UNLOCK_LEVEL}.'
+    return ''
+
+
+def _labyrinth_local_member_id(self) -> str:
+    slot_index = int((self.active_slot_index or 0) + 1) if self.active_slot_index is not None else 1
+    mode = str(self.current_slot_mode() or 'LOCAL').strip().upper() or 'LOCAL'
+    return f'local::{mode}::{slot_index}'
+
+
+def _labyrinth_member_identity(self) -> str:
+    ensure_labyrinth_state(self)
+    if bool(getattr(self, 'labyrinth_is_local', False)):
+        return _labyrinth_local_member_id(self)
+    return str(getattr(self, 'auth_user_id', '') or '').strip()
+
+
+def labyrinth_multiplayer_blocker(self) -> str:
+    ensure_labyrinth_state(self)
+    blocker = labyrinth_route_blocker(self)
+    if blocker:
+        return blocker
+    if self.current_slot_mode() == 'SSF':
+        return 'Shared Labyrinth expeditions are disabled in SSF. Solo expeditions are still available.'
+    if self.supabase is None or not self.is_authenticated():
+        return 'Sign in to host or join a shared Labyrinth expedition. Solo expeditions are still available.'
+    return ''
+
+
+def _labyrinth_profile_payload_for_current_player(self) -> Dict[str, object]:
+    if self.player is None or self.active_slot_index is None:
+        return {}
+    slot = normalize_slot_payload(self.slots[self.active_slot_index])
+    slot_index = int(self.active_slot_index) + 1
+    mode = slot_mode_from_slot_index(slot_index)
+    season_id = int(self.current_global_season_id if slot_uses_global_ladder(mode) else sanitize_ladder_season_id(slot.get('season_id', DEFAULT_LADDER_SEASON_ID)))
+    ladder_resets = int(slot_ladder_reset_total(slot, mode, self.global_ladder_reset_count))
+    pq_points = int(slot_masterquest_attempts(slot))
+    payload = public_profile_payload_for_slot(slot, self.auth_user_id, season_id, ladder_resets, pq_points, slot_index)
+    return payload if isinstance(payload, dict) else {}
+
+
+def _labyrinth_normalize_session_row(raw_row: object) -> Dict[str, object]:
+    if not isinstance(raw_row, dict):
+        return {}
+    row = dict(raw_row)
+    grid_size = max(3, int(row.get('grid_size', LABYRINTH_GRID_SIZE) or LABYRINTH_GRID_SIZE))
+    center_x, center_y = _labyrinth_spawn_xy(grid_size)
+    current_x = max(0, min(grid_size - 1, int(row.get('current_x', center_x) or center_x)))
+    current_y = max(0, min(grid_size - 1, int(row.get('current_y', center_y) or center_y)))
+    pending_encounter = row.get('pending_encounter', {})
+    if not isinstance(pending_encounter, dict):
+        pending_encounter = {}
+    reward_options = [dict(option) for option in list(row.get('reward_options', []) or []) if isinstance(option, dict)]
+    modifier_stack = [dict(option) for option in list(row.get('modifier_stack', []) or []) if isinstance(option, dict)]
+    recent_events = [str(entry or '').strip() for entry in list(row.get('recent_events', []) or []) if str(entry or '').strip()]
+    return {
+        'id': str(row.get('id') or '').strip(),
+        'join_code': str(row.get('join_code') or '').strip().upper(),
+        'leader_user_id': str(row.get('leader_user_id') or '').strip(),
+        'leader_character_name': clean_character_name(str(row.get('leader_character_name') or 'Labyrinth Guide')) or 'Labyrinth Guide',
+        'mode': normalize_ladder_mode(row.get('mode') or '', ''),
+        'status': str(row.get('status') or 'lobby').strip().lower(),
+        'controller_user_id': str(row.get('controller_user_id') or row.get('leader_user_id') or '').strip(),
+        'floor': max(1, int(row.get('floor', 1) or 1)),
+        'grid_size': grid_size,
+        'current_x': current_x,
+        'current_y': current_y,
+        'tile_states': _labyrinth_normalize_tile_states(row.get('tile_states', {})),
+        'pending_encounter': pending_encounter,
+        'reward_options': reward_options,
+        'modifier_stack': modifier_stack,
+        'recent_events': recent_events[:12],
+        'updated_at': str(row.get('updated_at') or '').strip(),
+        'created_at': str(row.get('created_at') or '').strip(),
+    }
+
+
+def _labyrinth_normalize_member_row(raw_row: object) -> Dict[str, object]:
+    if not isinstance(raw_row, dict):
+        return {}
+    snapshot = normalize_public_profile_payload(raw_row.get('profile_snapshot'))
+    player_class = normalize_player_class_name(raw_row.get('player_class'), snapshot.get('highest_class') if isinstance(snapshot, dict) else 'Black Guard')
+    max_hp = max(1, int(raw_row.get('max_hp', 1) or 1))
+    max_mana = max(0, int(raw_row.get('max_mana', 0) or 0))
+    current_hp = max(0, min(max_hp, int(raw_row.get('current_hp', max_hp) or max_hp)))
+    current_mana = max(0, min(max_mana, int(raw_row.get('current_mana', max_mana) or max_mana)))
+    return {
+        'id': str(raw_row.get('id') or '').strip(),
+        'session_id': str(raw_row.get('session_id') or '').strip(),
+        'user_id': str(raw_row.get('user_id') or '').strip(),
+        'character_name': clean_character_name(str(raw_row.get('character_name') or 'Unknown Adventurer')) or 'Unknown Adventurer',
+        'mode': normalize_ladder_mode(raw_row.get('mode') or '', ''),
+        'slot_index': max(1, int(raw_row.get('slot_index', 1) or 1)),
+        'player_class': player_class,
+        'level': max(1, int(raw_row.get('level', snapshot.get('level', 1) if isinstance(snapshot, dict) else 1) or 1)),
+        'current_hp': current_hp,
+        'max_hp': max_hp,
+        'current_mana': current_mana,
+        'max_mana': max_mana,
+        'current_xp': max(0, int(raw_row.get('current_xp', 0) or 0)),
+        'xp_to_next': max(1, int(raw_row.get('xp_to_next', 1) or 1)),
+        'is_downed': bool(raw_row.get('is_downed', current_hp <= 0)),
+        'last_resolution_sequence': max(0, int(raw_row.get('last_resolution_sequence', 0) or 0)),
+        'last_resolution_status': str(raw_row.get('last_resolution_status') or '').strip().lower(),
+        'resolution_note': str(raw_row.get('resolution_note') or '').strip(),
+        'updated_at': str(raw_row.get('updated_at') or '').strip(),
+        'joined_at': str(raw_row.get('joined_at') or '').strip(),
+        'profile_snapshot': snapshot,
+    }
+
+
+def _labyrinth_self_member_row(self) -> Dict[str, object]:
+    ensure_labyrinth_state(self)
+    identity = _labyrinth_member_identity(self)
+    slot_index = int((self.active_slot_index or 0) + 1) if self.active_slot_index is not None else 0
+    for row in list(getattr(self, 'labyrinth_member_rows', []) or []):
+        if not isinstance(row, dict):
+            continue
+        if str(row.get('user_id') or '').strip() == identity and int(row.get('slot_index', 0) or 0) == slot_index:
+            return row
+    return {}
+
+
+def _labyrinth_vote_count_map(vote_rows: object) -> Dict[int, int]:
+    counts: Dict[int, int] = {}
+    if not isinstance(vote_rows, list):
+        return counts
+    for row in vote_rows:
+        if not isinstance(row, dict):
+            continue
+        try:
+            choice_index = int(row.get('choice_index', -1) or -1)
+        except Exception:
+            choice_index = -1
+        if choice_index < 0:
+            continue
+        counts[choice_index] = counts.get(choice_index, 0) + 1
+    return counts
+
+
+def _labyrinth_member_payload(self, extra_updates: Optional[Dict[str, object]] = None) -> Dict[str, object]:
+    ensure_labyrinth_state(self)
+    if self.player is None or self.active_slot_index is None:
+        return {}
+    profile_snapshot = _labyrinth_profile_payload_for_current_player(self)
+    session_id = str(getattr(self, 'labyrinth_session_id', '') or '').strip()
+    member_identity = _labyrinth_member_identity(self)
+    payload = {
+        'session_id': session_id,
+        'user_id': member_identity,
+        'character_name': clean_character_name(self.player.name) or 'Nameless Hero',
+        'mode': self.current_slot_mode(),
+        'slot_index': int(self.active_slot_index) + 1,
+        'player_class': self.player.player_class,
+        'level': int(self.player.level),
+        'current_hp': int(self.player.hp),
+        'max_hp': int(self.player.max_hp),
+        'current_mana': int(self.player.mana),
+        'max_mana': int(self.player.max_mana),
+        'current_xp': int(self.player.xp),
+        'xp_to_next': int(max(1, self.player.xp_to_next)),
+        'is_downed': bool(self.player.hp <= 0),
+        'last_resolution_sequence': 0,
+        'last_resolution_status': '',
+        'resolution_note': '',
+        'profile_snapshot': profile_snapshot,
+        'updated_at': _labyrinth_now_iso(),
+    }
+    current_row = _labyrinth_self_member_row(self)
+    if current_row:
+        payload['last_resolution_sequence'] = int(current_row.get('last_resolution_sequence', 0) or 0)
+        payload['last_resolution_status'] = str(current_row.get('last_resolution_status') or '').strip().lower()
+        payload['resolution_note'] = str(current_row.get('resolution_note') or '').strip()
+    if isinstance(extra_updates, dict):
+        payload.update(extra_updates)
+    return payload
+
+
+def _labyrinth_store_snapshot(self, session_row: Dict[str, object], member_rows: List[Dict[str, object]], vote_rows: List[Dict[str, object]]) -> bool:
+    ensure_labyrinth_state(self)
+    snapshot_hash = _stable_payload_hash({
+        'session': session_row,
+        'members': member_rows,
+        'votes': vote_rows,
+    })
+    changed = snapshot_hash != str(getattr(self, 'labyrinth_last_snapshot_hash', '') or '')
+    self.labyrinth_last_snapshot_hash = snapshot_hash
+    self.labyrinth_session_row = dict(session_row)
+    self.labyrinth_member_rows = [dict(row) for row in member_rows]
+    self.labyrinth_vote_rows = [dict(row) for row in vote_rows]
+    self.labyrinth_recent_events = [str(entry or '').strip() for entry in list(session_row.get('recent_events', []) or []) if str(entry or '').strip()]
+    self.labyrinth_session_id = str(session_row.get('id') or '').strip()
+    self.labyrinth_join_code = str(session_row.get('join_code') or '').strip().upper()
+    self.labyrinth_floor = max(1, int(session_row.get('floor', 1) or 1))
+    return changed
+
+
+def _labyrinth_restore_self_for_floor(self, floor: int) -> None:
+    ensure_labyrinth_state(self)
+    if self.player is None:
+        return
+    target_floor = max(1, int(floor or 1))
+    if int(getattr(self, 'labyrinth_acknowledged_floor', 0) or 0) >= target_floor:
+        return
+    self.labyrinth_acknowledged_floor = target_floor
+    self.player.recalculate_stats()
+    self.player.hp = self.player.max_hp
+    self.player.mana = self.player.max_mana
+    self.labyrinth_local_resolution_text = f'Floor {target_floor} begins. The party regroups at full strength.'
+    self.sync_active_slot()
+    try:
+        labyrinth_sync_member_snapshot(self, force=True, extra_updates={
+            'is_downed': False,
+            'last_resolution_sequence': 0,
+            'last_resolution_status': '',
+            'resolution_note': f'Floor {target_floor} reset.',
+        })
+    except Exception:
+        pass
+
+
+def labyrinth_sync_member_snapshot(self, force: bool = False, extra_updates: Optional[Dict[str, object]] = None) -> bool:
+    ensure_labyrinth_state(self)
+    if bool(getattr(self, 'labyrinth_is_local', False)):
+        if self.player is None or self.active_slot_index is None:
+            return False
+        session_row = getattr(self, 'labyrinth_session_row', {})
+        if not isinstance(session_row, dict) or not session_row:
+            return False
+        payload = _labyrinth_member_payload(self, extra_updates=extra_updates)
+        if not payload:
+            return False
+        current_row = _labyrinth_self_member_row(self)
+        if current_row and str(current_row.get('joined_at') or '').strip():
+            payload['joined_at'] = str(current_row.get('joined_at') or '').strip()
+        elif not str(payload.get('joined_at') or '').strip():
+            payload['joined_at'] = _labyrinth_now_iso()
+        payload['updated_at'] = _labyrinth_now_iso()
+        updated_row = _labyrinth_normalize_member_row(payload)
+        if not updated_row:
+            return False
+        other_rows = [
+            dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or [])
+            if isinstance(row, dict) and not (
+                str(row.get('user_id') or '').strip() == str(updated_row.get('user_id') or '').strip()
+                and int(row.get('slot_index', 0) or 0) == int(updated_row.get('slot_index', 0) or 0)
+            )
+        ]
+        other_rows.append(updated_row)
+        other_rows.sort(key=lambda row: str(row.get('joined_at') or ''))
+        _labyrinth_store_snapshot(self, dict(session_row), other_rows, [dict(row) for row in list(getattr(self, 'labyrinth_vote_rows', []) or []) if isinstance(row, dict)])
+        return True
+    if self.supabase is None or not self.is_authenticated():
+        return False
+    if self.player is None or self.active_slot_index is None:
+        return False
+    session_id = str(getattr(self, 'labyrinth_session_id', '') or '').strip()
+    if not session_id:
+        return False
+    now = time.monotonic()
+    if not force and (now - float(getattr(self, 'labyrinth_last_member_sync_at', 0.0) or 0.0)) < 1.0:
+        return False
+    payload = _labyrinth_member_payload(self, extra_updates=extra_updates)
+    if not payload:
+        return False
+    try:
+        self.supabase.table(LABYRINTH_SESSION_MEMBER_TABLE).upsert(payload, on_conflict='session_id,user_id,mode,slot_index').execute()
+        self.labyrinth_last_member_sync_at = now
+        return True
+    except Exception as exc:
+        self.labyrinth_status = f'Labyrinth member sync is waiting on database setup: {exc}'
+        return False
+
+
+def labyrinth_refresh_session_state(self, force: bool = False) -> bool:
+    ensure_labyrinth_state(self)
+    if bool(getattr(self, 'labyrinth_is_local', False)):
+        session_row = getattr(self, 'labyrinth_session_row', {})
+        if not isinstance(session_row, dict) or not session_row:
+            return False
+        current_floor = int(session_row.get('floor', 1) or 1)
+        current_state = str(session_row.get('status') or 'lobby').title()
+        self.labyrinth_status = f'Floor {current_floor} • {current_state} • Solo Expedition'
+        self_member = _labyrinth_self_member_row(self)
+        if self_member:
+            _labyrinth_restore_self_for_floor(self, current_floor)
+            if self.player is not None:
+                self.player.hp = max(0, min(self.player.max_hp, int(self_member.get('current_hp', self.player.hp) or self.player.hp)))
+                self.player.mana = max(0, min(self.player.max_mana, int(self_member.get('current_mana', self.player.mana) or self.player.mana)))
+        return False
+    if self.supabase is None or not self.is_authenticated():
+        return False
+    session_id = str(getattr(self, 'labyrinth_session_id', '') or '').strip()
+    join_code = str(getattr(self, 'labyrinth_join_code', '') or '').strip().upper()
+    if not session_id and not join_code:
+        return False
+    now = time.monotonic()
+    if not force and (now - float(getattr(self, 'labyrinth_last_sync_at', 0.0) or 0.0)) < 0.9:
+        return False
+    self.labyrinth_last_sync_at = now
+    try:
+        query = self.supabase.table(LABYRINTH_SESSION_TABLE).select('*')
+        if session_id:
+            query = query.eq('id', session_id)
+        else:
+            query = query.eq('join_code', join_code)
+        response = query.limit(1).execute()
+        rows = _supabase_response_data(response)
+        raw_row = rows[0] if isinstance(rows, list) and rows else (rows if isinstance(rows, dict) else {})
+        session_row = _labyrinth_normalize_session_row(raw_row)
+        if not session_row:
+            self.labyrinth_status = 'That Labyrinth expedition no longer answers the lantern.'
+            self.labyrinth_session_id = ''
+            self.labyrinth_join_code = ''
+            self.labyrinth_floor = 0
+            self.labyrinth_session_row = {}
+            self.labyrinth_member_rows = []
+            self.labyrinth_vote_rows = []
+            self.labyrinth_recent_events = []
+            self.labyrinth_local_combat_log = []
+            self.labyrinth_local_resolution_text = ''
+            self.sync_active_slot()
+            return True
+        if str(session_row.get('status') or '').strip().lower() == 'closed':
+            self.labyrinth_status = 'That Labyrinth expedition has already been sealed and can no longer be joined.'
+            self.labyrinth_session_id = ''
+            self.labyrinth_join_code = ''
+            self.labyrinth_floor = 0
+            self.labyrinth_session_row = {}
+            self.labyrinth_member_rows = []
+            self.labyrinth_vote_rows = []
+            self.labyrinth_recent_events = []
+            self.labyrinth_local_combat_log = []
+            self.labyrinth_local_resolution_text = ''
+            self.sync_active_slot()
+            return True
+        member_rows_raw = _supabase_response_data(
+            self.supabase.table(LABYRINTH_SESSION_MEMBER_TABLE)
+            .select('*')
+            .eq('session_id', session_row['id'])
+            .order('joined_at', desc=False)
+            .limit(16)
+            .execute()
+        )
+        member_rows = [
+            row for row in (
+                _labyrinth_normalize_member_row(raw_member)
+                for raw_member in (member_rows_raw if isinstance(member_rows_raw, list) else [])
+            )
+            if row
+        ]
+        vote_rows: List[Dict[str, object]] = []
+        if session_row.get('status') == 'reward':
+            vote_rows_raw = _supabase_response_data(
+                self.supabase.table(LABYRINTH_SESSION_VOTE_TABLE)
+                .select('*')
+                .eq('session_id', session_row['id'])
+                .eq('floor', int(session_row.get('floor', 1) or 1))
+                .limit(16)
+                .execute()
+            )
+            if isinstance(vote_rows_raw, list):
+                for raw_vote in vote_rows_raw:
+                    if not isinstance(raw_vote, dict):
+                        continue
+                    vote_rows.append({
+                        'session_id': str(raw_vote.get('session_id') or '').strip(),
+                        'floor': max(1, int(raw_vote.get('floor', 1) or 1)),
+                        'voter_user_id': str(raw_vote.get('voter_user_id') or '').strip(),
+                        'choice_index': max(-1, int(raw_vote.get('choice_index', -1) or -1)),
+                        'updated_at': str(raw_vote.get('updated_at') or '').strip(),
+                    })
+        changed = _labyrinth_store_snapshot(self, session_row, member_rows, vote_rows)
+        self.labyrinth_status = f'Floor {int(session_row.get("floor", 1) or 1)} • {str(session_row.get("status") or "lobby").title()} • Join Code {session_row.get("join_code") or "Unknown"}'
+        self.sync_active_slot()
+        self_member = _labyrinth_self_member_row(self)
+        if self_member:
+            _labyrinth_restore_self_for_floor(self, int(session_row.get('floor', 1) or 1))
+            if self.player is not None:
+                if int(self.player.hp) != int(self_member.get('current_hp', self.player.hp) or self.player.hp) or int(self.player.mana) != int(self_member.get('current_mana', self.player.mana) or self.player.mana):
+                    self.player.hp = max(0, min(self.player.max_hp, int(self_member.get('current_hp', self.player.hp) or self.player.hp)))
+                    self.player.mana = max(0, min(self.player.max_mana, int(self_member.get('current_mana', self.player.mana) or self.player.mana)))
+        return changed
+    except Exception as exc:
+        self.labyrinth_status = f'Labyrinth state is waiting on database setup: {exc}'
+        return False
+
+
+def labyrinth_is_leader(self) -> bool:
+    ensure_labyrinth_state(self)
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    return bool(isinstance(session_row, dict) and str(session_row.get('leader_user_id') or '').strip() == _labyrinth_member_identity(self))
+
+
+def labyrinth_is_controller(self) -> bool:
+    ensure_labyrinth_state(self)
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict):
+        return False
+    controller_user_id = str(session_row.get('controller_user_id') or session_row.get('leader_user_id') or '').strip()
+    return bool(controller_user_id and controller_user_id == _labyrinth_member_identity(self))
+
+
+def labyrinth_current_vote_choice(self) -> int:
+    ensure_labyrinth_state(self)
+    user_id = _labyrinth_member_identity(self)
+    floor = int(getattr(self, 'labyrinth_session_row', {}).get('floor', 1) or 1) if isinstance(getattr(self, 'labyrinth_session_row', {}), dict) else 1
+    for row in list(getattr(self, 'labyrinth_vote_rows', []) or []):
+        if not isinstance(row, dict):
+            continue
+        if str(row.get('voter_user_id') or '').strip() == user_id and int(row.get('floor', floor) or floor) == floor:
+            return int(row.get('choice_index', -1) or -1)
+    return -1
+
+
+def _labyrinth_upsert_session_row(self, payload: Dict[str, object]) -> bool:
+    if bool(getattr(self, 'labyrinth_is_local', False)):
+        session_id = str(payload.get('id') or getattr(self, 'labyrinth_session_id', '') or '').strip() or f'local-lab-{uuid.uuid4().hex}'
+        local_payload = dict(payload)
+        local_payload['id'] = session_id
+        local_payload['updated_at'] = _labyrinth_now_iso()
+        session_row = _labyrinth_normalize_session_row(local_payload)
+        if not session_row:
+            return False
+        vote_rows = [dict(row) for row in list(getattr(self, 'labyrinth_vote_rows', []) or []) if isinstance(row, dict)] if str(session_row.get('status') or '').strip().lower() == 'reward' else []
+        _labyrinth_store_snapshot(
+            self,
+            session_row,
+            [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)],
+            vote_rows,
+        )
+        self.sync_active_slot()
+        return True
+    if self.supabase is None or not self.is_authenticated():
+        return False
+    session_id = str(payload.get('id') or getattr(self, 'labyrinth_session_id', '') or '').strip()
+    cleaned_payload = dict(payload)
+    cleaned_payload.pop('id', None)
+    cleaned_payload['updated_at'] = _labyrinth_now_iso()
+    try:
+        query = self.supabase.table(LABYRINTH_SESSION_TABLE).update(cleaned_payload)
+        if session_id:
+            query = query.eq('id', session_id)
+        else:
+            query = query.eq('join_code', str(payload.get('join_code') or '').strip().upper())
+        query.execute()
+        return True
+    except Exception as exc:
+        self.labyrinth_status = f'Labyrinth expedition update failed: {exc}'
+        return False
+
+
+def create_labyrinth_session(self) -> bool:
+    ensure_labyrinth_state(self)
+    blocker = labyrinth_multiplayer_blocker(self)
+    if blocker:
+        self.labyrinth_status = blocker
+        return False
+    if self.player is None or self.active_slot_index is None:
+        self.labyrinth_status = 'Open a live chronicle first.'
+        return False
+    center_x, center_y = _labyrinth_spawn_xy(LABYRINTH_GRID_SIZE)
+    created_session: Dict[str, object] = {}
+    last_exc: Optional[Exception] = None
+    for _attempt in range(4):
+        join_code = _labyrinth_join_code()
+        payload = {
+            'join_code': join_code,
+            'leader_user_id': self.auth_user_id,
+            'leader_character_name': clean_character_name(self.player.name) or 'Labyrinth Guide',
+            'mode': self.current_slot_mode(),
+            'status': 'lobby',
+            'controller_user_id': self.auth_user_id,
+            'floor': 1,
+            'grid_size': LABYRINTH_GRID_SIZE,
+            'current_x': center_x,
+            'current_y': center_y,
+            'tile_states': _labyrinth_build_tile_states(LABYRINTH_GRID_SIZE),
+            'pending_encounter': {},
+            'reward_options': [],
+            'modifier_stack': [],
+            'recent_events': [f'{clean_character_name(self.player.name) or "The leader"} kindled a new Labyrinth expedition.'],
+            'updated_at': _labyrinth_now_iso(),
+        }
+        try:
+            self.supabase.table(LABYRINTH_SESSION_TABLE).insert(payload).execute()
+            session_rows = _supabase_response_data(
+                self.supabase.table(LABYRINTH_SESSION_TABLE).select('*').eq('join_code', join_code).limit(1).execute()
+            )
+            raw_row = session_rows[0] if isinstance(session_rows, list) and session_rows else (session_rows if isinstance(session_rows, dict) else {})
+            created_session = _labyrinth_normalize_session_row(raw_row)
+            if created_session:
+                break
+        except Exception as exc:
+            last_exc = exc
+            continue
+    if not created_session:
+        self.labyrinth_status = f'Could not kindle a Labyrinth expedition: {last_exc}'
+        return False
+    self.labyrinth_is_local = False
+    self.labyrinth_session_id = str(created_session.get('id') or '').strip()
+    self.labyrinth_join_code = str(created_session.get('join_code') or '').strip().upper()
+    self.labyrinth_floor = int(created_session.get('floor', 1) or 1)
+    self.labyrinth_acknowledged_floor = 0
+    labyrinth_sync_member_snapshot(self, force=True)
+    changed = labyrinth_refresh_session_state(self, force=True)
+    self.labyrinth_status = f'Labyrinth expedition opened. Share {self.labyrinth_join_code} with your party.'
+    self.sync_active_slot()
+    return bool(created_session) or changed
+
+
+def create_labyrinth_solo_session(self) -> bool:
+    ensure_labyrinth_state(self)
+    blocker = labyrinth_route_blocker(self)
+    if blocker:
+        self.labyrinth_status = blocker
+        return False
+    if self.player is None or self.active_slot_index is None:
+        self.labyrinth_status = 'Open a live chronicle first.'
+        return False
+    center_x, center_y = _labyrinth_spawn_xy(LABYRINTH_GRID_SIZE)
+    member_id = _labyrinth_local_member_id(self)
+    session_row = _labyrinth_normalize_session_row({
+        'id': f'local-lab-{uuid.uuid4().hex}',
+        'join_code': '',
+        'leader_user_id': member_id,
+        'leader_character_name': clean_character_name(self.player.name) or 'Labyrinth Guide',
+        'mode': self.current_slot_mode(),
+        'status': 'lobby',
+        'controller_user_id': member_id,
+        'floor': 1,
+        'grid_size': LABYRINTH_GRID_SIZE,
+        'current_x': center_x,
+        'current_y': center_y,
+        'tile_states': _labyrinth_build_tile_states(LABYRINTH_GRID_SIZE),
+        'pending_encounter': {},
+        'reward_options': [],
+        'modifier_stack': [],
+        'recent_events': [f'{clean_character_name(self.player.name) or "The leader"} entered the Labyrinth alone.'],
+        'updated_at': _labyrinth_now_iso(),
+        'created_at': _labyrinth_now_iso(),
+    })
+    if not session_row:
+        self.labyrinth_status = 'The solo Labyrinth could not be formed.'
+        return False
+    self.labyrinth_is_local = True
+    self.labyrinth_session_id = str(session_row.get('id') or '').strip()
+    self.labyrinth_join_code = ''
+    self.labyrinth_floor = int(session_row.get('floor', 1) or 1)
+    self.labyrinth_acknowledged_floor = 0
+    member_payload = _labyrinth_member_payload(self, extra_updates={
+        'user_id': member_id,
+        'joined_at': _labyrinth_now_iso(),
+        'updated_at': _labyrinth_now_iso(),
+        'last_resolution_sequence': 0,
+        'last_resolution_status': '',
+        'resolution_note': 'Entered the Labyrinth alone.',
+    })
+    member_row = _labyrinth_normalize_member_row(member_payload)
+    _labyrinth_store_snapshot(self, session_row, [member_row] if member_row else [], [])
+    self.labyrinth_local_combat_log = []
+    self.labyrinth_local_resolution_text = ''
+    self.labyrinth_status = 'Solo Labyrinth expedition opened.'
+    self.sync_active_slot()
+    return True
+
+
+def join_labyrinth_session(self, raw_code: str) -> bool:
+    ensure_labyrinth_state(self)
+    blocker = labyrinth_multiplayer_blocker(self)
+    if blocker:
+        self.labyrinth_status = blocker
+        return False
+    if self.player is None or self.active_slot_index is None:
+        self.labyrinth_status = 'Open a live chronicle first.'
+        return False
+    join_code = str(raw_code or getattr(self, 'labyrinth_join_code_draft', '') or '').strip().upper()
+    if not join_code:
+        self.labyrinth_status = 'Enter a valid Labyrinth join code first.'
+        return False
+    try:
+        session_rows = _supabase_response_data(
+            self.supabase.table(LABYRINTH_SESSION_TABLE).select('*').eq('join_code', join_code).limit(1).execute()
+        )
+        raw_row = session_rows[0] if isinstance(session_rows, list) and session_rows else (session_rows if isinstance(session_rows, dict) else {})
+        session_row = _labyrinth_normalize_session_row(raw_row)
+        if not session_row:
+            self.labyrinth_status = 'No live Labyrinth expedition answers that join code.'
+            return False
+        if str(session_row.get('status') or '').strip().lower() == 'closed':
+            self.labyrinth_status = 'That Labyrinth expedition has already been sealed.'
+            return False
+        if normalize_ladder_mode(session_row.get('mode') or '', '') != self.current_slot_mode():
+            self.labyrinth_status = f'That expedition is bound to {session_row.get("mode") or "another"} mode.'
+            return False
+        if str(session_row.get('status') or '').strip().lower() == 'encounter':
+            self.labyrinth_status = 'That party is already inside a live encounter. Join between pulls.'
+            return False
+        member_rows_raw = _supabase_response_data(
+            self.supabase.table(LABYRINTH_SESSION_MEMBER_TABLE).select('*').eq('session_id', session_row['id']).limit(16).execute()
+        )
+        member_rows = [_labyrinth_normalize_member_row(raw_member) for raw_member in (member_rows_raw if isinstance(member_rows_raw, list) else [])]
+        existing_member = next((row for row in member_rows if str(row.get('user_id') or '').strip() == str(self.auth_user_id or '').strip() and int(row.get('slot_index', 0) or 0) == int(self.active_slot_index + 1)), {})
+        if not existing_member and len([row for row in member_rows if row]) >= LABYRINTH_MAX_PARTY_SIZE:
+            self.labyrinth_status = 'That expedition is already full.'
+            return False
+        self.labyrinth_session_id = str(session_row.get('id') or '').strip()
+        self.labyrinth_join_code = join_code
+        self.labyrinth_acknowledged_floor = 0
+        if not existing_member:
+            labyrinth_sync_member_snapshot(self, force=True, extra_updates={
+                'last_resolution_sequence': 0,
+                'last_resolution_status': '',
+                'resolution_note': 'Joined the expedition.',
+            })
+        self.labyrinth_is_local = False
+        changed = labyrinth_refresh_session_state(self, force=True)
+        self.labyrinth_status = f'Joined Labyrinth expedition {join_code}.'
+        self.sync_active_slot()
+        return changed or True
+    except Exception as exc:
+        self.labyrinth_status = f'Labyrinth join failed: {exc}'
+        return False
+
+
+def leave_labyrinth_session(self) -> bool:
+    ensure_labyrinth_state(self)
+    if bool(getattr(self, 'labyrinth_is_local', False)) or self.supabase is None or not self.is_authenticated():
+        self.labyrinth_is_local = False
+        self.labyrinth_session_id = ''
+        self.labyrinth_join_code = ''
+        self.labyrinth_session_row = {}
+        self.labyrinth_member_rows = []
+        self.labyrinth_vote_rows = []
+        self.labyrinth_recent_events = []
+        self.labyrinth_status = 'You step away from the cold hedge.'
+        self.labyrinth_floor = 0
+        self.sync_active_slot()
+        return True
+    session_id = str(getattr(self, 'labyrinth_session_id', '') or '').strip()
+    if not session_id or self.active_slot_index is None:
+        self.labyrinth_status = 'You are not part of a live Labyrinth expedition.'
+        return False
+    current_slot_index = int(self.active_slot_index) + 1
+    try:
+        self.supabase.table(LABYRINTH_SESSION_MEMBER_TABLE).delete().eq('session_id', session_id).eq('user_id', self.auth_user_id).eq('slot_index', current_slot_index).execute()
+    except Exception as exc:
+        self.labyrinth_status = f'Could not leave the expedition: {exc}'
+        return False
+    try:
+        member_rows_raw = _supabase_response_data(
+            self.supabase.table(LABYRINTH_SESSION_MEMBER_TABLE).select('*').eq('session_id', session_id).limit(16).execute()
+        )
+        remaining_rows = [_labyrinth_normalize_member_row(raw_member) for raw_member in (member_rows_raw if isinstance(member_rows_raw, list) else [])]
+    except Exception:
+        remaining_rows = []
+    if not [row for row in remaining_rows if row]:
+        try:
+            self.supabase.table(LABYRINTH_SESSION_TABLE).update({'status': 'closed', 'updated_at': _labyrinth_now_iso()}).eq('id', session_id).execute()
+        except Exception:
+            pass
+    elif labyrinth_is_leader(self):
+        next_leader = next((row for row in remaining_rows if row), {})
+        if next_leader:
+            try:
+                self.supabase.table(LABYRINTH_SESSION_TABLE).update({
+                    'leader_user_id': str(next_leader.get('user_id') or '').strip(),
+                    'leader_character_name': str(next_leader.get('character_name') or 'Labyrinth Guide').strip() or 'Labyrinth Guide',
+                    'controller_user_id': str(next_leader.get('user_id') or '').strip(),
+                    'recent_events': _labyrinth_append_event(getattr(self, 'labyrinth_recent_events', []), f'{next_leader.get("character_name") or "A new leader"} now guides the expedition.'),
+                    'updated_at': _labyrinth_now_iso(),
+                }).eq('id', session_id).execute()
+            except Exception:
+                pass
+    self.labyrinth_session_id = ''
+    self.labyrinth_join_code = ''
+    self.labyrinth_is_local = False
+    self.labyrinth_session_row = {}
+    self.labyrinth_member_rows = []
+    self.labyrinth_vote_rows = []
+    self.labyrinth_recent_events = []
+    self.labyrinth_status = 'You leave the Labyrinth of Light behind.'
+    self.labyrinth_floor = 0
+    self.labyrinth_local_combat_log = []
+    self.labyrinth_local_resolution_text = ''
+    self.sync_active_slot()
+    return True
+
+
+def labyrinth_assign_controller(self, user_id: str) -> bool:
+    ensure_labyrinth_state(self)
+    if not labyrinth_is_leader(self):
+        self.labyrinth_status = 'Only the expedition leader can hand the reins to another player.'
+        return False
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict) or not session_row:
+        self.labyrinth_status = 'No live expedition is open.'
+        return False
+    cleaned_user_id = str(user_id or '').strip()
+    if not cleaned_user_id:
+        self.labyrinth_status = 'Choose a valid party member first.'
+        return False
+    member_lookup = {str(row.get('user_id') or '').strip(): row for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)}
+    if cleaned_user_id not in member_lookup:
+        self.labyrinth_status = 'That adventurer is not part of this expedition.'
+        return False
+    payload = dict(session_row)
+    payload['controller_user_id'] = cleaned_user_id
+    payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), f'{member_lookup[cleaned_user_id].get("character_name") or "A new guide"} now controls the party.')
+    if not _labyrinth_upsert_session_row(self, payload):
+        return False
+    labyrinth_refresh_session_state(self, force=True)
+    self.labyrinth_status = f'{member_lookup[cleaned_user_id].get("character_name") or "That adventurer"} now controls the party.'
+    return True
+
+
+def labyrinth_start_floor(self) -> bool:
+    ensure_labyrinth_state(self)
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict) or not session_row:
+        self.labyrinth_status = 'Kindle or join an expedition first.'
+        return False
+    if not labyrinth_is_leader(self):
+        self.labyrinth_status = 'Only the expedition leader can start the floor.'
+        return False
+    if str(session_row.get('status') or '').strip().lower() not in {'lobby', 'defeated'}:
+        self.labyrinth_status = 'That expedition is already moving.'
+        return False
+    center_x, center_y = _labyrinth_spawn_xy(session_row.get('grid_size', LABYRINTH_GRID_SIZE))
+    payload = dict(session_row)
+    payload['status'] = 'exploring'
+    payload['current_x'] = center_x
+    payload['current_y'] = center_y
+    payload['tile_states'] = _labyrinth_build_tile_states(session_row.get('grid_size', LABYRINTH_GRID_SIZE))
+    payload['pending_encounter'] = {}
+    payload['reward_options'] = []
+    payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), f'Floor {int(payload.get("floor", 1) or 1)} begins.')
+    if not _labyrinth_upsert_session_row(self, payload):
+        return False
+    self.labyrinth_acknowledged_floor = 0
+    self.labyrinth_local_combat_log = []
+    self.labyrinth_local_resolution_text = ''
+    labyrinth_refresh_session_state(self, force=True)
+    self.labyrinth_status = f'Floor {int(payload.get("floor", 1) or 1)} begins.'
+    return True
+
+
+def labyrinth_reset_after_defeat(self) -> bool:
+    ensure_labyrinth_state(self)
+    if not labyrinth_is_leader(self):
+        self.labyrinth_status = 'Only the expedition leader can reform a fallen party.'
+        return False
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict) or not session_row:
+        self.labyrinth_status = 'No live expedition is open.'
+        return False
+    center_x, center_y = _labyrinth_spawn_xy(session_row.get('grid_size', LABYRINTH_GRID_SIZE))
+    payload = dict(session_row)
+    payload['status'] = 'exploring'
+    payload['current_x'] = center_x
+    payload['current_y'] = center_y
+    payload['tile_states'] = _labyrinth_build_tile_states(session_row.get('grid_size', LABYRINTH_GRID_SIZE))
+    payload['pending_encounter'] = {}
+    payload['reward_options'] = []
+    payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The shattered party regathers at the hedge line.')
+    if not _labyrinth_upsert_session_row(self, payload):
+        return False
+    self.labyrinth_acknowledged_floor = 0
+    self.labyrinth_local_combat_log = []
+    self.labyrinth_local_resolution_text = ''
+    labyrinth_refresh_session_state(self, force=True)
+    self.labyrinth_status = 'The expedition has been reset at the hedge line.'
+    return True
+
+
+def labyrinth_move_party(self, direction: str) -> bool:
+    ensure_labyrinth_state(self)
+    if not labyrinth_is_controller(self):
+        self.labyrinth_status = 'Only the current controller can move the party through the hedge.'
+        return False
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict) or not session_row:
+        self.labyrinth_status = 'No live expedition is open.'
+        return False
+    if str(session_row.get('status') or '').strip().lower() != 'exploring':
+        self.labyrinth_status = 'The party cannot move until the current event resolves.'
+        return False
+    if direction not in LABYRINTH_CONTROLLER_DIRECTIONS:
+        return False
+    dx, dy = LABYRINTH_CONTROLLER_DIRECTIONS[direction]
+    grid_size = max(3, int(session_row.get('grid_size', LABYRINTH_GRID_SIZE) or LABYRINTH_GRID_SIZE))
+    current_x = int(session_row.get('current_x', _labyrinth_spawn_xy(grid_size)[0]) or 0)
+    current_y = int(session_row.get('current_y', _labyrinth_spawn_xy(grid_size)[1]) or 0)
+    next_x = max(0, min(grid_size - 1, current_x + dx))
+    next_y = max(0, min(grid_size - 1, current_y + dy))
+    if next_x == current_x and next_y == current_y:
+        self.labyrinth_status = 'The hedge wall rejects that step.'
+        return False
+    tile_states = copy.deepcopy(session_row.get('tile_states', {})) if isinstance(session_row.get('tile_states', {}), dict) else _labyrinth_build_tile_states(grid_size)
+    tile_key = _labyrinth_tile_key(next_x, next_y)
+    payload = dict(session_row)
+    payload['current_x'] = next_x
+    payload['current_y'] = next_y
+    event_text = ''
+    if tile_key not in tile_states:
+        encounter_triggered = random.random() < 0.50
+        tile_states[tile_key] = {
+            'visited': True,
+            'resolved': not encounter_triggered,
+            'kind': 'encounter' if encounter_triggered else 'free',
+        }
+        if encounter_triggered:
+            active_members = [row for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict) and not bool(row.get('is_downed', False))]
+            floor = int(payload.get('floor', 1) or 1)
+            avg_level = max(LABYRINTH_UNLOCK_LEVEL, int(round(sum(int(row.get('level', LABYRINTH_UNLOCK_LEVEL) or LABYRINTH_UNLOCK_LEVEL) for row in active_members) / max(1, len(active_members)))))
+            target_level = avg_level + max(0, floor - 1)
+            sequence = max(0, int((payload.get('pending_encounter', {}) if isinstance(payload.get('pending_encounter', {}), dict) else {}).get('sequence', 0) or 0)) + 1
+            monster_type = _labyrinth_choose_template(False)
+            payload['pending_encounter'] = {
+                'sequence': sequence,
+                'tile_key': tile_key,
+                'boss': False,
+                'monster_type': monster_type,
+                'monster_level': target_level,
+                'participants': [str(row.get('user_id') or '').strip() for row in active_members if str(row.get('user_id') or '').strip()],
+                'started_at': _labyrinth_now_iso(),
+            }
+            payload['status'] = 'encounter'
+            event_text = f'Tile {tile_key} flares. A {monster_type} bars the path.'
+        else:
+            payload['pending_encounter'] = {}
+            payload['status'] = 'boss_ready' if _labyrinth_floor_fully_cleared(tile_states, grid_size) else 'exploring'
+            event_text = f'Tile {tile_key} is clear. The party advances unharmed.'
+    else:
+        tile_entry = tile_states.get(tile_key, {})
+        if isinstance(tile_entry, dict):
+            tile_entry['visited'] = True
+            tile_states[tile_key] = tile_entry
+        payload['pending_encounter'] = {}
+        payload['status'] = 'boss_ready' if _labyrinth_floor_fully_cleared(tile_states, grid_size) else 'exploring'
+        event_text = f'The party slips back onto tile {tile_key}.'
+    payload['tile_states'] = tile_states
+    payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), event_text)
+    if not _labyrinth_upsert_session_row(self, payload):
+        return False
+    labyrinth_refresh_session_state(self, force=True)
+    self.labyrinth_status = event_text
+    return True
+
+
+def labyrinth_start_boss_encounter(self) -> bool:
+    ensure_labyrinth_state(self)
+    if not labyrinth_is_controller(self):
+        self.labyrinth_status = 'Only the current controller can call the floor boss.'
+        return False
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict) or not session_row:
+        self.labyrinth_status = 'No live expedition is open.'
+        return False
+    if str(session_row.get('status') or '').strip().lower() != 'boss_ready':
+        self.labyrinth_status = 'The floor boss only answers after every tile is cleared.'
+        return False
+    active_members = [row for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict) and not bool(row.get('is_downed', False))]
+    if not active_members:
+        self.labyrinth_status = 'No active party members remain to challenge the Radiant Warden.'
+        return False
+    floor = int(session_row.get('floor', 1) or 1)
+    avg_level = max(LABYRINTH_UNLOCK_LEVEL, int(round(sum(int(row.get('level', LABYRINTH_UNLOCK_LEVEL) or LABYRINTH_UNLOCK_LEVEL) for row in active_members) / max(1, len(active_members)))))
+    target_level = avg_level + floor + 1
+    payload = dict(session_row)
+    payload['status'] = 'boss'
+    payload['pending_encounter'] = {
+        'sequence': max(0, int((payload.get('pending_encounter', {}) if isinstance(payload.get('pending_encounter', {}), dict) else {}).get('sequence', 0) or 0)) + 1,
+        'tile_key': _labyrinth_tile_key(payload.get('current_x', 0), payload.get('current_y', 0)),
+        'boss': True,
+        'monster_type': _labyrinth_choose_template(True),
+        'monster_level': target_level,
+        'participants': [str(row.get('user_id') or '').strip() for row in active_members if str(row.get('user_id') or '').strip()],
+        'started_at': _labyrinth_now_iso(),
+    }
+    payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), f'The floor boss stirs on floor {floor}.')
+    if not _labyrinth_upsert_session_row(self, payload):
+        return False
+    labyrinth_refresh_session_state(self, force=True)
+    self.labyrinth_status = f'The floor boss stirs on floor {floor}.'
+    return True
+
+
+def _labyrinth_apply_effects_to_player(player: Player, effects: Dict[str, float], boss: bool = False) -> None:
+    hp_ratio = player.hp / max(1, player.max_hp)
+    mana_ratio = player.mana / max(1, player.max_mana) if player.max_mana > 0 else 1.0
+    hp_scale = max(0.55, 1.0 + float(effects.get('hp_mult', 0.0) or 0.0))
+    damage_scale = max(0.50, 1.0 + float(effects.get('damage_mult', 0.0) or 0.0) + (float(effects.get('boss_damage_mult', 0.0) or 0.0) if boss else 0.0))
+    armor_scale = max(0.45, 1.0 + float(effects.get('armor_mult', 0.0) or 0.0))
+    mres_scale = max(0.45, 1.0 + float(effects.get('mres_mult', 0.0) or 0.0))
+    speed_flat = int(round(float(effects.get('speed_flat', 0.0) or 0.0)))
+    player.max_hp = max(1, int(round(player.max_hp * hp_scale)))
+    player.hp = max(0, min(player.max_hp, int(round(player.max_hp * hp_ratio))))
+    player.max_mana = max(0, player.max_mana)
+    player.mana = max(0, min(player.max_mana, int(round(player.max_mana * mana_ratio))))
+    player.weapon_attack_min = max(1, int(round(player.weapon_attack_min * damage_scale)))
+    player.weapon_attack_max = max(player.weapon_attack_min + 1, int(round(player.weapon_attack_max * damage_scale)))
+    if player.spell_attack_max > 0:
+        player.spell_attack_min = max(1, int(round(player.spell_attack_min * damage_scale)))
+        player.spell_attack_max = max(player.spell_attack_min + 1, int(round(player.spell_attack_max * damage_scale)))
+    player.physical_armor = max(0, int(round(player.physical_armor * armor_scale)))
+    player.magic_resistance = max(0, int(round(player.magic_resistance * mres_scale)))
+    player.speed = max(1, int(round(player.speed + speed_flat)))
+
+
+def _labyrinth_apply_effects_to_monster(monster: Fighter, effects: Dict[str, float], boss: bool = False) -> None:
+    if not boss:
+        return
+    taken_scale = max(0.65, 1.0 + float(effects.get('boss_taken_mult', 0.0) or 0.0))
+    monster.attack_min = max(1, int(round(monster.attack_min * taken_scale)))
+    monster.attack_max = max(monster.attack_min + 1, int(round(monster.attack_max * taken_scale)))
+
+
+def labyrinth_finalize_encounter_if_ready(self) -> bool:
+    ensure_labyrinth_state(self)
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict) or not session_row:
+        return False
+    pending = session_row.get('pending_encounter', {}) if isinstance(session_row.get('pending_encounter', {}), dict) else {}
+    if not pending:
+        return False
+    sequence = max(0, int(pending.get('sequence', 0) or 0))
+    if sequence <= 0:
+        return False
+    participant_ids = [str(user_id or '').strip() for user_id in list(pending.get('participants', []) or []) if str(user_id or '').strip()]
+    participant_rows = [row for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict) and str(row.get('user_id') or '').strip() in participant_ids]
+    if not participant_rows:
+        return False
+    unresolved = [
+        row for row in participant_rows
+        if int(row.get('last_resolution_sequence', 0) or 0) != sequence or str(row.get('last_resolution_status') or '').strip().lower() not in {'won', 'lost'}
+    ]
+    if unresolved:
+        return False
+    win_rows = [row for row in participant_rows if str(row.get('last_resolution_status') or '').strip().lower() == 'won']
+    payload = dict(session_row)
+    tile_states = copy.deepcopy(payload.get('tile_states', {})) if isinstance(payload.get('tile_states', {}), dict) else _labyrinth_build_tile_states(payload.get('grid_size', LABYRINTH_GRID_SIZE))
+    pending_tile_key = str(pending.get('tile_key') or '').strip()
+    if pending_tile_key:
+        tile_entry = tile_states.get(pending_tile_key, {'visited': True, 'resolved': False, 'kind': 'encounter'})
+        if isinstance(tile_entry, dict):
+            tile_entry['visited'] = True
+            tile_entry['resolved'] = bool(win_rows)
+            tile_entry['kind'] = 'boss' if bool(pending.get('boss', False)) else 'encounter'
+            tile_states[pending_tile_key] = tile_entry
+    payload['tile_states'] = tile_states
+    payload['pending_encounter'] = {}
+    floor = int(payload.get('floor', 1) or 1)
+    if not win_rows:
+        payload['status'] = 'defeated'
+        payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), f'Floor {floor} overwhelms the party. No active adventurer remains standing.')
+    elif bool(pending.get('boss', False)):
+        payload['status'] = 'reward'
+        payload['reward_options'] = _labyrinth_build_reward_choices(floor)
+        payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), f'The floor boss falls. The prism offers three unstable blessings.')
+    else:
+        payload['reward_options'] = []
+        payload['status'] = 'boss_ready' if _labyrinth_floor_fully_cleared(tile_states, payload.get('grid_size', LABYRINTH_GRID_SIZE)) else 'exploring'
+        payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The path clears and the hedges part a little further.')
+    if not _labyrinth_upsert_session_row(self, payload):
+        return False
+    labyrinth_refresh_session_state(self, force=True)
+    return True
+
+
+def run_labyrinth_encounter(self) -> bool:
+    ensure_labyrinth_state(self)
+    if self.player is None or self.active_slot_index is None:
+        self.labyrinth_status = 'Open a live chronicle first.'
+        return False
+    if not bool(getattr(self, 'labyrinth_is_local', False)) and (self.supabase is None or not self.is_authenticated()):
+        self.labyrinth_status = 'Sign in before stepping into a shared Labyrinth encounter.'
+        return False
+    labyrinth_refresh_session_state(self, force=True)
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict) or not session_row:
+        self.labyrinth_status = 'No live expedition is open.'
+        return False
+    pending = session_row.get('pending_encounter', {}) if isinstance(session_row.get('pending_encounter', {}), dict) else {}
+    if not pending:
+        self.labyrinth_status = 'No active Labyrinth encounter is waiting.'
+        return False
+    self_row = _labyrinth_self_member_row(self)
+    if not self_row:
+        self.labyrinth_status = 'This chronicle is not registered as a party member.'
+        return False
+    if bool(self_row.get('is_downed', False)):
+        self.labyrinth_status = 'This adventurer is downed and can only watch until the floor turns over.'
+        return False
+    sequence = max(0, int(pending.get('sequence', 0) or 0))
+    if int(self_row.get('last_resolution_sequence', 0) or 0) == sequence and str(self_row.get('last_resolution_status') or '').strip().lower() in {'won', 'lost'}:
+        self.labyrinth_status = 'This encounter has already been resolved for your adventurer.'
+        return False
+    current_hp = max(0, min(self.player.max_hp, int(self_row.get('current_hp', self.player.hp) or self.player.hp)))
+    current_mana = max(0, min(self.player.max_mana, int(self_row.get('current_mana', self.player.mana) or self.player.mana)))
+    sim_player = Player.from_dict(copy.deepcopy(self.player.to_dict()))
+    sim_player.hp = current_hp
+    sim_player.mana = current_mana
+    floor = int(session_row.get('floor', 1) or 1)
+    boss = bool(pending.get('boss', False))
+    monster, xp_reward = _generate_labyrinth_monster(
+        pending.get('monster_type') or _labyrinth_choose_template(boss),
+        pending.get('monster_level', max(LABYRINTH_UNLOCK_LEVEL, self.player.level)),
+        floor=floor,
+        boss=boss,
+        player_class=sim_player.player_class,
+    )
+    effects = _labyrinth_reward_effect_totals(session_row.get('modifier_stack', []))
+    _labyrinth_apply_effects_to_player(sim_player, effects, boss=boss)
+    _labyrinth_apply_effects_to_monster(monster, effects, boss=boss)
+    timeline = build_combat_timeline(sim_player, monster)
+    self.labyrinth_local_combat_log = [event.text for event, *_rest in timeline[-18:]]
+    won = sim_player.is_alive()
+    result_tone = 'success' if won else 'danger'
+    reward_item: Optional[Item] = None
+    summary_bits: List[str] = []
+    if won:
+        xp_multiplier = max(0.05, 1.0 + float(effects.get('xp_mult', 0.0) or 0.0))
+        gold_multiplier = max(0.05, 1.0 + float(effects.get('gold_mult', 0.0) or 0.0))
+        xp_gain_amount = max(1, int(round(xp_reward * xp_multiplier)))
+        gold_gain_amount = max(1, int(round(((18 + monster.level * 3) * (2.35 if boss else 1.0)) * gold_multiplier)))
+        sim_player.gold += gold_gain_amount
+        summary_bits.append(f'+{gold_gain_amount}g')
+        for message in gain_xp(sim_player, xp_gain_amount, None):
+            summary_bits.append(message)
+        drop_bonus = float(effects.get('drop_bonus', 0.0) or 0.0)
+        drop_roll = clamp((0.24 + (sim_player.magic_find * 0.08) + drop_bonus + (0.24 if boss else 0.0)), 0.0, 1.0)
+        if boss or random.random() < drop_roll:
+            if boss:
+                preview_item = generate_item_drop(min(60, monster.level), sim_player.player_class, sim_player.magic_find + 0.20, affix_roll_mode='advantage')
+                boosted_rarity = shift_rarity(preview_item.rarity, 1)
+                reward_item = generate_specific_item(item_required_level(preview_item), preview_item.slot, preview_item.subtype, boosted_rarity, affix_roll_mode='advantage')
+            else:
+                reward_item = generate_item_drop(min(60, monster.level), sim_player.player_class, sim_player.magic_find, affix_roll_mode='normal')
+            if reward_item is not None:
+                sim_player.inventory.append(reward_item)
+                self.remember_last_monster_drop(reward_item, 'labyrinth')
+                summary_bits.append(f'Found {reward_item.summary()}.')
+        heal_between = max(0.0, float(effects.get('heal_between_mult', 0.0) or 0.0))
+        if heal_between > 0.0:
+            healed_hp = max(0, int(round(sim_player.max_hp * min(0.35, heal_between))))
+            healed_mana = max(0, int(round(sim_player.max_mana * min(0.35, heal_between)))) if sim_player.max_mana > 0 else 0
+            if healed_hp > 0:
+                sim_player.hp = min(sim_player.max_hp, sim_player.hp + healed_hp)
+            if healed_mana > 0:
+                sim_player.mana = min(sim_player.max_mana, sim_player.mana + healed_mana)
+            if healed_hp or healed_mana:
+                summary_bits.append(f'Lantern pulse restores {healed_hp} HP and {healed_mana} Mana.')
+    self.player = sim_player
+    self.sync_active_slot()
+    resolution_note = 'Victory.' if won else 'Defeat. This adventurer is downed until the floor turns.'
+    if summary_bits:
+        resolution_note = ' '.join([resolution_note] + summary_bits)
+    self.labyrinth_local_resolution_text = resolution_note
+    self.add_log(
+        f'Labyrinth {"victory" if won else "defeat"}: {monster.monster_type}. {resolution_note}',
+        result_tone,
+    )
+    labyrinth_sync_member_snapshot(self, force=True, extra_updates={
+        'current_hp': int(self.player.hp),
+        'max_hp': int(self.player.max_hp),
+        'current_mana': int(self.player.mana),
+        'max_mana': int(self.player.max_mana),
+        'current_xp': int(self.player.xp),
+        'xp_to_next': int(max(1, self.player.xp_to_next)),
+        'level': int(self.player.level),
+        'is_downed': bool(not won),
+        'last_resolution_sequence': sequence,
+        'last_resolution_status': 'won' if won else 'lost',
+        'resolution_note': resolution_note[:220],
+    })
+    labyrinth_refresh_session_state(self, force=True)
+    labyrinth_finalize_encounter_if_ready(self)
+    labyrinth_refresh_session_state(self, force=True)
+    return True
+
+
+def vote_labyrinth_reward(self, choice_index: object) -> bool:
+    ensure_labyrinth_state(self)
+    if not bool(getattr(self, 'labyrinth_is_local', False)) and (self.supabase is None or not self.is_authenticated()):
+        self.labyrinth_status = 'Sign in before voting on Labyrinth rewards.'
+        return False
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict) or not session_row or str(session_row.get('status') or '').strip().lower() != 'reward':
+        self.labyrinth_status = 'No reward vote is currently open.'
+        return False
+    try:
+        selected_index = int(choice_index)
+    except Exception:
+        selected_index = -1
+    reward_options = list(session_row.get('reward_options', []) or [])
+    if not (0 <= selected_index < len(reward_options)):
+        self.labyrinth_status = 'Choose one of the offered blessings first.'
+        return False
+    if bool(getattr(self, 'labyrinth_is_local', False)):
+        voter_user_id = _labyrinth_member_identity(self)
+        floor = int(session_row.get('floor', 1) or 1)
+        vote_rows = [
+            dict(row) for row in list(getattr(self, 'labyrinth_vote_rows', []) or [])
+            if isinstance(row, dict) and not (
+                str(row.get('voter_user_id') or '').strip() == voter_user_id
+                and int(row.get('floor', floor) or floor) == floor
+            )
+        ]
+        vote_rows.append({
+            'session_id': str(session_row.get('id') or '').strip(),
+            'floor': floor,
+            'voter_user_id': voter_user_id,
+            'choice_index': selected_index,
+            'updated_at': _labyrinth_now_iso(),
+        })
+        self.labyrinth_vote_rows = vote_rows
+        chosen = reward_options[selected_index] if isinstance(reward_options[selected_index], dict) else {}
+        self.labyrinth_status = f'Vote recorded for {chosen.get("title") or "that blessing"}.'
+        return True
+    try:
+        self.supabase.table(LABYRINTH_SESSION_VOTE_TABLE).upsert({
+            'session_id': str(session_row.get('id') or '').strip(),
+            'floor': int(session_row.get('floor', 1) or 1),
+            'voter_user_id': str(self.auth_user_id or '').strip(),
+            'choice_index': selected_index,
+            'updated_at': _labyrinth_now_iso(),
+        }, on_conflict='session_id,floor,voter_user_id').execute()
+        labyrinth_refresh_session_state(self, force=True)
+        chosen = reward_options[selected_index] if isinstance(reward_options[selected_index], dict) else {}
+        self.labyrinth_status = f'Vote recorded for {chosen.get("title") or "that blessing"}.'
+        return True
+    except Exception as exc:
+        self.labyrinth_status = f'Could not record the Labyrinth vote: {exc}'
+        return False
+
+
+def finalize_labyrinth_reward_vote(self) -> bool:
+    ensure_labyrinth_state(self)
+    if not labyrinth_is_leader(self):
+        self.labyrinth_status = 'Only the expedition leader can seal the reward vote.'
+        return False
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict) or not session_row or str(session_row.get('status') or '').strip().lower() != 'reward':
+        self.labyrinth_status = 'No reward vote is currently open.'
+        return False
+    reward_options = [dict(option) for option in list(session_row.get('reward_options', []) or []) if isinstance(option, dict)]
+    if not reward_options:
+        self.labyrinth_status = 'No reward offers are available to finalize.'
+        return False
+    counts = _labyrinth_vote_count_map(getattr(self, 'labyrinth_vote_rows', []))
+    leader_choice = labyrinth_current_vote_choice(self)
+    winning_index = 0
+    winning_key: Optional[Tuple[int, int]] = None
+    for index in range(len(reward_options)):
+        vote_total = counts.get(index, 0)
+        tie_break = 1 if leader_choice == index else 0
+        key = (vote_total, tie_break)
+        if winning_key is None or key > winning_key:
+            winning_key = key
+            winning_index = index
+    selected_reward = reward_options[winning_index]
+    next_floor = max(1, int(session_row.get('floor', 1) or 1)) + 1
+    center_x, center_y = _labyrinth_spawn_xy(session_row.get('grid_size', LABYRINTH_GRID_SIZE))
+    payload = dict(session_row)
+    payload['status'] = 'exploring'
+    payload['floor'] = next_floor
+    payload['current_x'] = center_x
+    payload['current_y'] = center_y
+    payload['tile_states'] = _labyrinth_build_tile_states(session_row.get('grid_size', LABYRINTH_GRID_SIZE))
+    payload['pending_encounter'] = {}
+    payload['reward_options'] = []
+    payload['modifier_stack'] = [dict(entry) for entry in list(session_row.get('modifier_stack', []) or []) if isinstance(entry, dict)] + [dict(selected_reward)]
+    payload['recent_events'] = _labyrinth_append_event(
+        payload.get('recent_events', []),
+        f'{selected_reward.get("title") or "A blessing"} is chosen. Floor {next_floor} begins.'
+    )
+    if not _labyrinth_upsert_session_row(self, payload):
+        return False
+    self.labyrinth_acknowledged_floor = 0
+    self.labyrinth_local_combat_log = []
+    self.labyrinth_local_resolution_text = ''
+    labyrinth_refresh_session_state(self, force=True)
+    self.labyrinth_status = f'{selected_reward.get("title") or "A blessing"} is chosen. Floor {next_floor} begins.'
+    return True
+
 def load_private_messages(self) -> bool:
     ensure_social_chat_state(self)
     self.private_message_rows = []
@@ -15561,6 +17366,13 @@ def open_game_tab(self, tab_name: str, note: Optional[str] = None) -> None:
         self.apply_arena_combat_log_default()
         if previous_screen == 'town':
             self.arena_looted_item_count = 0
+    elif requested_tab == 'labyrinth':
+        ensure_labyrinth_state(self)
+        blocker = labyrinth_route_blocker(self)
+        if blocker:
+            self.labyrinth_status = blocker
+        elif self.is_authenticated() and self.supabase is not None:
+            self.refresh_labyrinth_session_state(force=True)
     if requested_tab == 'inn':
         self.ensure_inn_scene_state(True)
     elif requested_tab == 'well':
@@ -17649,6 +19461,27 @@ SessionState.resolve_vault_code_target = resolve_vault_code_target
 SessionState.load_pending_vault_transfers = load_pending_vault_transfers
 SessionState.send_vault_item_to_player = send_vault_item_to_player
 SessionState.claim_pending_vault_transfer = claim_pending_vault_transfer
+SessionState.ensure_labyrinth_state = ensure_labyrinth_state
+SessionState.labyrinth_route_blocker = labyrinth_route_blocker
+SessionState.labyrinth_multiplayer_blocker = labyrinth_multiplayer_blocker
+SessionState.labyrinth_sync_member_snapshot = labyrinth_sync_member_snapshot
+SessionState.refresh_labyrinth_session_state = labyrinth_refresh_session_state
+SessionState.labyrinth_is_leader = labyrinth_is_leader
+SessionState.labyrinth_is_controller = labyrinth_is_controller
+SessionState.labyrinth_current_vote_choice = labyrinth_current_vote_choice
+SessionState.create_labyrinth_session = create_labyrinth_session
+SessionState.create_labyrinth_solo_session = create_labyrinth_solo_session
+SessionState.join_labyrinth_session = join_labyrinth_session
+SessionState.leave_labyrinth_session = leave_labyrinth_session
+SessionState.labyrinth_assign_controller = labyrinth_assign_controller
+SessionState.labyrinth_start_floor = labyrinth_start_floor
+SessionState.labyrinth_reset_after_defeat = labyrinth_reset_after_defeat
+SessionState.labyrinth_move_party = labyrinth_move_party
+SessionState.labyrinth_start_boss_encounter = labyrinth_start_boss_encounter
+SessionState.labyrinth_finalize_encounter_if_ready = labyrinth_finalize_encounter_if_ready
+SessionState.run_labyrinth_encounter = run_labyrinth_encounter
+SessionState.vote_labyrinth_reward = vote_labyrinth_reward
+SessionState.finalize_labyrinth_reward_vote = finalize_labyrinth_reward_vote
 SessionState.load_private_messages = load_private_messages
 SessionState.send_private_message = send_private_message
 SessionState.load_guild_chat_messages = load_guild_chat_messages
@@ -19236,7 +21069,7 @@ def main_page(request: Request) -> None:
             ui.run_javascript("window.mqSetHotkeysLocked && window.mqSetHotkeysLocked(false);")
             return
         bindings = normalize_hotkey_bindings(getattr(state, 'hotkey_bindings', {}))
-        combat_hotkeys_locked = bool(state.current_monster is not None)
+        combat_hotkeys_locked = bool(state.current_monster is not None or str(getattr(state, 'game_tab', '') or '') == 'labyrinth')
         ui.run_javascript(f"window.mqSetHotkeyBindings && window.mqSetHotkeyBindings({json.dumps(bindings)});")
         ui.run_javascript(f"window.mqSetHotkeysLocked && window.mqSetHotkeysLocked({json.dumps(combat_hotkeys_locked)});")
         with ui.element('div').style('display:none'):
@@ -19735,8 +21568,12 @@ def main_page(request: Request) -> None:
                                         ui.button('Inn', on_click=lambda: (state.open_game_tab('inn', 'Warm firelight spills out from the inn.'), request_render_refresh())).classes('mq-route-btn')
                                         masterquest_town_btn = ui.button('Prismatic Quest', on_click=lambda: (state.begin_masterquest(), request_render_refresh())).classes('mq-route-btn')
                                         masterquest_blocker = state.masterquest_entry_blocker()
-                                        labyrinth_btn = ui.button('Labyrinth of Light', on_click=lambda: None).classes('mq-route-btn opacity-70')
-                                        labyrinth_btn.disable()
+                                        labyrinth_btn = ui.button('Labyrinth of Light', on_click=lambda: (state.open_game_tab('labyrinth', 'Lantern-light folds over the hedge walls as the Labyrinth of Light opens.'), request_render_refresh())).classes('mq-route-btn')
+                                        labyrinth_blocker = state.labyrinth_route_blocker()
+                                        if labyrinth_blocker:
+                                            labyrinth_btn.classes('opacity-70')
+                                            labyrinth_btn.disable()
+                                            labyrinth_btn.props(f'title={json.dumps(labyrinth_blocker)}')
                                         if masterquest_blocker:
                                             masterquest_town_btn.classes('opacity-70')
                                             masterquest_town_btn.disable()
@@ -19972,6 +21809,7 @@ def main_page(request: Request) -> None:
                             scene_tutorial_btn = ui.button('Tutorial', on_click=lambda key=current_scene_tutorial_key: open_scene_tutorial_now(key))
                             scene_tutorial_btn.classes('font-semibold tracking-wide rounded-xl py-3 px-5 mq-btn-gold max-[700px]:w-full')
                 sync_scene_tutorial_dialog()
+                ui.run_javascript("window.mqSetLabyrinthKeysEnabled && window.mqSetLabyrinthKeysEnabled(false);")
                 if state.game_tab != 'arena':
                     if state.game_tab not in ('inventory', 'masterquest'):
                         with ui.row().classes('w-full items-center gap-2 flex-wrap'):
@@ -19979,6 +21817,248 @@ def main_page(request: Request) -> None:
                             arena_back.classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
                     if state.game_tab == 'inventory':
                         render_inventory_panel(player, popup=False)
+                        return
+                    elif state.game_tab == 'labyrinth':
+                        ensure_labyrinth_state(state)
+                        state.refresh_labyrinth_session_state(force=False)
+                        session_row = state.labyrinth_session_row if isinstance(getattr(state, 'labyrinth_session_row', {}), dict) else {}
+                        member_rows = [row for row in list(getattr(state, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
+                        reward_votes = [row for row in list(getattr(state, 'labyrinth_vote_rows', []) or []) if isinstance(row, dict)]
+                        modifier_stack = [dict(entry) for entry in list(session_row.get('modifier_stack', []) or []) if isinstance(entry, dict)] if session_row else []
+                        reward_options = [dict(entry) for entry in list(session_row.get('reward_options', []) or []) if isinstance(entry, dict)] if session_row else []
+                        session_status = str(session_row.get('status') or '').strip().lower() if session_row else ''
+                        current_floor = int(session_row.get('floor', 1) or 1) if session_row else 0
+                        join_code = str(session_row.get('join_code') or getattr(state, 'labyrinth_join_code', '') or '').strip().upper()
+                        scene_blocker = state.labyrinth_route_blocker()
+                        multiplayer_blocker = state.labyrinth_multiplayer_blocker()
+                        is_local_labyrinth = bool(getattr(state, 'labyrinth_is_local', False))
+                        self_member_row = _labyrinth_self_member_row(state)
+                        can_move_labyrinth = bool(session_row and state.labyrinth_is_controller() and session_status == 'exploring')
+                        ui.run_javascript(f"window.mqSetLabyrinthKeysEnabled && window.mqSetLabyrinthKeysEnabled({json.dumps(can_move_labyrinth)});")
+                        with ui.column().classes('w-full gap-4'):
+                            with ui.card().classes('mq-card w-full p-5'):
+                                ui.label('Labyrinth of Light').classes('mq-inv-title')
+                                ui.label('A shared hedge-maze for late-chronicle parties. Explore every tile, survive what the hedges spit back, then vote on unstable blessings after the boss falls.').classes('text-slate-100 text-xl leading-9 mt-2')
+                                with ui.card().classes('mq-panel-frame p-4 mt-4'):
+                                    ui.label('LABYRINTH STATUS').classes('mq-panel-caption')
+                                    if session_row:
+                                        ui.html(
+                                            f"<div class='mq-inv-summary-line mt-2'>"
+                                            f"<span class='mq-inv-label-tier'>Floor</span> <span class='mq-inv-summary-strong'>{current_floor}</span> • "
+                                            f"<span class='mq-inv-label-accent'>State</span> <span class='mq-inv-summary-strong'>{html.escape(session_status.title() if session_status else 'Lobby')}</span> • "
+                                            f"<span class='mq-inv-label-gold'>{'Mode' if is_local_labyrinth else 'Join Code'}</span> <span class='mq-inv-summary-strong'>{html.escape('Solo Expedition' if is_local_labyrinth else (join_code or 'Unknown'))}</span>"
+                                            f"</div>"
+                                        )
+                                    else:
+                                        ui.html(
+                                            f"<div class='mq-inv-summary-line mt-2'>"
+                                            f"<span class='mq-inv-label-tier'>Unlock</span> <span class='mq-inv-summary-strong'>Lv {LABYRINTH_UNLOCK_LEVEL}</span> • "
+                                            f"<span class='mq-inv-label-accent'>Party</span> <span class='mq-inv-summary-strong'>Up to {LABYRINTH_MAX_PARTY_SIZE}</span> • "
+                                            f"<span class='mq-inv-label-gold'>Mode</span> <span class='mq-inv-summary-strong'>{html.escape(state.current_slot_mode())}</span>"
+                                            f"</div>"
+                                        )
+                                    ui.label(str(getattr(state, 'labyrinth_status', '') or 'The hedges are still and silent.')).classes('text-slate-300 mt-2 leading-7')
+                                if not session_row:
+                                    with ui.row().classes('w-full gap-4 mt-4 max-[1100px]:flex-col'):
+                                        with ui.card().classes('mq-panel-frame flex-1 p-4'):
+                                            ui.label('Solo Expedition').classes('text-slate-100 text-2xl font-semibold')
+                                            ui.label('Run the hedge alone with the same maze, encounters, bosses, and blessing votes, but without party setup or sign-in requirements.').classes('mq-detail-text mt-2')
+                                            solo_btn = ui.button('Create Solo Expedition', on_click=lambda: (state.create_labyrinth_solo_session(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold mt-4')
+                                            if scene_blocker:
+                                                solo_btn.disable()
+                                            if scene_blocker:
+                                                ui.label(scene_blocker).classes('text-amber-300 text-sm mt-3')
+                                        with ui.card().classes('mq-panel-frame flex-1 p-4'):
+                                            ui.label('Host Expedition').classes('text-slate-100 text-2xl font-semibold')
+                                            ui.label('Create a shared lobby, invite up to four more players, and choose who controls the party through the hedge.').classes('mq-detail-text mt-2')
+                                            host_btn = ui.button('Create New Expedition', on_click=lambda: (state.create_labyrinth_session(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold mt-4')
+                                            if multiplayer_blocker:
+                                                host_btn.disable()
+                                            if multiplayer_blocker:
+                                                ui.label(multiplayer_blocker).classes('text-slate-400 text-sm mt-3')
+                                        with ui.card().classes('mq-panel-frame flex-1 p-4'):
+                                            ui.label('Join Expedition').classes('text-slate-100 text-2xl font-semibold')
+                                            ui.label('Use a join code from another party leader to drop directly into that active hedge run.').classes('mq-detail-text mt-2')
+                                            join_input = ui.input(
+                                                label='Join Code',
+                                                placeholder='LUX-XXXXXX',
+                                                value=getattr(state, 'labyrinth_join_code_draft', ''),
+                                            ).props('outlined clearable input-style=color: #e2e8f0;').classes('w-full mt-4')
+                                            join_input.on_value_change(lambda e: setattr(state, 'labyrinth_join_code_draft', str(e.value or '').strip().upper()))
+                                            join_btn = ui.button('Join by Code', on_click=lambda: (state.join_labyrinth_session(getattr(state, 'labyrinth_join_code_draft', '')), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold mt-4')
+                                            if multiplayer_blocker:
+                                                join_btn.disable()
+                                            if multiplayer_blocker:
+                                                ui.label(multiplayer_blocker).classes('text-slate-400 text-sm mt-3')
+                                    return
+                                with ui.row().classes('w-full items-center justify-between gap-3 mt-4 max-[900px]:flex-wrap'):
+                                    with ui.row().classes('gap-2 flex-wrap'):
+                                        ui.label(f'Leader: {session_row.get("leader_character_name") or "Unknown"}').classes('mq-lab-pill')
+                                        ui.label(f'Controller: {next((row.get("character_name") for row in member_rows if str(row.get("user_id") or "").strip() == str(session_row.get("controller_user_id") or "").strip()), session_row.get("leader_character_name") or "Unknown")}').classes('mq-lab-pill')
+                                        ui.label(f'{len(member_rows)}/{LABYRINTH_MAX_PARTY_SIZE} Members').classes('mq-lab-pill')
+                                        if modifier_stack:
+                                            ui.label(f'{len(modifier_stack)} Active Blessing{"s" if len(modifier_stack) != 1 else ""}').classes('mq-lab-pill')
+                                    with ui.row().classes('gap-2 flex-wrap'):
+                                        ui.button('Refresh Expedition', on_click=lambda: (state.refresh_labyrinth_session_state(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-4 py-2 font-semibold')
+                                        ui.button('Leave Expedition', on_click=lambda: ((state.enter_town('You leave the Labyrinth of Light behind.') if state.leave_labyrinth_session() else None), request_render_refresh())).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold')
+                                with ui.element('div').classes('mq-lab-layout w-full mt-4'):
+                                    with ui.column().classes('mq-lab-party-stack'):
+                                        for member_index, row in enumerate(member_rows):
+                                            hero_class = normalize_player_class_name(row.get('player_class'), 'Black Guard')
+                                            hero_uri = _hero_data_uri(hero_class)
+                                            snapshot = row.get('profile_snapshot', {}) if isinstance(row.get('profile_snapshot', {}), dict) else {}
+                                            with ui.card().classes('mq-panel-frame mq-lab-member-card p-4'):
+                                                with ui.element('div').classes('mq-lab-member-top'):
+                                                    with ui.element('div').classes('mq-lab-member-portrait'):
+                                                        if hero_uri:
+                                                            ui.html(f"<img src='{html.escape(hero_uri, quote=True)}' alt='{html.escape(hero_class)} portrait' loading='lazy' decoding='async' draggable='false'>")
+                                                        else:
+                                                            ui.label(hero_class[:2].upper()).classes('text-slate-100 text-xl font-semibold w-full h-full flex items-center justify-center')
+                                                    with ui.column().classes('gap-1 min-w-0'):
+                                                        ui.label(str(row.get('character_name') or 'Unknown Adventurer')).classes('text-slate-100 text-xl font-semibold')
+                                                        ui.label(f'{hero_class} • Level {int(row.get("level", 1) or 1)}').classes('text-slate-300')
+                                                        with ui.row().classes('gap-2 flex-wrap'):
+                                                            if str(row.get('user_id') or '').strip() == str(session_row.get('leader_user_id') or '').strip():
+                                                                ui.label('Leader').classes('mq-lab-pill')
+                                                            if str(row.get('user_id') or '').strip() == str(session_row.get('controller_user_id') or '').strip():
+                                                                ui.label('Controller').classes('mq-lab-pill')
+                                                            if bool(row.get('is_downed', False)):
+                                                                ui.label('Downed').classes('mq-lab-pill')
+                                                ui.html(animated_meter_html(f'lab-party-hp-{member_index}', 'HP', int(row.get('current_hp', 0) or 0), max(1, int(row.get('max_hp', 1) or 1)), 'hp', 900, cycle=f'{row.get("updated_at","")}-hp'))
+                                                ui.html(animated_meter_html(f'lab-party-mana-{member_index}', 'Mana', int(row.get('current_mana', 0) or 0), max(1, int(row.get('max_mana', 1) or 1)), 'mana', 1200, cycle=f'{row.get("updated_at","")}-mana'))
+                                                ui.html(animated_meter_html(f'lab-party-xp-{member_index}', 'XP', int(row.get('current_xp', 0) or 0), max(1, int(row.get('xp_to_next', 1) or 1)), 'exp', 1800, cycle=f'{row.get("level",1)}-{row.get("current_xp",0)}', rollover=True))
+                                                resolution_note = str(row.get('resolution_note') or '').strip()
+                                                if resolution_note:
+                                                    ui.label(resolution_note).classes('mq-detail-text mt-2')
+                                                profile_user_id = str(snapshot.get('user_id') or row.get('user_id') or '').strip()
+                                                profile_name = str(snapshot.get('character_name') or row.get('character_name') or '').strip()
+                                                if profile_user_id and not profile_user_id.startswith('local::'):
+                                                    ui.button('View Profile', on_click=lambda uid=profile_user_id, name=profile_name, mode=str(row.get('mode') or state.current_slot_mode()): (state.open_public_profile_scene(uid, name, 'labyrinth', mode), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-4 py-2 font-semibold mt-3')
+                                        with ui.card().classes('mq-panel-frame mq-lab-grid-card p-4'):
+                                            ui.label('Expedition Controls').classes('text-slate-100 text-2xl font-semibold')
+                                            modifier_titles = [str(entry.get('title') or '').strip() for entry in modifier_stack if isinstance(entry, dict) and str(entry.get('title') or '').strip()]
+                                            if modifier_titles:
+                                                ui.label('Blessings: ' + ' • '.join(modifier_titles)).classes('mq-detail-text mt-2')
+                                            if state.labyrinth_is_leader() and member_rows:
+                                                controller_options = {str(row.get('user_id') or '').strip(): str(row.get('character_name') or 'Unknown Adventurer') for row in member_rows}
+                                                current_controller = str(session_row.get('controller_user_id') or session_row.get('leader_user_id') or '').strip()
+                                                controller_select = ui.select(controller_options, value=current_controller, on_change=lambda e: (state.labyrinth_assign_controller(str(e.value or '')), request_render_refresh())).props('dense outlined label=Party Controller').classes('w-full mt-3')
+                                                controller_select.classes('mq-item-select')
+                                            if can_move_labyrinth:
+                                                ui.label('Use arrow keys or WASD, or click the direction pad below.').classes('mq-detail-text mt-3')
+                                                with ui.element('div').classes('mq-lab-direction-pad mt-4'):
+                                                    ui.element('div').classes('mq-lab-dir-spacer')
+                                                    ui.button('↑', on_click=lambda: (state.labyrinth_move_party('up'), request_render_refresh())).props('id=mq-lab-move-up').classes('mq-btn-gold mq-lab-dir-btn')
+                                                    ui.element('div').classes('mq-lab-dir-spacer')
+                                                    ui.button('←', on_click=lambda: (state.labyrinth_move_party('left'), request_render_refresh())).props('id=mq-lab-move-left').classes('mq-btn-secondary mq-lab-dir-btn')
+                                                    ui.button('↓', on_click=lambda: (state.labyrinth_move_party('down'), request_render_refresh())).props('id=mq-lab-move-down').classes('mq-btn-gold mq-lab-dir-btn')
+                                                    ui.button('→', on_click=lambda: (state.labyrinth_move_party('right'), request_render_refresh())).props('id=mq-lab-move-right').classes('mq-btn-secondary mq-lab-dir-btn')
+                                            else:
+                                                ui.label('Movement belongs to the current controller, or the expedition is paused between events.').classes('mq-detail-text mt-3')
+                                            with ui.row().classes('gap-2 mt-4 flex-wrap'):
+                                                if state.labyrinth_is_leader() and session_status in {'lobby', 'defeated'}:
+                                                    ui.button('Start Floor' if session_status == 'lobby' else 'Reform Expedition', on_click=lambda: (state.labyrinth_start_floor() if session_status == 'lobby' else state.labyrinth_reset_after_defeat(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
+                                                if session_status == 'boss_ready' and state.labyrinth_is_controller():
+                                                    ui.button('Challenge Boss', on_click=lambda: (state.labyrinth_start_boss_encounter(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
+                                                if session_status == 'reward' and state.labyrinth_is_leader():
+                                                    ui.button('Finalize Vote', on_click=lambda: (state.finalize_labyrinth_reward_vote(), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
+                                    with ui.column().classes('mq-lab-side-stack'):
+                                        with ui.card().classes('mq-scene-card mq-lab-grid-card w-full p-5'):
+                                            ui.label('Hedge Maze').classes('text-2xl font-semibold text-slate-100')
+                                            ui.label('Seven by seven. Every new square is either a clean breath or a problem. Clear them all to wake the floor boss.').classes('mq-detail-text mt-2')
+                                            with ui.element('div').classes('mq-lab-grid mt-4'):
+                                                grid_size = max(3, int(session_row.get('grid_size', LABYRINTH_GRID_SIZE) or LABYRINTH_GRID_SIZE))
+                                                current_x = int(session_row.get('current_x', 0) or 0)
+                                                current_y = int(session_row.get('current_y', 0) or 0)
+                                                tile_states = session_row.get('tile_states', {}) if isinstance(session_row.get('tile_states', {}), dict) else {}
+                                                for tile_y in range(grid_size):
+                                                    for tile_x in range(grid_size):
+                                                        tile_key = _labyrinth_tile_key(tile_x, tile_y)
+                                                        tile = tile_states.get(tile_key, {})
+                                                        tile_kind = str(tile.get('kind') or '').strip().lower() if isinstance(tile, dict) else ''
+                                                        seen = bool(tile) and bool(tile.get('visited', False))
+                                                        is_current = tile_x == current_x and tile_y == current_y
+                                                        tile_classes = ['mq-lab-tile']
+                                                        tile_label = '?'
+                                                        if not seen:
+                                                            tile_classes.append('unseen')
+                                                        else:
+                                                            if tile_kind == 'encounter':
+                                                                tile_classes.append('encounter')
+                                                                tile_label = '✦'
+                                                            else:
+                                                                tile_classes.append('safe')
+                                                                tile_label = '·'
+                                                            if tile_kind == 'start':
+                                                                tile_classes.append('start')
+                                                                tile_label = 'S'
+                                                        if is_current:
+                                                            tile_classes.append('current')
+                                                            tile_label = '◆'
+                                                        ui.html(f"<div class='{' '.join(tile_classes)}'>{html.escape(tile_label)}</div>")
+                                        with ui.card().classes('mq-panel-frame mq-lab-grid-card p-4'):
+                                            encounter = session_row.get('pending_encounter', {}) if isinstance(session_row.get('pending_encounter', {}), dict) else {}
+                                            if session_status in {'encounter', 'boss'} and encounter:
+                                                monster_level = int(encounter.get('monster_level', max(LABYRINTH_UNLOCK_LEVEL, player.level)) or max(LABYRINTH_UNLOCK_LEVEL, player.level))
+                                                monster_name = str(encounter.get('monster_type') or 'Lantern Beast')
+                                                ui.label('Current Encounter').classes('text-slate-100 text-2xl font-semibold')
+                                                ui.label(f'{monster_name} • Level {monster_level}' + (' • Floor Boss' if bool(encounter.get('boss', False)) else '')).classes('text-slate-300 mt-2')
+                                                ui.label('Every active member resolves this fight on their own client using their current build. If at least one adventurer survives, the expedition keeps moving.').classes('mq-detail-text mt-3')
+                                                can_resolve = bool(self_member_row and not bool(self_member_row.get('is_downed', False)) and (int(self_member_row.get('last_resolution_sequence', 0) or 0) != int(encounter.get('sequence', 0) or 0) or str(self_member_row.get('last_resolution_status') or '').strip().lower() not in {'won', 'lost'}))
+                                                with ui.row().classes('gap-2 mt-4 flex-wrap'):
+                                                    resolve_btn = ui.button('Confront the Encounter', on_click=lambda: (state.run_labyrinth_encounter(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
+                                                    if not can_resolve:
+                                                        resolve_btn.disable()
+                                                    ui.button('Refresh Party Results', on_click=lambda: (state.refresh_labyrinth_session_state(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
+                                                if getattr(state, 'labyrinth_local_resolution_text', ''):
+                                                    ui.label(str(state.labyrinth_local_resolution_text)).classes('mq-detail-text mt-3')
+                                                if getattr(state, 'labyrinth_local_combat_log', []):
+                                                    with ui.element('div').classes('mq-lab-feed mt-4'):
+                                                        for line in list(getattr(state, 'labyrinth_local_combat_log', []) or [])[-12:]:
+                                                            ui.html(f"<div class='mq-lab-feed-entry'>{html.escape(str(line or ''))}</div>")
+                                            elif session_status == 'reward':
+                                                ui.label('Vote on the Blessing').classes('text-slate-100 text-2xl font-semibold')
+                                                ui.label('Each offer pushes the expedition forward with one upside and one downside.').classes('mq-detail-text mt-2')
+                                                vote_counts = _labyrinth_vote_count_map(reward_votes)
+                                                current_vote = state.labyrinth_current_vote_choice()
+                                                with ui.element('div').classes('mq-lab-reward-grid mt-4'):
+                                                    for choice in reward_options:
+                                                        choice_index = int(choice.get('choice_index', 0) or 0)
+                                                        card = ui.card().classes('mq-panel-frame mq-lab-reward-card p-4')
+                                                        if current_vote == choice_index:
+                                                            card.classes('active')
+                                                        with card:
+                                                            ui.label(str(choice.get('title') or 'Unknown Blessing')).classes('text-slate-100 text-xl font-semibold')
+                                                            ui.label(str(choice.get('boon') or '')).classes('text-emerald-300 mt-3')
+                                                            ui.label(str(choice.get('bane') or '')).classes('text-rose-300 mt-1')
+                                                            ui.label(f'{vote_counts.get(choice_index, 0)} vote{"s" if vote_counts.get(choice_index, 0) != 1 else ""}').classes('mq-detail-text mt-4')
+                                                            vote_btn = ui.button('Vote for This Blessing', on_click=lambda idx=choice_index: (state.vote_labyrinth_reward(idx), request_render_refresh())).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold mt-4')
+                                                            if current_vote == choice_index:
+                                                                vote_btn.disable()
+                                                if state.labyrinth_is_leader():
+                                                    ui.button('Seal the Vote and Advance', on_click=lambda: (state.finalize_labyrinth_reward_vote(), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold mt-4')
+                                            elif session_status == 'boss_ready':
+                                                ui.label('Floor Boss Ready').classes('text-slate-100 text-2xl font-semibold')
+                                                ui.label('Every tile on this floor has been explored and resolved. The hedge core is ready to answer the party.').classes('mq-detail-text mt-2')
+                                                if state.labyrinth_is_controller():
+                                                    ui.button('Call the Floor Boss', on_click=lambda: (state.labyrinth_start_boss_encounter(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold mt-4')
+                                            elif session_status == 'defeated':
+                                                ui.label('Expedition Broken').classes('text-slate-100 text-2xl font-semibold')
+                                                ui.label('Every active adventurer on the last pull fell. Reform the expedition to restart the floor.').classes('mq-detail-text mt-2')
+                                                if state.labyrinth_is_leader():
+                                                    ui.button('Reform at the Hedge Line', on_click=lambda: (state.labyrinth_reset_after_defeat(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold mt-4')
+                                            else:
+                                                ui.label('Expedition Briefing').classes('text-slate-100 text-2xl font-semibold')
+                                                ui.label('Move through the hedge one square at a time. New tiles are a coin flip between silence and a fight.').classes('mq-detail-text mt-2')
+                                        with ui.card().classes('mq-panel-frame mq-lab-grid-card p-4'):
+                                            ui.label('Maze Echoes').classes('text-slate-100 text-2xl font-semibold')
+                                            with ui.element('div').classes('mq-lab-feed mt-4'):
+                                                event_feed = [str(entry or '').strip() for entry in list(getattr(state, 'labyrinth_recent_events', []) or []) if str(entry or '').strip()]
+                                                if not event_feed:
+                                                    ui.label('The hedges have not said anything yet.').classes('mq-detail-text')
+                                                else:
+                                                    for entry in event_feed[:10]:
+                                                        ui.html(f"<div class='mq-lab-feed-entry'>{html.escape(entry)}</div>")
                         return
                     elif state.game_tab == 'bazaar':
                         state.refresh_bazaar_listings(force=False, allow_cached=True)
@@ -21480,7 +23560,8 @@ def main_page(request: Request) -> None:
                 monster_stage_classes = 'mq-monster-stage mq-monster-stage-themed w-full' + (' mq-monster-stage-transitioning' if stage_transition_active else '')
                 hero_uri = _hero_data_uri(player.player_class)
                 current_target = state.arena_target_level()
-                arena_target_options = {level: f'Monster Lv {level}' for level in range(1, player.level + 1)}
+                arena_effective_level = max(1, min(60, int(player.level or 1)))
+                arena_target_options = {level: f'Monster Lv {level}' for level in range(1, arena_effective_level + 1)}
                 level_penalty = max(0, player.level - current_target) * 10
                 transition_class = state.arena_transition_tone or 'muted'
                 monster_state_label = 'Entering Arena' if stage_transition_active else 'Current Enemy'
@@ -21849,7 +23930,7 @@ def main_page(request: Request) -> None:
                         if state.fight_in_progress or state.arena_same_level:
                             target_select.disable()
                         same_level = ui.checkbox('Always fight your level', value=state.arena_same_level)
-                        auto_offset_options = {offset: f'-{offset}' for offset in range(0, max(1, int(player.level or 1)))}
+                        auto_offset_options = {offset: f'-{offset}' for offset in range(0, max(1, arena_effective_level))}
                         state.arena_level_offset = max(0, min(int(getattr(state, 'arena_level_offset', 0) or 0), max(auto_offset_options.keys(), default=0)))
                         offset_select = ui.select(auto_offset_options, value=state.arena_level_offset, on_change=lambda e: setattr(state, 'arena_level_offset', int(e.value or 0))).props('dense outlined label=Auto Offset')
                         offset_select.classes('bg-transparent min-w-[120px]')
@@ -21962,10 +24043,12 @@ def main_page(request: Request) -> None:
             return True
         if state.screen != 'game':
             return False
-        quiet_tabs = {'ladder', 'guild_hall', 'glossary', 'settings', 'donate', 'profile'}
+        quiet_tabs = {'ladder', 'guild_hall', 'glossary', 'settings', 'donate', 'profile', 'labyrinth'}
         return str(getattr(state, 'game_tab', '') or '') not in quiet_tabs
 
     def maybe_refresh_for_passive_regen() -> None:
+        if str(getattr(state, 'screen', '') or '') == 'game' and str(getattr(state, 'game_tab', '') or '') == 'labyrinth':
+            return
         if not state.passive_regen_tick():
             return
         snapshot = state.passive_regen_visual_snapshot()
@@ -21985,6 +24068,16 @@ def main_page(request: Request) -> None:
                 "})();"
             ) % (snapshot['hp'], snapshot['max_hp'], snapshot['mana'], snapshot['max_mana'])
         )
+
+    def maybe_refresh_labyrinth_session() -> None:
+        if str(getattr(state, 'screen', '') or '') != 'game':
+            return
+        if str(getattr(state, 'game_tab', '') or '') != 'labyrinth':
+            return
+        if not str(getattr(state, 'labyrinth_session_id', '') or '').strip() and not str(getattr(state, 'labyrinth_join_code', '') or '').strip():
+            return
+        if state.refresh_labyrinth_session_state(force=False):
+            request_render_refresh()
 
     def maybe_retry_auth_reconnect() -> None:
         if not getattr(state, '_auth_reconnect_started_at', 0.0):
@@ -22017,6 +24110,7 @@ def main_page(request: Request) -> None:
         )
 
     ui.timer(1.0, maybe_refresh_for_passive_regen)
+    ui.timer(1.25, maybe_refresh_labyrinth_session)
     ui.timer(2.0, maybe_retry_auth_reconnect)
     normalize_oauth_hash_once()
     render()
