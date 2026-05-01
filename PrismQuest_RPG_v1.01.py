@@ -15894,7 +15894,10 @@ def _labyrinth_build_shared_encounter(self, session_row: Dict[str, object], memb
         'player_first_hit_consumed_ids': [],
         'monster_first_hit_target_ids': [],
         'round': 1,
+        'turn_index': 0,
+        'announced_round': 0,
         'log': [f"{monster.monster_type} emerges on floor {floor}."],
+        'next_step_at': _labyrinth_next_step_iso(self),
         'started_at': _labyrinth_now_iso(),
     }
 
@@ -15904,6 +15907,18 @@ def _labyrinth_alive_party_ids(party_state: Dict[str, Dict[str, object]], partic
         member_id for member_id in participants
         if isinstance(party_state.get(member_id), dict) and not bool(party_state[member_id].get('is_downed', False))
     ]
+
+
+def _labyrinth_step_delay_seconds(self) -> float:
+    try:
+        return max(0.65, float(getattr(self, 'log_delay_ms', 1000) or 1000) / 1000.0)
+    except Exception:
+        return 1.0
+
+
+def _labyrinth_next_step_iso(self, delay_seconds: Optional[float] = None) -> str:
+    delay = _labyrinth_step_delay_seconds(self) if delay_seconds is None else max(0.0, float(delay_seconds))
+    return (datetime.now(timezone.utc) + timedelta(seconds=delay)).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
 
 
 def _labyrinth_repair_session_row(self, session_row: Dict[str, object], member_rows: List[Dict[str, object]]) -> Tuple[Dict[str, object], bool]:
@@ -17075,7 +17090,7 @@ def labyrinth_move_party(self, direction: str) -> bool:
                 event_text = 'The floor is clear, but the expedition has no one left to continue.'
         else:
             payload['status'] = 'exploring'
-            event_text = f'The party slips back onto tile {tile_key}.'
+            event_text = 'The party regroups and keeps moving through the light.'
     payload['tile_states'] = tile_states
     payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), event_text)
     if not _labyrinth_upsert_session_row(self, payload):
@@ -17092,7 +17107,7 @@ def labyrinth_start_boss_encounter(self) -> bool:
         self.labyrinth_status = 'No live expedition is open.'
         return False
     if str(session_row.get('status') or '').strip().lower() == 'boss':
-        self.labyrinth_status = 'The floor boss is already active. Every living party member can take one action per round.'
+        self.labyrinth_status = 'The floor boss is already active. Combat is advancing automatically in party order.'
         return True
     self.labyrinth_status = 'The floor boss now triggers automatically the moment the final labyrinth tile is cleared.'
     return False
@@ -17399,15 +17414,14 @@ def labyrinth_finalize_encounter_if_ready(self) -> bool:
     return False
 
 
-def run_labyrinth_encounter(self) -> bool:
+def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
     ensure_labyrinth_state(self)
     if self.player is None or self.active_slot_index is None:
         self.labyrinth_status = 'Open a live chronicle first.'
         return False
-    if not bool(getattr(self, 'labyrinth_is_local', False)) and (self.supabase is None or not self.is_authenticated()):
-        self.labyrinth_status = 'Sign in before stepping into a shared Labyrinth encounter.'
+    if not bool(getattr(self, 'labyrinth_is_local', False)) and not labyrinth_is_controller(self):
+        self.labyrinth_status = 'The current controller is advancing the shared Labyrinth fight automatically.'
         return False
-    labyrinth_refresh_session_state(self, force=True)
     session_row = getattr(self, 'labyrinth_session_row', {})
     if not isinstance(session_row, dict) or not session_row:
         self.labyrinth_status = 'No live expedition is open.'
@@ -17420,51 +17434,56 @@ def run_labyrinth_encounter(self) -> bool:
     if not pending or not isinstance(pending.get('monster_snapshot'), dict):
         self.labyrinth_status = 'The Labyrinth encounter state is incomplete.'
         return False
+    if not ignore_timing:
+        next_step_at = _labyrinth_parse_iso_timestamp(pending.get('next_step_at'))
+        if next_step_at is not None and next_step_at > datetime.now(timezone.utc):
+            return False
     member_rows = [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
     party_state = _labyrinth_party_state_map(pending)
     if not party_state:
         party_state = _labyrinth_party_state_for_session(self, session_row, member_rows, full_heal=False)
     member_id = _labyrinth_member_identity(self)
-    self_entry = party_state.get(member_id, {})
-    if not isinstance(self_entry, dict) or not self_entry:
-        self.labyrinth_status = 'This chronicle is not registered as a party member.'
-        return False
-    if bool(self_entry.get('is_downed', False)):
-        self.labyrinth_status = 'This adventurer is downed and can only watch until the floor turns over.'
-        return False
-    acted_member_ids = [str(user_id or '').strip() for user_id in list(pending.get('acted_member_ids', []) or []) if str(user_id or '').strip()]
-    if member_id in acted_member_ids:
-        self.labyrinth_status = 'You have already acted this round. Waiting for the rest of the party.'
-        return False
     participants = [str(user_id or '').strip() for user_id in list(pending.get('participants', []) or []) if str(user_id or '').strip()]
     if not participants:
         participants = [str(row.get('user_id') or '').strip() for row in member_rows if str(row.get('user_id') or '').strip()]
+    turn_order = [participant_id for participant_id in participants if isinstance(party_state.get(participant_id), dict)]
     effects = _labyrinth_effect_totals_for_session(session_row)
     boss = bool(pending.get('boss', False))
     monster = Fighter(**copy.deepcopy(pending.get('monster_snapshot')))
-    actor = _labyrinth_member_player_from_entry(self_entry, effects)
     action_log = [str(entry or '').strip() for entry in list(pending.get('log', []) or []) if str(entry or '').strip()]
     current_round = max(1, int(pending.get('round', 1) or 1))
-    if not acted_member_ids:
+    turn_index = max(0, int(pending.get('turn_index', 0) or 0))
+    announced_round = max(0, int(pending.get('announced_round', 0) or 0))
+    if turn_index == 0 and announced_round != current_round:
         action_log.insert(0, f'-- Round {current_round} --')
+        announced_round = current_round
     combat_context = {
-        'attacker_key': member_id,
-        'defender_key': 'monster',
         'player_first_hit_consumed_ids': [str(user_id or '').strip() for user_id in list(pending.get('player_first_hit_consumed_ids', []) or []) if str(user_id or '').strip()],
         'monster_first_hit_target_ids': [str(user_id or '').strip() for user_id in list(pending.get('monster_first_hit_target_ids', []) or []) if str(user_id or '').strip()],
     }
-    player_event = _labyrinth_resolve_turn(actor, monster, combat_context)
-    action_log.insert(0, player_event.text)
-    party_state[member_id] = _labyrinth_store_entry_from_player(self_entry, actor)
     monster_snapshot = asdict(monster)
     victory = not monster.is_alive()
     defeat = False
-    if not victory:
-        acted_member_ids = [member for member in acted_member_ids if member in participants and not bool(party_state.get(member, {}).get('is_downed', False))]
-        if member_id not in acted_member_ids:
-            acted_member_ids.append(member_id)
-        alive_ids = _labyrinth_alive_party_ids(party_state, participants)
-        if alive_ids and all(member in acted_member_ids for member in alive_ids):
+    active_text = ''
+    while turn_index < len(turn_order):
+        actor_id = turn_order[turn_index]
+        actor_entry = party_state.get(actor_id, {})
+        if isinstance(actor_entry, dict) and actor_entry and not bool(actor_entry.get('is_downed', False)):
+            actor = _labyrinth_member_player_from_entry(actor_entry, effects)
+            combat_context['attacker_key'] = actor_id
+            combat_context['defender_key'] = 'monster'
+            player_event = _labyrinth_resolve_turn(actor, monster, combat_context)
+            action_log.insert(0, player_event.text)
+            party_state[actor_id] = _labyrinth_store_entry_from_player(actor_entry, actor)
+            monster_snapshot = asdict(monster)
+            active_text = player_event.text
+            turn_index += 1
+            victory = not monster.is_alive()
+            break
+        turn_index += 1
+    if not victory and turn_index >= len(turn_order):
+        alive_ids = _labyrinth_alive_party_ids(party_state, turn_order)
+        if alive_ids:
             target_id = random.choice(alive_ids)
             target_entry = party_state.get(target_id, {})
             if isinstance(target_entry, dict) and target_entry:
@@ -17475,37 +17494,38 @@ def run_labyrinth_encounter(self) -> bool:
                 action_log.insert(0, monster_event.text)
                 party_state[target_id] = _labyrinth_store_entry_from_player(target_entry, target_player)
                 monster_snapshot = asdict(monster)
-            regen_logs: List[str] = []
-            refreshed_alive_ids = _labyrinth_alive_party_ids(party_state, participants)
-            for alive_id in refreshed_alive_ids:
-                alive_entry = party_state.get(alive_id, {})
-                if not isinstance(alive_entry, dict) or not alive_entry:
-                    continue
-                regen_player = _labyrinth_member_player_from_entry(alive_entry, effects)
-                healing_factor = float(getattr(regen_player, 'labyrinth_healing_factor', 1.0) or 1.0)
-                hp_gain = 0
-                mana_gain = 0
-                if regen_player.life_regen > 0:
-                    hp_gain = min(regen_player.max_hp - regen_player.hp, max(0, int(round(regen_player.life_regen * healing_factor))))
-                    if hp_gain > 0:
-                        regen_player.hp += hp_gain
-                if regen_player.mana_regen > 0:
-                    mana_gain = min(regen_player.max_mana - regen_player.mana, max(0, int(regen_player.mana_regen)))
-                    if mana_gain > 0:
-                        regen_player.mana += mana_gain
-                if hp_gain or mana_gain:
-                    regen_parts = []
-                    if hp_gain:
-                        regen_parts.append(f'{hp_gain} life')
-                    if mana_gain:
-                        regen_parts.append(f'{mana_gain} mana')
-                    regen_logs.append(f"{regen_player.name} regenerates {' and '.join(regen_parts)}.")
-                party_state[alive_id] = _labyrinth_store_entry_from_player(alive_entry, regen_player)
-            for log_line in reversed(regen_logs):
-                action_log.insert(0, log_line)
-            acted_member_ids = []
-            current_round += 1
-            defeat = not _labyrinth_alive_party_ids(party_state, participants)
+                active_text = monster_event.text
+        regen_logs: List[str] = []
+        refreshed_alive_ids = _labyrinth_alive_party_ids(party_state, turn_order)
+        for alive_id in refreshed_alive_ids:
+            alive_entry = party_state.get(alive_id, {})
+            if not isinstance(alive_entry, dict) or not alive_entry:
+                continue
+            regen_player = _labyrinth_member_player_from_entry(alive_entry, effects)
+            healing_factor = float(getattr(regen_player, 'labyrinth_healing_factor', 1.0) or 1.0)
+            hp_gain = 0
+            mana_gain = 0
+            if regen_player.life_regen > 0:
+                hp_gain = min(regen_player.max_hp - regen_player.hp, max(0, int(round(regen_player.life_regen * healing_factor))))
+                if hp_gain > 0:
+                    regen_player.hp += hp_gain
+            if regen_player.mana_regen > 0:
+                mana_gain = min(regen_player.max_mana - regen_player.mana, max(0, int(regen_player.mana_regen)))
+                if mana_gain > 0:
+                    regen_player.mana += mana_gain
+            if hp_gain or mana_gain:
+                regen_parts = []
+                if hp_gain:
+                    regen_parts.append(f'{hp_gain} life')
+                if mana_gain:
+                    regen_parts.append(f'{mana_gain} mana')
+                regen_logs.append(f"{regen_player.name} regenerates {' and '.join(regen_parts)}.")
+            party_state[alive_id] = _labyrinth_store_entry_from_player(alive_entry, regen_player)
+        for log_line in reversed(regen_logs):
+            action_log.insert(0, log_line)
+        current_round += 1
+        turn_index = 0
+        defeat = not _labyrinth_alive_party_ids(party_state, turn_order)
     party_rows = _labyrinth_member_rows_from_party_state(member_rows, party_state)
     summary_bits: List[str] = []
     payload = dict(session_row)
@@ -17605,16 +17625,19 @@ def run_labyrinth_encounter(self) -> bool:
             'monster_type': str(pending.get('monster_type') or monster.monster_type),
             'monster_level': int(pending.get('monster_level', monster.level) or monster.level),
             'monster_snapshot': monster_snapshot,
-            'participants': participants,
-            'acted_member_ids': acted_member_ids,
+            'participants': turn_order,
+            'acted_member_ids': [],
             'player_first_hit_consumed_ids': combat_context.get('player_first_hit_consumed_ids', []),
             'monster_first_hit_target_ids': combat_context.get('monster_first_hit_target_ids', []),
             'round': current_round,
+            'turn_index': turn_index,
+            'announced_round': announced_round if turn_index > 0 else current_round - 1,
             'log': action_log[:18],
+            'next_step_at': _labyrinth_next_step_iso(self),
             'started_at': str(pending.get('started_at') or _labyrinth_now_iso()),
         }
         payload['reward_options'] = []
-        self.labyrinth_local_resolution_text = player_event.text
+        self.labyrinth_local_resolution_text = active_text or 'The encounter keeps moving through the party order.'
     self.labyrinth_local_combat_log = action_log[:18]
     if not _labyrinth_upsert_session_row(self, payload):
         return False
@@ -22715,7 +22738,31 @@ def main_page(request: Request) -> None:
                                         ui.button('Leave Expedition', on_click=lambda: ((state.enter_town('You leave the Labyrinth of Light behind.') if state.leave_labyrinth_session() else None), request_render_refresh())).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold')
                                 with ui.element('div').classes('mq-lab-layout w-full mt-4'):
                                     with ui.column().classes('mq-lab-party-stack'):
-                                        acted_member_ids = [str(user_id or '').strip() for user_id in list(pending_encounter.get('acted_member_ids', []) or []) if str(user_id or '').strip()]
+                                        encounter_turn_order = [str(user_id or '').strip() for user_id in list(pending_encounter.get('participants', []) or []) if str(user_id or '').strip()]
+                                        encounter_turn_index = max(0, int(pending_encounter.get('turn_index', 0) or 0))
+                                        current_actor_id = ''
+                                        current_actor_name = ''
+                                        monster_turn_pending = False
+                                        if session_status in {'encounter', 'boss'}:
+                                            probe_index = encounter_turn_index
+                                            while probe_index < len(encounter_turn_order):
+                                                candidate_id = encounter_turn_order[probe_index]
+                                                candidate_entry = party_state.get(candidate_id, {})
+                                                if isinstance(candidate_entry, dict) and candidate_entry and not bool(candidate_entry.get('is_downed', False)):
+                                                    current_actor_id = candidate_id
+                                                    break
+                                                probe_index += 1
+                                            if current_actor_id:
+                                                current_actor_name = next(
+                                                    (
+                                                        str(row.get('character_name') or 'Unknown Adventurer')
+                                                        for row in display_member_rows
+                                                        if str(row.get('user_id') or '').strip() == current_actor_id
+                                                    ),
+                                                    'Unknown Adventurer',
+                                                )
+                                            else:
+                                                monster_turn_pending = bool(_labyrinth_alive_party_ids(party_state, encounter_turn_order))
                                         for member_index, row in enumerate(display_member_rows):
                                             hero_class = normalize_player_class_name(row.get('player_class'), 'Black Guard')
                                             hero_uri = _hero_data_uri(hero_class)
@@ -22736,8 +22783,8 @@ def main_page(request: Request) -> None:
                                                                 ui.label('Controller').classes('mq-lab-pill')
                                                             if bool(row.get('is_downed', False)):
                                                                 ui.label('Downed').classes('mq-lab-pill')
-                                                            elif session_status in {'encounter', 'boss'} and str(row.get('user_id') or '').strip() in acted_member_ids:
-                                                                ui.label('Acted').classes('mq-lab-pill')
+                                                            elif session_status in {'encounter', 'boss'} and str(row.get('user_id') or '').strip() == current_actor_id:
+                                                                ui.label('Acting').classes('mq-lab-pill')
                                                 with ui.column().classes('mq-lab-member-meters mt-3'):
                                                     ui.html(animated_meter_html(f'lab-party-hp-{member_index}', 'HP', int(row.get('current_hp', 0) or 0), max(1, int(row.get('max_hp', 1) or 1)), 'hp', 900, cycle=f'{row.get("updated_at","")}-hp'))
                                                     ui.html(animated_meter_html(f'lab-party-mana-{member_index}', 'Mana', int(row.get('current_mana', 0) or 0), max(1, int(row.get('max_mana', 1) or 1)), 'mana', 1200, cycle=f'{row.get("updated_at","")}-mana'))
@@ -22828,24 +22875,27 @@ def main_page(request: Request) -> None:
                                             if session_status in {'encounter', 'boss'} and encounter and isinstance(encounter.get('monster_snapshot'), dict):
                                                 monster_level = int(encounter.get('monster_level', max(LABYRINTH_UNLOCK_LEVEL, player.level)) or max(LABYRINTH_UNLOCK_LEVEL, player.level))
                                                 monster_name = str(encounter.get('monster_type') or 'Lantern Beast')
-                                                acted_member_ids = [str(user_id or '').strip() for user_id in list(encounter.get('acted_member_ids', []) or []) if str(user_id or '').strip()]
-                                                participants = [str(user_id or '').strip() for user_id in list(encounter.get('participants', []) or []) if str(user_id or '').strip()]
-                                                alive_ids = _labyrinth_alive_party_ids(party_state, participants)
-                                                self_member_id = _labyrinth_member_identity(state)
-                                                self_has_acted = self_member_id in acted_member_ids
-                                                can_resolve = bool(self_member_row and not bool(self_member_row.get('is_downed', False)) and not self_has_acted)
+                                                round_number = int(encounter.get('round', 1) or 1)
+                                                if monster_turn_pending:
+                                                    next_turn_text = f'{monster_name} acts next.'
+                                                elif current_actor_name:
+                                                    next_turn_text = f'{current_actor_name} acts next.'
+                                                else:
+                                                    next_turn_text = 'The encounter is resolving.'
                                                 ui.label('Current Encounter').classes('text-slate-100 text-2xl font-semibold')
                                                 ui.label(f'{monster_name} • Level {monster_level}' + (' • Floor Boss' if bool(encounter.get('boss', False)) else '')).classes('text-slate-300 mt-2')
-                                                ui.label(f'Round {int(encounter.get("round", 1) or 1)} • {len(acted_member_ids)}/{max(1, len(alive_ids))} living party members have acted.').classes('mq-detail-text mt-3')
+                                                ui.label(f'Round {round_number} • {next_turn_text}').classes('mq-detail-text mt-3')
+                                                ui.label('Combat resolves automatically in fixed party order with arena-style pacing.').classes('mq-detail-text mt-2')
                                                 with ui.row().classes('gap-2 mt-4 flex-wrap'):
-                                                    resolve_btn = ui.button('Take Your Action', on_click=lambda: (state.run_labyrinth_encounter(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
-                                                    if not can_resolve:
-                                                        resolve_btn.disable()
                                                     ui.button('Refresh Encounter', on_click=lambda: (state.refresh_labyrinth_session_state(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
-                                                if self_has_acted and bool(self_member_row) and not bool(self_member_row.get('is_downed', False)):
-                                                    ui.label('You have already acted this round. Waiting for the rest of the party.').classes('mq-detail-text mt-3')
-                                                elif bool(self_member_row) and bool(self_member_row.get('is_downed', False)):
+                                                if bool(self_member_row) and bool(self_member_row.get('is_downed', False)):
                                                     ui.label('You are downed for this fight and can only watch until the floor changes.').classes('mq-detail-text mt-3')
+                                                elif not bool(getattr(state, 'labyrinth_is_local', False)) and not state.labyrinth_is_controller():
+                                                    ui.label('The controller client is advancing the shared fight automatically.').classes('mq-detail-text mt-3')
+                                                elif monster_turn_pending:
+                                                    ui.label(f'{monster_name} is about to answer the party.').classes('mq-detail-text mt-3')
+                                                elif current_actor_name:
+                                                    ui.label(f'{current_actor_name} is taking the current turn.').classes('mq-detail-text mt-3')
                                                 elif getattr(state, 'labyrinth_local_resolution_text', ''):
                                                     ui.label(str(state.labyrinth_local_resolution_text)).classes('mq-detail-text mt-3')
                                                 shared_log = [str(line or '').strip() for line in list(encounter.get('log', []) or []) if str(line or '').strip()]
@@ -24914,6 +24964,15 @@ def main_page(request: Request) -> None:
         session_row = getattr(state, 'labyrinth_session_row', {})
         if (
             isinstance(session_row, dict)
+            and str(session_row.get('status') or '').strip().lower() in {'encounter', 'boss'}
+            and (bool(getattr(state, 'labyrinth_is_local', False)) or state.labyrinth_is_controller())
+        ):
+            if state.run_labyrinth_encounter(ignore_timing=False):
+                request_render_refresh()
+                return
+        session_row = getattr(state, 'labyrinth_session_row', {})
+        if (
+            isinstance(session_row, dict)
             and str(session_row.get('status') or '').strip().lower() == 'reward'
             and _labyrinth_reward_seconds_remaining(session_row) <= 0
             and (bool(getattr(state, 'labyrinth_is_local', False)) or state.labyrinth_is_leader())
@@ -24952,7 +25011,7 @@ def main_page(request: Request) -> None:
         )
 
     ui.timer(1.0, maybe_refresh_for_passive_regen)
-    ui.timer(1.25, maybe_refresh_labyrinth_session)
+    ui.timer(0.35, maybe_refresh_labyrinth_session)
     ui.timer(2.0, maybe_retry_auth_reconnect)
     normalize_oauth_hash_once()
     render()
