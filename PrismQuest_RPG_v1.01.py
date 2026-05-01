@@ -16234,8 +16234,16 @@ def _labyrinth_normalize_session_row(raw_row: object) -> Dict[str, object]:
     row = dict(raw_row)
     grid_size = max(3, int(row.get('grid_size', LABYRINTH_GRID_SIZE) or LABYRINTH_GRID_SIZE))
     center_x, center_y = _labyrinth_spawn_xy(grid_size)
-    current_x = max(0, min(grid_size - 1, int(row.get('current_x', center_x) or center_x)))
-    current_y = max(0, min(grid_size - 1, int(row.get('current_y', center_y) or center_y)))
+    try:
+        raw_current_x = int(row.get('current_x', center_x))
+    except Exception:
+        raw_current_x = center_x
+    try:
+        raw_current_y = int(row.get('current_y', center_y))
+    except Exception:
+        raw_current_y = center_y
+    current_x = max(0, min(grid_size - 1, raw_current_x))
+    current_y = max(0, min(grid_size - 1, raw_current_y))
     pending_encounter = row.get('pending_encounter', {})
     if not isinstance(pending_encounter, dict):
         pending_encounter = {}
