@@ -1241,23 +1241,24 @@ body {
 .mq-lab-member-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.35rem;
+  gap: 0.2rem;
   min-width: 0;
 }
 .mq-lab-member-header {
   display: grid;
-  gap: 0.15rem;
+  gap: 0.08rem;
   min-width: 0;
 }
 .mq-lab-member-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.45rem;
+  gap: 0.28rem;
   align-items: start;
 }
 .mq-lab-member-body.mq-lab-member-body-gear {
-  grid-template-columns: minmax(0, 1fr) minmax(182px, 0.86fr);
-  gap: 0.55rem;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.82fr);
+  gap: 0.45rem;
+  margin-top: -0.12rem;
 }
 .mq-lab-member-gear {
   display: grid;
@@ -1265,8 +1266,8 @@ body {
   min-width: 0;
   align-content: start;
   align-self: start;
-  margin-top: -0.08rem;
-  padding: 0.52rem 0.68rem;
+  margin-top: -0.42rem;
+  padding: 0.46rem 0.62rem;
   border-radius: 16px;
   border: 1px solid rgba(255,255,255,0.06);
   background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
@@ -1298,19 +1299,19 @@ body {
   font-size: 0.72rem;
 }
 .mq-lab-member-portrait {
-  width: 88px;
-  min-width: 88px;
-  height: 108px;
+  width: 114px;
+  min-width: 114px;
+  height: 132px;
   border-radius: 22px;
-  padding: 5px;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .mq-lab-member-portrait .mq-hero-art {
   width: 100%;
-  max-width: 78px;
-  max-height: 98px;
+  max-width: 104px;
+  max-height: 122px;
   height: auto;
   object-fit: contain;
   margin: auto;
@@ -1321,24 +1322,26 @@ body {
   border-radius: 16px;
 }
 .mq-lab-stage-card {
-  min-height: clamp(35rem, 72vh, 38rem);
-  height: clamp(35rem, 72vh, 38rem);
+  min-height: clamp(35rem, 70vh, 37rem);
+  height: clamp(35rem, 70vh, 37rem);
   display: grid;
   align-content: start;
 }
 .mq-lab-grid-shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.9rem;
+  gap: 0.7rem;
   justify-items: center;
   text-align: center;
   min-height: 100%;
   align-content: start;
+  width: 100%;
+  padding-inline: 0.15rem;
 }
 .mq-lab-pack-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.8rem;
+  gap: 0.65rem;
   width: 100%;
 }
 .mq-lab-monster-card {
@@ -1347,29 +1350,32 @@ body {
   align-content: start;
 }
 .mq-lab-monster-stage {
-  min-height: 246px !important;
-  max-height: 246px;
+  min-height: 228px !important;
+  max-height: 228px;
   padding: 0;
 }
 .mq-lab-monster-stage-large {
-  min-height: 308px !important;
-  max-height: 308px;
+  min-height: 262px !important;
+  max-height: 262px;
 }
 .mq-lab-monster-stage .mq-monster-image-wrap {
-  min-height: 214px;
-  padding: 10px 8px;
+  min-height: 194px;
+  padding: 8px 8px;
 }
 .mq-lab-monster-stage-large .mq-monster-image-wrap {
-  min-height: 272px;
-  padding: 14px 10px;
+  min-height: 228px;
+  padding: 10px 10px;
 }
 .mq-lab-monster-stage .mq-monster-image-static {
-  max-width: min(92%, 236px);
-  max-height: 208px;
+  max-width: min(92%, 216px);
+  max-height: 186px;
 }
 .mq-lab-monster-stage-large .mq-monster-image-static {
-  max-width: min(94%, 296px);
-  max-height: 268px;
+  max-width: min(94%, 248px);
+  max-height: 220px;
+}
+.mq-lab-single-monster-shell {
+  width: min(100%, 22rem);
 }
 .mq-lab-grid-title {
   font-size: 2rem;
@@ -1383,8 +1389,8 @@ body {
 .mq-lab-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.55rem;
-  width: min(100%, 34rem);
+  gap: 0.42rem;
+  width: min(calc(100% - 0.4rem), 29.5rem);
   margin-inline: auto;
 }
 .mq-lab-tile {
@@ -6732,6 +6738,7 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
         'labyrinth_session_id': '',
         'labyrinth_join_code': '',
         'labyrinth_floor': 0,
+        'labyrinth_player_tank': False,
         'season_id': normalized_season,
         'ladder_reset_count': 0,
         'run_started_wall_time': 0.0,
@@ -7211,6 +7218,7 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
     slot['bazaar_ledger_entries'] = normalize_bazaar_ledger_entries(raw_slot.get('bazaar_ledger_entries', []))
     slot['labyrinth_session_id'] = str(raw_slot.get('labyrinth_session_id', '') or '').strip()
     slot['labyrinth_join_code'] = str(raw_slot.get('labyrinth_join_code', '') or '').strip().upper()
+    slot['labyrinth_player_tank'] = bool(raw_slot.get('labyrinth_player_tank', slot.get('labyrinth_player_tank', False)))
     try:
         slot['labyrinth_floor'] = max(0, int(raw_slot.get('labyrinth_floor', 0) or 0))
     except Exception:
@@ -12721,6 +12729,8 @@ class SessionState:
         slot['disable_last_drop_animation'] = bool(self.disable_last_drop_animation)
         slot['arena_combat_log_default_open'] = bool(self.arena_combat_log_default_open)
         slot['bazaar_ledger_entries'] = [dict(entry) for entry in normalize_bazaar_ledger_entries(self.bazaar_ledger_entries)]
+        current_labyrinth_row = _labyrinth_self_member_row(self) if self.player is not None else {}
+        slot['labyrinth_player_tank'] = bool(current_labyrinth_row.get('tank', slot.get('labyrinth_player_tank', False)) if isinstance(current_labyrinth_row, dict) and current_labyrinth_row else slot.get('labyrinth_player_tank', False))
         if bool(getattr(self, 'labyrinth_is_local', False)):
             slot['labyrinth_session_id'] = ''
             slot['labyrinth_join_code'] = ''
@@ -15025,6 +15035,7 @@ def public_profile_payload_for_slot(slot: Dict[str, object], user_id: str, seaso
         'season_id': sanitize_ladder_season_id(season_id),
         'slot_index': int(slot_index),
         'mode': mode,
+        'labyrinth_tank': bool(normalized_slot.get('labyrinth_player_tank', False)),
         'equipped_items': player_equipped_payload(player),
         'inventory_items': player_inventory_payload(player),
         'saved_item_sets': normalized_slot.get('saved_item_sets', saved_item_sets_to_payload(empty_saved_item_sets())),
@@ -15111,6 +15122,7 @@ def normalize_public_profile_payload(raw_row: object) -> Dict[str, object]:
         'season_id': sanitize_ladder_season_id(raw_row.get('season_id', DEFAULT_LADDER_SEASON_ID)),
         'slot_index': max(1, int(raw_row.get('slot_index', SLOT_INDEX_BY_MODE.get(mode, 0) + 1) or (SLOT_INDEX_BY_MODE.get(mode, 0) + 1))),
         'mode': mode,
+        'labyrinth_tank': bool(raw_row.get('labyrinth_tank', False)),
         'equipped_items': equipped_items,
         'inventory_items': inventory_items,
         'saved_item_sets': saved_sets,
@@ -16703,7 +16715,11 @@ def _labyrinth_profile_payload_for_current_player(self) -> Dict[str, object]:
     ladder_resets = int(slot_ladder_reset_total(slot, mode, self.global_ladder_reset_count))
     pq_points = int(slot_masterquest_attempts(slot))
     payload = public_profile_payload_for_slot(slot, self.auth_user_id, season_id, ladder_resets, pq_points, slot_index)
-    return payload if isinstance(payload, dict) else {}
+    if not isinstance(payload, dict):
+        return {}
+    current_row = _labyrinth_self_member_row(self)
+    payload['labyrinth_tank'] = bool(current_row.get('tank', slot.get('labyrinth_player_tank', False)) if isinstance(current_row, dict) and current_row else slot.get('labyrinth_player_tank', False))
+    return payload
 
 
 def _labyrinth_normalize_session_row(raw_row: object) -> Dict[str, object]:
@@ -17361,6 +17377,8 @@ def labyrinth_set_tank_role(self, raw_member_id: object, value: object) -> bool:
     self_id = _labyrinth_member_identity(self)
     if not (member_id == self_id or (bool(getattr(self, 'labyrinth_is_local', False)) and bool(target_row.get('is_companion', False)))):
         return False
+    if member_id == self_id and self.active_slot_index is not None and 0 <= self.active_slot_index < len(self.slots):
+        self.slots[self.active_slot_index]['labyrinth_player_tank'] = desired
     if member_id == self_id:
         if not labyrinth_sync_member_snapshot(self, force=True, extra_updates={'tank': desired}):
             return False
@@ -23469,8 +23487,6 @@ def main_page(request: Request) -> None:
                                                                     ui.label('Companion').classes('mq-lab-pill')
                                                                 if bool(row.get('is_downed', False)):
                                                                     ui.label('Downed').classes('mq-lab-pill')
-                                                                elif session_status in {'encounter', 'boss'} and str(row.get('user_id') or '').strip() == current_actor_id:
-                                                                    ui.label('Acting').classes('mq-lab-pill')
                                                                 tank_box = ui.checkbox('Tank', value=bool(row.get('tank', False)))
                                                                 tank_box.classes('text-slate-200 text-xs')
                                                                 if can_toggle_tank:
@@ -23547,8 +23563,8 @@ def main_page(request: Request) -> None:
                                                     monster_level = int(monster_snapshot.get('level', pending_encounter.get('monster_level', max(LABYRINTH_UNLOCK_LEVEL, player.level))) or max(LABYRINTH_UNLOCK_LEVEL, player.level))
                                                     monster_uri = _arena_monster_data_uri(monster_type)
                                                     monster_popup_html = _labyrinth_damage_popup_html(pending_encounter, 'monster-0')
-                                                    with ui.column().classes('w-full items-center mt-4 gap-4'):
-                                                        with ui.element('div').classes('mq-scene-stage mq-monster-stage-themed mq-lab-monster-stage mq-lab-monster-stage-large w-full max-w-[24rem]').style(monster_theme_style(monster_type)):
+                                                    with ui.column().classes('mq-lab-single-monster-shell items-center mt-4 gap-3'):
+                                                        with ui.element('div').classes('mq-scene-stage mq-monster-stage-themed mq-lab-monster-stage mq-lab-monster-stage-large w-full').style(monster_theme_style(monster_type)):
                                                             if monster_uri:
                                                                 with ui.element('div').classes('mq-monster-image-wrap'):
                                                                     ui.html(f"<img src='{html.escape(monster_uri, quote=True)}' alt='{html.escape(monster_type)}' class='mq-monster-image-static' loading='lazy' decoding='async' draggable='false'>")
@@ -23582,9 +23598,7 @@ def main_page(request: Request) -> None:
                                                                         else:
                                                                             ui.label(monster_species_name(monster_type)).classes('text-2xl font-semibold text-slate-100')
                                                                     heading = f'{monster_type} • Level {monster_level}'
-                                                                    if is_acting_monster:
-                                                                        heading += ' • Acting'
-                                                                    elif not monster_alive:
+                                                                    if not monster_alive:
                                                                         heading += ' • Defeated'
                                                                     ui.label(heading).classes('text-slate-200 text-lg font-semibold text-center')
                                                                     with ui.element('div').classes('mq-meter-shell w-full'):
