@@ -1255,11 +1255,19 @@ body {
   gap: 0.7rem;
   align-items: start;
 }
+.mq-lab-member-body.mq-lab-member-body-gear {
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.9fr);
+}
 .mq-lab-member-gear {
   display: grid;
   gap: 0.28rem;
   min-width: 0;
   align-content: start;
+  padding: 0.7rem 0.8rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
 }
 .mq-lab-member-gear .mq-detail-text {
   font-size: 0.82rem;
@@ -15785,6 +15793,40 @@ def _labyrinth_first_alive_monster_index(monster_snapshots: object) -> int:
     return alive[0] if alive else -1
 
 
+def _labyrinth_damage_popup_payload(amount: object, crit: object = False) -> Dict[str, object]:
+    try:
+        safe_amount = int(amount or 0)
+    except Exception:
+        safe_amount = 0
+    if safe_amount <= 0:
+        return {}
+    return {
+        'text': f'-{safe_amount}!!' if bool(crit) else f'-{safe_amount}',
+        'crit': bool(crit),
+        'at': float(time.time()),
+    }
+
+
+def _labyrinth_damage_popup_html(raw_pending: object, target_key: object) -> str:
+    if not isinstance(raw_pending, dict):
+        return ''
+    damage_popups = raw_pending.get('damage_popups', {})
+    if not isinstance(damage_popups, dict):
+        return ''
+    popup = damage_popups.get(str(target_key or '').strip(), {})
+    if not isinstance(popup, dict):
+        return ''
+    text = str(popup.get('text') or '').strip()
+    try:
+        ts = float(popup.get('at', 0.0) or 0.0)
+    except Exception:
+        ts = 0.0
+    if not text or time.time() - ts > 1.45:
+        return ''
+    tone = 'crit' if bool(popup.get('crit', False)) else 'normal'
+    return f"<div class='mq-damage-float {tone}'>{html.escape(text)}</div>"
+
+
 def _labyrinth_encounter_monster_count(party_size: object, boss: bool = False) -> int:
     if boss:
         return 1
@@ -15874,26 +15916,57 @@ def _labyrinth_build_companion_player(player_class: str, target_level: object) -
     normalized_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
     player = create_player(normalized_class)
     desired_level = max(LABYRINTH_UNLOCK_LEVEL, int(target_level or LABYRINTH_UNLOCK_LEVEL))
-    while player.level < desired_level:
-        gain_xp(player, max(1, int(player.xp_to_next - player.xp)), None)
-    total_points = max(0, int(player.unspent_stat_points or 0))
-    vitality_points = max(0, min(total_points, int(round(total_points * 0.25))))
-    main_points = max(0, total_points - vitality_points)
-    for _ in range(vitality_points):
-        player.allocate_core_stat('vitality')
+    total_future_points = max(0, desired_level - int(player.level or 1))
+    vitality_target = max(0, min(total_future_points, int(round(total_future_points * 0.25))))
+    main_target = max(0, total_future_points - vitality_target)
+    strength_target = 0
+    dexterity_target = 0
+    intelligence_target = 0
     if normalized_class in CASTER_CLASSES:
-        for _ in range(main_points):
-            player.allocate_core_stat('intelligence')
+        intelligence_target = main_target
     else:
         core_cfg = CLASS_CONFIGS.get(normalized_class, {}).get('core', {})
         strength_score = max(1, int(core_cfg.get('strength', 1) or 1))
         dexterity_score = max(1, int(core_cfg.get('dexterity', 1) or 1))
-        strength_points = max(0, min(main_points, int(round(main_points * (strength_score / max(1, strength_score + dexterity_score))))))
-        dexterity_points = max(0, main_points - strength_points)
-        for _ in range(strength_points):
-            player.allocate_core_stat('strength')
-        for _ in range(dexterity_points):
-            player.allocate_core_stat('dexterity')
+        strength_target = max(0, min(main_target, int(round(main_target * (strength_score / max(1, strength_score + dexterity_score))))))
+        dexterity_target = max(0, main_target - strength_target)
+    allocated = {
+        'vitality': 0,
+        'strength': 0,
+        'dexterity': 0,
+        'intelligence': 0,
+    }
+
+    def next_companion_stat() -> str:
+        spent = sum(allocated.values())
+        options: List[Tuple[str, float]] = []
+        if vitality_target > allocated['vitality']:
+            target_ratio = vitality_target / max(1, total_future_points)
+            current_ratio = allocated['vitality'] / max(1, spent) if spent > 0 else 0.0
+            options.append(('vitality', target_ratio - current_ratio))
+        if intelligence_target > allocated['intelligence']:
+            target_ratio = intelligence_target / max(1, total_future_points)
+            current_ratio = allocated['intelligence'] / max(1, spent) if spent > 0 else 0.0
+            options.append(('intelligence', target_ratio - current_ratio))
+        if strength_target > allocated['strength']:
+            target_ratio = strength_target / max(1, total_future_points)
+            current_ratio = allocated['strength'] / max(1, spent) if spent > 0 else 0.0
+            options.append(('strength', target_ratio - current_ratio))
+        if dexterity_target > allocated['dexterity']:
+            target_ratio = dexterity_target / max(1, total_future_points)
+            current_ratio = allocated['dexterity'] / max(1, spent) if spent > 0 else 0.0
+            options.append(('dexterity', target_ratio - current_ratio))
+        if not options:
+            return 'intelligence' if normalized_class in CASTER_CLASSES else _labyrinth_companion_primary_core_stat(normalized_class)
+        options.sort(key=lambda entry: (entry[1], random.random()), reverse=True)
+        return options[0][0]
+
+    while player.level < desired_level:
+        gain_xp(player, max(1, int(player.xp_to_next - player.xp)), None)
+        while player.unspent_stat_points > 0:
+            stat_key = next_companion_stat()
+            player.allocate_core_stat(stat_key)
+            allocated[stat_key] = allocated.get(stat_key, 0) + 1
     primary_core = _labyrinth_companion_primary_core_stat(normalized_class)
     damage_slot = 'charm' if normalized_class in CASTER_CLASSES and _labyrinth_companion_slot_subtype(normalized_class, 'charm') else 'weapon'
     for slot_name in ('weapon', 'armor', 'charm'):
@@ -16243,6 +16316,7 @@ def _labyrinth_build_shared_encounter(self, session_row: Dict[str, object], memb
         'turn_index': 0,
         'announced_round': 0,
         'log': encounter_log,
+        'damage_popups': {},
         'next_step_at': _labyrinth_next_step_iso(self),
         'started_at': _labyrinth_now_iso(),
     }
@@ -16523,6 +16597,7 @@ def ensure_labyrinth_state(self) -> None:
         'labyrinth_vote_rows': [],
         'labyrinth_recent_events': [],
         'labyrinth_local_combat_log': [],
+        'labyrinth_combat_log_hidden': False,
         'labyrinth_local_resolution_text': '',
         'labyrinth_last_snapshot_hash': '',
         'labyrinth_last_sync_at': 0.0,
@@ -17883,6 +17958,8 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
     current_round = max(1, int(pending.get('round', 1) or 1))
     turn_index = max(0, int(pending.get('turn_index', 0) or 0))
     announced_round = max(0, int(pending.get('announced_round', 0) or 0))
+    next_sequence = max(1, int(pending.get('sequence', 0) or 0) + 1)
+    damage_popups = copy.deepcopy(pending.get('damage_popups', {})) if isinstance(pending.get('damage_popups', {}), dict) else {}
     if turn_index == 0 and announced_round != current_round:
         action_log.insert(0, f'-- Round {current_round} --')
         announced_round = current_round
@@ -17913,6 +17990,10 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
             action_log.insert(0, player_event.text)
             party_state[actor_id] = _labyrinth_store_entry_from_player(actor_entry, actor)
             monsters[target_index] = target_monster
+            if int(player_event.damage_amount or 0) > 0:
+                popup = _labyrinth_damage_popup_payload(player_event.damage_amount, player_event.crit)
+                if popup:
+                    damage_popups[f'monster-{target_index}'] = popup
             updated_monster_snapshots = [asdict(monster) for monster in monsters]
             active_text = player_event.text
             turn_index += 1
@@ -17944,6 +18025,10 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
                 action_log.insert(0, monster_event.text)
                 party_state[target_id] = _labyrinth_store_entry_from_player(target_entry, target_player)
                 monsters[monster_phase_index] = current_monster
+                if int(monster_event.damage_amount or 0) > 0:
+                    popup = _labyrinth_damage_popup_payload(monster_event.damage_amount, monster_event.crit)
+                    if popup:
+                        damage_popups[str(target_id or '').strip()] = popup
                 updated_monster_snapshots = [asdict(monster) for monster in monsters]
                 active_text = monster_event.text
                 turn_index = party_turn_count + monster_phase_index + 1
@@ -17995,7 +18080,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
         gold_gain_amount = 0
         if boss and reward_reference_monster is not None:
             gold_multiplier = max(0.05, 1.0 + float(effects.get('gold_mult', 0.0) or 0.0) + float(effects.get('elite_gold_mult', 0.0) or 0.0))
-            gold_gain_amount = max(1, int(round(((18 + reward_reference_monster.level * 3) * 2.35) * gold_multiplier)))
+            gold_gain_amount = max(1, int(round(random.randint(100, 150) * gold_multiplier)))
         gold_gain_amount += max(0, int(round(float(effects.get('victory_gold_flat', 0.0) or 0.0))))
         if boss:
             gold_gain_amount += max(0, int(round(float(effects.get('elite_gold_flat', 0.0) or 0.0))))
@@ -18044,7 +18129,9 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
             payload['pending_encounter'] = {
                 'party_state': party_state,
                 'reward_vote_started_at': _labyrinth_now_iso(),
+                'reward_gold_gain': gold_gain_amount,
                 'log': action_log[:18],
+                'damage_popups': damage_popups,
             }
             payload['reward_options'] = _labyrinth_build_reward_choices(int(payload.get('floor', 1) or 1))
             payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The floor boss falls. Three unstable prism offers descend into view.')
@@ -18065,13 +18152,13 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
                     payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The floor clears, but no adventurer remains standing.')
             else:
                 payload['status'] = 'exploring'
-                payload['pending_encounter'] = {'party_state': party_state, 'log': action_log[:18]}
+                payload['pending_encounter'] = {'party_state': party_state, 'log': action_log[:18], 'reward_gold_gain': 0}
                 payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The encounter breaks. The party can push deeper into the Labyrinth.')
             self.labyrinth_local_resolution_text = 'Victory. ' + ' '.join(summary_bits) if summary_bits else 'Victory.'
     elif defeat:
         payload['status'] = 'defeated'
         payload['reward_options'] = []
-        payload['pending_encounter'] = {'party_state': party_state, 'log': action_log[:18]}
+        payload['pending_encounter'] = {'party_state': party_state, 'log': action_log[:18], 'reward_gold_gain': 0}
         payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), f'Floor {int(payload.get("floor", 1) or 1)} overwhelms the party. No active adventurer remains standing.')
         self.labyrinth_local_resolution_text = 'Defeat. The expedition is broken until the leader reforms it.'
     else:
@@ -18080,7 +18167,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
         payload['status'] = session_status
         payload['pending_encounter'] = {
             'party_state': party_state,
-            'sequence': int(pending.get('sequence', 0) or 0),
+            'sequence': next_sequence,
             'tile_key': str(pending.get('tile_key') or '').strip(),
             'boss': boss,
             'monster_type': str(primary_snapshot.get('monster_type') or pending.get('monster_type') or 'Lantern Beast'),
@@ -18095,6 +18182,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
             'turn_index': turn_index,
             'announced_round': announced_round if turn_index > 0 else current_round - 1,
             'log': action_log[:18],
+            'damage_popups': damage_popups,
             'next_step_at': _labyrinth_next_step_iso(self),
             'started_at': str(pending.get('started_at') or _labyrinth_now_iso()),
         }
@@ -23248,7 +23336,11 @@ def main_page(request: Request) -> None:
                                         for member_index, row in enumerate(display_member_rows):
                                             hero_class = normalize_player_class_name(row.get('player_class'), 'Black Guard')
                                             hero_uri = _hero_data_uri(hero_class)
+                                            member_id = str(row.get('user_id') or '').strip()
+                                            member_popup_html = _labyrinth_damage_popup_html(pending_encounter, member_id)
                                             with ui.card().classes('mq-panel-frame mq-lab-member-card p-3'):
+                                                if member_popup_html:
+                                                    ui.html(member_popup_html)
                                                 with ui.element('div').classes('mq-lab-member-top'):
                                                     with ui.element('div').classes('mq-lab-member-portrait'):
                                                         if hero_uri:
@@ -23270,7 +23362,7 @@ def main_page(request: Request) -> None:
                                                                     ui.label('Downed').classes('mq-lab-pill')
                                                                 elif session_status in {'encounter', 'boss'} and str(row.get('user_id') or '').strip() == current_actor_id:
                                                                     ui.label('Acting').classes('mq-lab-pill')
-                                                        with ui.element('div').classes('mq-lab-member-body'):
+                                                        with ui.element('div').classes('mq-lab-member-body mq-lab-member-body-gear' if bool(row.get('is_companion', False)) else 'mq-lab-member-body'):
                                                             with ui.column().classes('mq-lab-member-meters'):
                                                                 ui.html(animated_meter_html(f'lab-party-hp-{member_index}', 'HP', int(row.get('current_hp', 0) or 0), max(1, int(row.get('max_hp', 1) or 1)), 'hp', 900, cycle=f'{row.get("updated_at","")}-hp'))
                                                                 ui.html(animated_meter_html(f'lab-party-mana-{member_index}', 'Mana', int(row.get('current_mana', 0) or 0), max(1, int(row.get('max_mana', 1) or 1)), 'mana', 1200, cycle=f'{row.get("updated_at","")}-mana'))
@@ -23335,12 +23427,12 @@ def main_page(request: Request) -> None:
                                         with ui.card().classes('mq-scene-card mq-lab-grid-card w-full p-5'):
                                             if session_status in {'encounter', 'boss'} and encounter_monster_snapshots:
                                                 ui.label('Active Encounter').classes('mq-lab-grid-title')
-                                                ui.label('The maze gives way to a direct confrontation. Every living party member acts once in party order, then each living monster answers once.').classes('mq-detail-text mq-lab-grid-subtitle mt-2')
                                                 if len(encounter_monster_snapshots) == 1:
                                                     monster_snapshot = encounter_monster_snapshots[0]
                                                     monster_type = str(monster_snapshot.get('monster_type') or pending_encounter.get('monster_type') or 'Lantern Beast')
                                                     monster_level = int(monster_snapshot.get('level', pending_encounter.get('monster_level', max(LABYRINTH_UNLOCK_LEVEL, player.level))) or max(LABYRINTH_UNLOCK_LEVEL, player.level))
                                                     monster_uri = _arena_monster_data_uri(monster_type)
+                                                    monster_popup_html = _labyrinth_damage_popup_html(pending_encounter, 'monster-0')
                                                     with ui.column().classes('w-full items-center mt-4 gap-4'):
                                                         with ui.element('div').classes('mq-scene-stage mq-monster-stage-themed mq-lab-monster-stage mq-lab-monster-stage-large w-full max-w-[24rem]').style(monster_theme_style(monster_type)):
                                                             if monster_uri:
@@ -23348,6 +23440,8 @@ def main_page(request: Request) -> None:
                                                                     ui.html(f"<img src='{html.escape(monster_uri, quote=True)}' alt='{html.escape(monster_type)}' class='mq-monster-image-static' loading='lazy' decoding='async' draggable='false'>")
                                                             else:
                                                                 ui.label(monster_species_name(monster_type)).classes('text-3xl font-semibold text-slate-100')
+                                                            if monster_popup_html:
+                                                                ui.html(monster_popup_html)
                                                         ui.label(f'{monster_type} • Level {monster_level}' + (' • Floor Boss' if bool(pending_encounter.get('boss', False)) else '')).classes('text-slate-200 text-2xl font-semibold text-center')
                                                         ui.html(animated_meter_html('labyrinth-monster-hp', 'HP', int(monster_snapshot.get('hp', 1) or 1), max(1, int(monster_snapshot.get('max_hp', 1) or 1)), 'hp', 950, cycle=f'{pending_encounter.get("sequence",0)}-{monster_snapshot.get("hp",0)}'))
                                                 else:
@@ -23360,6 +23454,7 @@ def main_page(request: Request) -> None:
                                                             monster_max_hp = max(1, int(monster_snapshot.get('max_hp', 1) or 1))
                                                             monster_alive = monster_hp > 0
                                                             is_acting_monster = monster_turn_pending and monster_index == current_monster_actor_index
+                                                            monster_popup_html = _labyrinth_damage_popup_html(pending_encounter, f'monster-{monster_index}')
                                                             with ui.card().classes('mq-panel-frame mq-lab-monster-card w-full p-3').style(
                                                                 ('outline: 2px solid rgba(251,191,36,0.75); outline-offset: 0px;' if is_acting_monster else '')
                                                                 + ('opacity: 0.55;' if not monster_alive else '')
@@ -23371,6 +23466,8 @@ def main_page(request: Request) -> None:
                                                                                 ui.html(f"<img src='{html.escape(monster_uri, quote=True)}' alt='{html.escape(monster_type)}' class='mq-monster-image-static' loading='lazy' decoding='async' draggable='false'>")
                                                                         else:
                                                                             ui.label(monster_species_name(monster_type)).classes('text-2xl font-semibold text-slate-100')
+                                                                        if monster_popup_html:
+                                                                            ui.html(monster_popup_html)
                                                                     heading = f'{monster_type} • Level {monster_level}'
                                                                     if is_acting_monster:
                                                                         heading += ' • Acting'
@@ -23450,6 +23547,7 @@ def main_page(request: Request) -> None:
                                                 ui.label('Combat resolves automatically in fixed party order with arena-style pacing.').classes('mq-detail-text mt-2')
                                                 with ui.row().classes('gap-2 mt-4 flex-wrap'):
                                                     ui.button('Refresh Encounter', on_click=lambda: (state.refresh_labyrinth_session_state(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
+                                                    ui.button('Show Log' if bool(getattr(state, 'labyrinth_combat_log_hidden', False)) else 'Hide Log', on_click=lambda: (setattr(state, 'labyrinth_combat_log_hidden', not bool(getattr(state, 'labyrinth_combat_log_hidden', False))), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
                                                 if bool(self_member_row) and bool(self_member_row.get('is_downed', False)):
                                                     ui.label('You are downed for this fight and can only watch until the floor changes.').classes('mq-detail-text mt-3')
                                                 elif not bool(getattr(state, 'labyrinth_is_local', False)) and not state.labyrinth_is_controller():
@@ -23461,7 +23559,9 @@ def main_page(request: Request) -> None:
                                                 elif getattr(state, 'labyrinth_local_resolution_text', ''):
                                                     ui.label(str(state.labyrinth_local_resolution_text)).classes('mq-detail-text mt-3')
                                                 shared_log = [str(line or '').strip() for line in list(encounter.get('log', []) or []) if str(line or '').strip()]
-                                                if shared_log:
+                                                if bool(getattr(state, 'labyrinth_combat_log_hidden', False)):
+                                                    ui.label('Combat log hidden.').classes('mq-detail-text mt-4')
+                                                elif shared_log:
                                                     with ui.element('div').classes('mq-lab-feed mt-4'):
                                                         for line in shared_log[:12]:
                                                             ui.html(f"<div class='mq-lab-feed-entry'>{html.escape(str(line or ''))}</div>")
@@ -23469,6 +23569,9 @@ def main_page(request: Request) -> None:
                                                 vote_seconds_left = _labyrinth_reward_seconds_remaining(session_row)
                                                 ui.label('Vote on the Prism Offer').classes('text-slate-100 text-2xl font-semibold')
                                                 ui.label(f'Each prism offer carries one upside and one downside. Majority wins when the prism seals in {vote_seconds_left}s.').classes('mq-detail-text mt-2')
+                                                reward_gold_gain = max(0, int(pending_encounter.get('reward_gold_gain', 0) or 0))
+                                                if reward_gold_gain > 0:
+                                                    ui.html(f"<div class='mt-3'>{gold_inline_html(reward_gold_gain)}</div>")
                                                 vote_counts = _labyrinth_vote_count_map(reward_votes)
                                                 current_vote = state.labyrinth_current_vote_choice()
                                                 with ui.element('div').classes('mq-lab-reward-grid mt-4'):
