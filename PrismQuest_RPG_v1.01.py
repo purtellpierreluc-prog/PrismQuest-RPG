@@ -1232,7 +1232,7 @@ body {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.8rem;
-  align-items: center;
+  align-items: start;
 }
 .mq-lab-member-meters {
   display: grid;
@@ -1291,23 +1291,27 @@ body {
   font-size: 0.72rem;
 }
 .mq-lab-member-portrait {
-  width: 72px;
-  min-width: 72px;
-  height: 72px;
+  width: 78px;
+  min-width: 78px;
+  height: 78px;
   border-radius: 20px;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 30%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.0) 56%),
-    linear-gradient(180deg, rgba(18, 24, 36, 0.98), rgba(8, 10, 16, 1));
-  border: 1px solid rgba(255,255,255,0.07);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 18px 32px rgba(0,0,0,0.28);
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.mq-lab-member-portrait img {
+.mq-lab-member-portrait .mq-hero-art {
   width: 100%;
-  height: 100%;
+  max-width: 62px;
+  max-height: 62px;
+  height: auto;
   object-fit: contain;
-  transform: scale(1.06);
-  filter: grayscale(0.94) contrast(1.12) brightness(0.82) drop-shadow(0 18px 24px rgba(0,0,0,0.52));
+  margin: auto;
+}
+.mq-lab-member-portrait .mq-hero-art-fallback {
+  width: 100%;
+  min-height: 100%;
+  border-radius: 14px;
 }
 .mq-lab-grid-shell {
   display: grid;
@@ -16029,6 +16033,7 @@ def _labyrinth_build_companion_member_row(self, player_class: str, member_rows: 
         'highest_class': normalized_class,
         'player_class': normalized_class,
         'level': companion_player.level,
+        'labyrinth_tank': False,
         'equipped_items': {
             slot_name: (
                 companion_player.equipped.get(slot_name).to_dict()
@@ -16043,6 +16048,7 @@ def _labyrinth_build_companion_member_row(self, player_class: str, member_rows: 
         'session_id': str(getattr(self, 'labyrinth_session_id', '') or '').strip(),
         'user_id': f'local-companion-{companion_index}',
         'is_companion': True,
+        'tank': False,
         'character_name': companion_name,
         'mode': self.current_slot_mode(),
         'slot_index': 100 + companion_index,
@@ -16147,6 +16153,7 @@ def _labyrinth_build_party_entry_from_snapshot(
         'current_xp': int(player.xp),
         'xp_to_next': int(max(1, player.xp_to_next)),
         'is_downed': bool(player.hp <= 0),
+        'tank': bool(member_row.get('tank', False)),
         'player_snapshot': copy.deepcopy(raw_snapshot),
     }
 
@@ -16200,7 +16207,7 @@ def _labyrinth_project_member_row(member_row: Dict[str, object], party_state: Di
     overlay = party_state.get(member_id, {})
     if not isinstance(overlay, dict) or not overlay:
         return projected
-    for key in ('level', 'current_hp', 'max_hp', 'current_mana', 'max_mana', 'current_xp', 'xp_to_next', 'is_downed'):
+    for key in ('level', 'current_hp', 'max_hp', 'current_mana', 'max_mana', 'current_xp', 'xp_to_next', 'is_downed', 'tank'):
         if key in overlay:
             projected[key] = overlay[key]
     if isinstance(overlay.get('player_snapshot'), dict):
@@ -16257,6 +16264,7 @@ def _labyrinth_store_entry_from_player(entry: Dict[str, object], player: Player)
     updated['current_xp'] = int(player.xp)
     updated['xp_to_next'] = int(max(1, player.xp_to_next))
     updated['is_downed'] = bool(player.hp <= 0)
+    updated['tank'] = bool(entry.get('tank', False))
     return updated
 
 
@@ -16327,6 +16335,28 @@ def _labyrinth_alive_party_ids(party_state: Dict[str, Dict[str, object]], partic
         member_id for member_id in participants
         if isinstance(party_state.get(member_id), dict) and not bool(party_state[member_id].get('is_downed', False))
     ]
+
+
+def _labyrinth_pick_monster_target(party_state: Dict[str, Dict[str, object]], participants: List[str]) -> str:
+    alive_ids = _labyrinth_alive_party_ids(party_state, participants)
+    if not alive_ids:
+        return ''
+    weighted: List[Tuple[str, float]] = []
+    total_weight = 0.0
+    for member_id in alive_ids:
+        entry = party_state.get(member_id, {})
+        weight = 2.5 if isinstance(entry, dict) and bool(entry.get('tank', False)) else 1.0
+        total_weight += weight
+        weighted.append((member_id, weight))
+    if total_weight <= 0:
+        return alive_ids[0]
+    roll = random.random() * total_weight
+    cursor = 0.0
+    for member_id, weight in weighted:
+        cursor += weight
+        if roll <= cursor:
+            return member_id
+    return weighted[-1][0]
 
 
 def _labyrinth_step_delay_seconds(self) -> float:
@@ -16719,6 +16749,7 @@ def _labyrinth_normalize_member_row(raw_row: object) -> Dict[str, object]:
         'session_id': str(raw_row.get('session_id') or '').strip(),
         'user_id': str(raw_row.get('user_id') or '').strip(),
         'is_companion': bool(raw_row.get('is_companion', False)),
+        'tank': bool(raw_row.get('tank', snapshot.get('labyrinth_tank', False) if isinstance(snapshot, dict) else False)),
         'character_name': clean_character_name(str(raw_row.get('character_name') or 'Unknown Adventurer')) or 'Unknown Adventurer',
         'mode': normalize_ladder_mode(raw_row.get('mode') or '', ''),
         'slot_index': max(1, int(raw_row.get('slot_index', 1) or 1)),
@@ -16775,6 +16806,8 @@ def _labyrinth_member_payload(self, extra_updates: Optional[Dict[str, object]] =
     if self.player is None or self.active_slot_index is None:
         return {}
     profile_snapshot = _labyrinth_embed_combat_snapshot(_labyrinth_profile_payload_for_current_player(self), self.player)
+    tank_value = bool(extra_updates.get('tank')) if isinstance(extra_updates, dict) and 'tank' in extra_updates else bool(current_row.get('tank', False)) if (current_row := _labyrinth_self_member_row(self)) else False
+    profile_snapshot['labyrinth_tank'] = tank_value
     session_id = str(getattr(self, 'labyrinth_session_id', '') or '').strip()
     member_identity = _labyrinth_member_identity(self)
     payload = {
@@ -16793,19 +16826,20 @@ def _labyrinth_member_payload(self, extra_updates: Optional[Dict[str, object]] =
         'current_xp': int(self.player.xp),
         'xp_to_next': int(max(1, self.player.xp_to_next)),
         'is_downed': bool(self.player.hp <= 0),
+        'tank': tank_value,
         'last_resolution_sequence': 0,
         'last_resolution_status': '',
         'resolution_note': '',
         'profile_snapshot': profile_snapshot,
         'updated_at': _labyrinth_now_iso(),
     }
-    current_row = _labyrinth_self_member_row(self)
     if current_row:
         payload['last_resolution_sequence'] = int(current_row.get('last_resolution_sequence', 0) or 0)
         payload['last_resolution_status'] = str(current_row.get('last_resolution_status') or '').strip().lower()
         payload['resolution_note'] = str(current_row.get('resolution_note') or '').strip()
     if isinstance(extra_updates, dict):
         payload.update(extra_updates)
+    payload.pop('tank', None)
     return payload
 
 
@@ -17291,6 +17325,58 @@ def labyrinth_hire_companion(self, raw_class: object) -> bool:
     )
     self.labyrinth_status = f'{companion_row.get("character_name") or companion_class} hired for {LABYRINTH_COMPANION_COST} gold.'
     self.sync_active_slot()
+    return True
+
+
+def labyrinth_set_tank_role(self, raw_member_id: object, value: object) -> bool:
+    ensure_labyrinth_state(self)
+    member_id = str(raw_member_id or '').strip()
+    if not member_id:
+        return False
+    desired = bool(value)
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict) or not session_row:
+        return False
+    member_rows = [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
+    target_row = next((row for row in member_rows if str(row.get('user_id') or '').strip() == member_id), None)
+    if not isinstance(target_row, dict):
+        return False
+    self_id = _labyrinth_member_identity(self)
+    if not (member_id == self_id or (bool(getattr(self, 'labyrinth_is_local', False)) and bool(target_row.get('is_companion', False)))):
+        return False
+    if member_id == self_id:
+        if not labyrinth_sync_member_snapshot(self, force=True, extra_updates={'tank': desired}):
+            return False
+        if not bool(getattr(self, 'labyrinth_is_local', False)):
+            labyrinth_refresh_session_state(self, force=True)
+            return True
+        member_rows = [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
+    updated_rows: List[Dict[str, object]] = []
+    for row in member_rows:
+        cloned = dict(row)
+        if str(cloned.get('user_id') or '').strip() == member_id:
+            cloned['tank'] = desired
+            profile_snapshot = copy.deepcopy(cloned.get('profile_snapshot', {})) if isinstance(cloned.get('profile_snapshot', {}), dict) else {}
+            if isinstance(profile_snapshot, dict):
+                profile_snapshot['labyrinth_tank'] = desired
+                cloned['profile_snapshot'] = profile_snapshot
+        updated_rows.append(cloned)
+    if bool(getattr(self, 'labyrinth_is_local', False)):
+        payload = dict(session_row)
+        pending = dict(payload.get('pending_encounter', {}) if isinstance(payload.get('pending_encounter', {}), dict) else {})
+        party_state = _labyrinth_party_state_map(pending)
+        if isinstance(party_state.get(member_id), dict):
+            party_state[member_id]['tank'] = desired
+        if party_state:
+            pending['party_state'] = party_state
+        payload['pending_encounter'] = pending
+        _labyrinth_store_snapshot(
+            self,
+            _labyrinth_normalize_session_row(payload),
+            updated_rows,
+            [dict(row) for row in list(getattr(self, 'labyrinth_vote_rows', []) or []) if isinstance(row, dict)],
+        )
+        self.sync_active_slot()
     return True
 
 
@@ -17998,7 +18084,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
             active_text = player_event.text
             turn_index += 1
             victory = not _labyrinth_alive_monster_indices(updated_monster_snapshots)
-            break
+            continue
         turn_index += 1
     if not victory and not _labyrinth_alive_party_ids(party_state, turn_order):
         defeat = True
@@ -18015,7 +18101,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
             if not alive_ids:
                 defeat = True
                 break
-            target_id = random.choice(alive_ids)
+            target_id = _labyrinth_pick_monster_target(party_state, turn_order)
             target_entry = party_state.get(target_id, {})
             if isinstance(target_entry, dict) and target_entry:
                 target_player = _labyrinth_member_player_from_entry(target_entry, effects)
@@ -18034,7 +18120,10 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
                 turn_index = party_turn_count + monster_phase_index + 1
                 defeat = not _labyrinth_alive_party_ids(party_state, turn_order)
                 acted_monster = True
-                break
+                if defeat:
+                    break
+                monster_phase_index += 1
+                continue
             monster_phase_index += 1
             turn_index = party_turn_count + monster_phase_index
         if not defeat and not acted_monster:
@@ -20854,6 +20943,7 @@ SessionState.labyrinth_current_vote_choice = labyrinth_current_vote_choice
 SessionState.create_labyrinth_session = create_labyrinth_session
 SessionState.create_labyrinth_solo_session = create_labyrinth_solo_session
 SessionState.labyrinth_hire_companion = labyrinth_hire_companion
+SessionState.labyrinth_set_tank_role = labyrinth_set_tank_role
 SessionState.join_labyrinth_session = join_labyrinth_session
 SessionState.leave_labyrinth_session = leave_labyrinth_session
 SessionState.labyrinth_assign_controller = labyrinth_assign_controller
@@ -23338,36 +23428,46 @@ def main_page(request: Request) -> None:
                                             hero_uri = _hero_data_uri(hero_class)
                                             member_id = str(row.get('user_id') or '').strip()
                                             member_popup_html = _labyrinth_damage_popup_html(pending_encounter, member_id)
+                                            is_companion = bool(row.get('is_companion', False))
+                                            can_toggle_tank = member_id == _labyrinth_member_identity(state) or (bool(getattr(state, 'labyrinth_is_local', False)) and is_companion)
                                             with ui.card().classes('mq-panel-frame mq-lab-member-card p-3'):
-                                                if member_popup_html:
-                                                    ui.html(member_popup_html)
                                                 with ui.element('div').classes('mq-lab-member-top'):
-                                                    with ui.element('div').classes('mq-lab-member-portrait'):
+                                                    with ui.element('div').classes('mq-hero-art-frame mq-lab-member-portrait'):
                                                         if hero_uri:
-                                                            ui.html(f"<img src='{html.escape(hero_uri, quote=True)}' alt='{html.escape(hero_class)} portrait' loading='lazy' decoding='async' draggable='false'>")
+                                                            ui.html(f"<img src='{html.escape(hero_uri, quote=True)}' alt='{html.escape(hero_class)} portrait' class='mq-hero-art' loading='lazy' decoding='async' draggable='false'>")
                                                         else:
-                                                            ui.label(hero_class[:2].upper()).classes('text-slate-100 text-xl font-semibold w-full h-full flex items-center justify-center')
+                                                            with ui.element('div').classes('mq-hero-art-fallback'):
+                                                                ui.label(hero_class[:2].upper()).classes('text-slate-100 text-xl font-semibold w-full h-full flex items-center justify-center')
                                                     with ui.element('div').classes('mq-lab-member-main'):
                                                         with ui.element('div').classes('mq-lab-member-header'):
-                                                            ui.label(str(row.get('character_name') or 'Unknown Adventurer')).classes('text-slate-100 text-lg font-semibold')
-                                                            ui.label(f'{hero_class} • Level {int(row.get("level", 1) or 1)}').classes('text-slate-300 text-sm')
+                                                            if not is_companion:
+                                                                ui.label(str(row.get('character_name') or 'Unknown Adventurer')).classes('text-slate-100 text-lg font-semibold')
+                                                            ui.label(f'{hero_class} • Level {int(row.get("level", 1) or 1)}').classes(('text-slate-300 text-sm' if not is_companion else 'text-slate-100 text-base font-semibold'))
                                                             with ui.row().classes('gap-2 flex-wrap'):
                                                                 if str(row.get('user_id') or '').strip() == str(session_row.get('leader_user_id') or '').strip():
                                                                     ui.label('Leader').classes('mq-lab-pill')
                                                                 if str(row.get('user_id') or '').strip() == str(session_row.get('controller_user_id') or '').strip():
                                                                     ui.label('Controller').classes('mq-lab-pill')
-                                                                if bool(row.get('is_companion', False)):
+                                                                if is_companion:
                                                                     ui.label('Companion').classes('mq-lab-pill')
                                                                 if bool(row.get('is_downed', False)):
                                                                     ui.label('Downed').classes('mq-lab-pill')
                                                                 elif session_status in {'encounter', 'boss'} and str(row.get('user_id') or '').strip() == current_actor_id:
                                                                     ui.label('Acting').classes('mq-lab-pill')
+                                                                tank_box = ui.checkbox('Tank', value=bool(row.get('tank', False)))
+                                                                tank_box.classes('text-slate-200 text-xs')
+                                                                if can_toggle_tank:
+                                                                    tank_box.on_value_change(lambda e, target_id=member_id: (state.labyrinth_set_tank_role(target_id, bool(e.value)), request_render_refresh()))
+                                                                else:
+                                                                    tank_box.disable()
                                                         with ui.element('div').classes('mq-lab-member-body mq-lab-member-body-gear' if bool(row.get('is_companion', False)) else 'mq-lab-member-body'):
                                                             with ui.column().classes('mq-lab-member-meters'):
-                                                                ui.html(animated_meter_html(f'lab-party-hp-{member_index}', 'HP', int(row.get('current_hp', 0) or 0), max(1, int(row.get('max_hp', 1) or 1)), 'hp', 900, cycle=f'{row.get("updated_at","")}-hp'))
+                                                                with ui.element('div').classes('mq-meter-shell'):
+                                                                    ui.html(animated_meter_html(f'lab-party-hp-{member_index}', 'HP', int(row.get('current_hp', 0) or 0), max(1, int(row.get('max_hp', 1) or 1)), 'hp', 900, cycle=f'{row.get("updated_at","")}-hp'))
+                                                                    if member_popup_html:
+                                                                        ui.html(member_popup_html)
                                                                 ui.html(animated_meter_html(f'lab-party-mana-{member_index}', 'Mana', int(row.get('current_mana', 0) or 0), max(1, int(row.get('max_mana', 1) or 1)), 'mana', 1200, cycle=f'{row.get("updated_at","")}-mana'))
-                                                                ui.html(animated_meter_html(f'lab-party-xp-{member_index}', 'XP', int(row.get('current_xp', 0) or 0), max(1, int(row.get('xp_to_next', 1) or 1)), 'exp', 1800, cycle=f'{row.get("level",1)}-{row.get("current_xp",0)}', rollover=True))
-                                                            if bool(row.get('is_companion', False)):
+                                                            if is_companion:
                                                                 combat_snapshot = row.get('combat_snapshot', {}) if isinstance(row.get('combat_snapshot', {}), dict) else {}
                                                                 equipped_snapshot = combat_snapshot.get('equipped', {}) if isinstance(combat_snapshot.get('equipped', {}), dict) else {}
                                                                 weapon_item = coerce_item(equipped_snapshot.get('weapon'))
@@ -23379,9 +23479,6 @@ def main_page(request: Request) -> None:
                                                                     ui.html(f"<div class='mq-detail-text'>Weapon {persistent_hoverable_item_name_html(weapon_item, 'Empty', persist_key=hover_key_base + '-weapon')}</div>")
                                                                     ui.html(f"<div class='mq-detail-text'>Armor {persistent_hoverable_item_name_html(armor_item, 'Empty', persist_key=hover_key_base + '-armor')}</div>")
                                                                     ui.html(f"<div class='mq-detail-text'>Charm {persistent_hoverable_item_name_html(charm_item, 'Empty', persist_key=hover_key_base + '-charm')}</div>")
-                                                resolution_note = str(row.get('resolution_note') or '').strip()
-                                                if resolution_note:
-                                                    ui.label(resolution_note).classes('mq-detail-text mt-2')
                                         with ui.card().classes('mq-panel-frame mq-lab-grid-card p-4'):
                                             ui.label('Expedition Controls').classes('text-slate-100 text-2xl font-semibold')
                                             modifier_titles = [str(entry.get('title') or '').strip() for entry in modifier_stack if isinstance(entry, dict) and str(entry.get('title') or '').strip()]
@@ -23440,10 +23537,11 @@ def main_page(request: Request) -> None:
                                                                     ui.html(f"<img src='{html.escape(monster_uri, quote=True)}' alt='{html.escape(monster_type)}' class='mq-monster-image-static' loading='lazy' decoding='async' draggable='false'>")
                                                             else:
                                                                 ui.label(monster_species_name(monster_type)).classes('text-3xl font-semibold text-slate-100')
+                                                        ui.label(f'{monster_type} • Level {monster_level}' + (' • Floor Boss' if bool(pending_encounter.get('boss', False)) else '')).classes('text-slate-200 text-2xl font-semibold text-center')
+                                                        with ui.element('div').classes('mq-meter-shell w-full'):
+                                                            ui.html(animated_meter_html('labyrinth-monster-hp', 'HP', int(monster_snapshot.get('hp', 1) or 1), max(1, int(monster_snapshot.get('max_hp', 1) or 1)), 'hp', 950, cycle=f'{pending_encounter.get("sequence",0)}-{monster_snapshot.get("hp",0)}'))
                                                             if monster_popup_html:
                                                                 ui.html(monster_popup_html)
-                                                        ui.label(f'{monster_type} • Level {monster_level}' + (' • Floor Boss' if bool(pending_encounter.get('boss', False)) else '')).classes('text-slate-200 text-2xl font-semibold text-center')
-                                                        ui.html(animated_meter_html('labyrinth-monster-hp', 'HP', int(monster_snapshot.get('hp', 1) or 1), max(1, int(monster_snapshot.get('max_hp', 1) or 1)), 'hp', 950, cycle=f'{pending_encounter.get("sequence",0)}-{monster_snapshot.get("hp",0)}'))
                                                 else:
                                                     with ui.element('div').classes('mq-lab-pack-grid mt-4'):
                                                         for monster_index, monster_snapshot in enumerate(encounter_monster_snapshots):
@@ -23466,15 +23564,16 @@ def main_page(request: Request) -> None:
                                                                                 ui.html(f"<img src='{html.escape(monster_uri, quote=True)}' alt='{html.escape(monster_type)}' class='mq-monster-image-static' loading='lazy' decoding='async' draggable='false'>")
                                                                         else:
                                                                             ui.label(monster_species_name(monster_type)).classes('text-2xl font-semibold text-slate-100')
-                                                                        if monster_popup_html:
-                                                                            ui.html(monster_popup_html)
                                                                     heading = f'{monster_type} • Level {monster_level}'
                                                                     if is_acting_monster:
                                                                         heading += ' • Acting'
                                                                     elif not monster_alive:
                                                                         heading += ' • Defeated'
                                                                     ui.label(heading).classes('text-slate-200 text-lg font-semibold text-center')
-                                                                    ui.html(animated_meter_html(f'labyrinth-monster-hp-{monster_index}', 'HP', monster_hp, monster_max_hp, 'hp', 900, cycle=f'{pending_encounter.get("sequence",0)}-{monster_index}-{monster_hp}'))
+                                                                    with ui.element('div').classes('mq-meter-shell w-full'):
+                                                                        ui.html(animated_meter_html(f'labyrinth-monster-hp-{monster_index}', 'HP', monster_hp, monster_max_hp, 'hp', 900, cycle=f'{pending_encounter.get("sequence",0)}-{monster_index}-{monster_hp}'))
+                                                                        if monster_popup_html:
+                                                                            ui.html(monster_popup_html)
                                             else:
                                                 with ui.element('div').classes('mq-lab-grid-shell mt-1'):
                                                     ui.label('Labyrinth of Light').classes('mq-lab-grid-title')
