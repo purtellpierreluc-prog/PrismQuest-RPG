@@ -1229,22 +1229,64 @@ body {
   pointer-events: none;
 }
 .mq-lab-member-top {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 0.8rem;
+  align-items: center;
 }
 .mq-lab-member-meters {
   display: grid;
   gap: 0.1rem;
 }
+.mq-lab-member-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.45rem;
+  min-width: 0;
+}
+.mq-lab-member-header {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+.mq-lab-member-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+}
+.mq-lab-member-gear {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+  align-content: start;
+}
+.mq-lab-member-gear .mq-detail-text {
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+.mq-lab-member-gear-label {
+  color: #8ea2b8;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
 .mq-lab-member-meters .mq-meter {
   margin-top: 0;
 }
+.mq-lab-member-card .mq-meter-track {
+  height: 22px;
+}
+.mq-lab-member-card .mq-meter-label,
+.mq-lab-member-card .mq-meter-value {
+  font-size: 0.72rem;
+}
 .mq-lab-member-portrait {
-  width: 76px;
-  min-width: 76px;
-  height: 76px;
-  border-radius: 22px;
+  width: 72px;
+  min-width: 72px;
+  height: 72px;
+  border-radius: 20px;
   overflow: hidden;
   background:
     radial-gradient(circle at 50% 30%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.0) 56%),
@@ -1265,6 +1307,42 @@ body {
   gap: 0.9rem;
   justify-items: center;
   text-align: center;
+}
+.mq-lab-pack-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  width: 100%;
+}
+.mq-lab-monster-card {
+  display: grid;
+  gap: 0.65rem;
+  align-content: start;
+}
+.mq-lab-monster-stage {
+  min-height: 246px !important;
+  max-height: 246px;
+  padding: 0;
+}
+.mq-lab-monster-stage-large {
+  min-height: 308px !important;
+  max-height: 308px;
+}
+.mq-lab-monster-stage .mq-monster-image-wrap {
+  min-height: 214px;
+  padding: 10px 8px;
+}
+.mq-lab-monster-stage-large .mq-monster-image-wrap {
+  min-height: 272px;
+  padding: 14px 10px;
+}
+.mq-lab-monster-stage .mq-monster-image-static {
+  max-width: min(92%, 236px);
+  max-height: 208px;
+}
+.mq-lab-monster-stage-large .mq-monster-image-static {
+  max-width: min(94%, 296px);
+  max-height: 268px;
 }
 .mq-lab-grid-title {
   font-size: 2rem;
@@ -1399,6 +1477,15 @@ body {
 @media (max-width: 1120px) {
   .mq-lab-layout,
   .mq-lab-reward-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mq-lab-pack-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .mq-lab-member-body,
+  .mq-lab-pack-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -23161,42 +23248,45 @@ def main_page(request: Request) -> None:
                                         for member_index, row in enumerate(display_member_rows):
                                             hero_class = normalize_player_class_name(row.get('player_class'), 'Black Guard')
                                             hero_uri = _hero_data_uri(hero_class)
-                                            with ui.card().classes('mq-panel-frame mq-lab-member-card p-4'):
+                                            with ui.card().classes('mq-panel-frame mq-lab-member-card p-3'):
                                                 with ui.element('div').classes('mq-lab-member-top'):
                                                     with ui.element('div').classes('mq-lab-member-portrait'):
                                                         if hero_uri:
                                                             ui.html(f"<img src='{html.escape(hero_uri, quote=True)}' alt='{html.escape(hero_class)} portrait' loading='lazy' decoding='async' draggable='false'>")
                                                         else:
                                                             ui.label(hero_class[:2].upper()).classes('text-slate-100 text-xl font-semibold w-full h-full flex items-center justify-center')
-                                                    with ui.column().classes('gap-1 min-w-0'):
-                                                        ui.label(str(row.get('character_name') or 'Unknown Adventurer')).classes('text-slate-100 text-xl font-semibold')
-                                                        ui.label(f'{hero_class} • Level {int(row.get("level", 1) or 1)}').classes('text-slate-300')
-                                                        with ui.row().classes('gap-2 flex-wrap'):
-                                                            if str(row.get('user_id') or '').strip() == str(session_row.get('leader_user_id') or '').strip():
-                                                                ui.label('Leader').classes('mq-lab-pill')
-                                                            if str(row.get('user_id') or '').strip() == str(session_row.get('controller_user_id') or '').strip():
-                                                                ui.label('Controller').classes('mq-lab-pill')
+                                                    with ui.element('div').classes('mq-lab-member-main'):
+                                                        with ui.element('div').classes('mq-lab-member-header'):
+                                                            ui.label(str(row.get('character_name') or 'Unknown Adventurer')).classes('text-slate-100 text-lg font-semibold')
+                                                            ui.label(f'{hero_class} • Level {int(row.get("level", 1) or 1)}').classes('text-slate-300 text-sm')
+                                                            with ui.row().classes('gap-2 flex-wrap'):
+                                                                if str(row.get('user_id') or '').strip() == str(session_row.get('leader_user_id') or '').strip():
+                                                                    ui.label('Leader').classes('mq-lab-pill')
+                                                                if str(row.get('user_id') or '').strip() == str(session_row.get('controller_user_id') or '').strip():
+                                                                    ui.label('Controller').classes('mq-lab-pill')
+                                                                if bool(row.get('is_companion', False)):
+                                                                    ui.label('Companion').classes('mq-lab-pill')
+                                                                if bool(row.get('is_downed', False)):
+                                                                    ui.label('Downed').classes('mq-lab-pill')
+                                                                elif session_status in {'encounter', 'boss'} and str(row.get('user_id') or '').strip() == current_actor_id:
+                                                                    ui.label('Acting').classes('mq-lab-pill')
+                                                        with ui.element('div').classes('mq-lab-member-body'):
+                                                            with ui.column().classes('mq-lab-member-meters'):
+                                                                ui.html(animated_meter_html(f'lab-party-hp-{member_index}', 'HP', int(row.get('current_hp', 0) or 0), max(1, int(row.get('max_hp', 1) or 1)), 'hp', 900, cycle=f'{row.get("updated_at","")}-hp'))
+                                                                ui.html(animated_meter_html(f'lab-party-mana-{member_index}', 'Mana', int(row.get('current_mana', 0) or 0), max(1, int(row.get('max_mana', 1) or 1)), 'mana', 1200, cycle=f'{row.get("updated_at","")}-mana'))
+                                                                ui.html(animated_meter_html(f'lab-party-xp-{member_index}', 'XP', int(row.get('current_xp', 0) or 0), max(1, int(row.get('xp_to_next', 1) or 1)), 'exp', 1800, cycle=f'{row.get("level",1)}-{row.get("current_xp",0)}', rollover=True))
                                                             if bool(row.get('is_companion', False)):
-                                                                ui.label('Companion').classes('mq-lab-pill')
-                                                            if bool(row.get('is_downed', False)):
-                                                                ui.label('Downed').classes('mq-lab-pill')
-                                                            elif session_status in {'encounter', 'boss'} and str(row.get('user_id') or '').strip() == current_actor_id:
-                                                                ui.label('Acting').classes('mq-lab-pill')
-                                                with ui.column().classes('mq-lab-member-meters mt-3'):
-                                                    ui.html(animated_meter_html(f'lab-party-hp-{member_index}', 'HP', int(row.get('current_hp', 0) or 0), max(1, int(row.get('max_hp', 1) or 1)), 'hp', 900, cycle=f'{row.get("updated_at","")}-hp'))
-                                                    ui.html(animated_meter_html(f'lab-party-mana-{member_index}', 'Mana', int(row.get('current_mana', 0) or 0), max(1, int(row.get('max_mana', 1) or 1)), 'mana', 1200, cycle=f'{row.get("updated_at","")}-mana'))
-                                                ui.html(animated_meter_html(f'lab-party-xp-{member_index}', 'XP', int(row.get('current_xp', 0) or 0), max(1, int(row.get('xp_to_next', 1) or 1)), 'exp', 1800, cycle=f'{row.get("level",1)}-{row.get("current_xp",0)}', rollover=True))
-                                                if bool(row.get('is_companion', False)):
-                                                    combat_snapshot = row.get('combat_snapshot', {}) if isinstance(row.get('combat_snapshot', {}), dict) else {}
-                                                    equipped_snapshot = combat_snapshot.get('equipped', {}) if isinstance(combat_snapshot.get('equipped', {}), dict) else {}
-                                                    weapon_item = coerce_item(equipped_snapshot.get('weapon'))
-                                                    armor_item = coerce_item(equipped_snapshot.get('armor'))
-                                                    charm_item = coerce_item(equipped_snapshot.get('charm'))
-                                                    hover_key_base = str(row.get('user_id') or f'lab-companion-{member_index}').strip() or f'lab-companion-{member_index}'
-                                                    with ui.column().classes('gap-1 mt-3'):
-                                                        ui.html(f"<div class='mq-detail-text'>Weapon {persistent_hoverable_item_name_html(weapon_item, 'Empty', persist_key=hover_key_base + '-weapon')}</div>")
-                                                        ui.html(f"<div class='mq-detail-text'>Armor {persistent_hoverable_item_name_html(armor_item, 'Empty', persist_key=hover_key_base + '-armor')}</div>")
-                                                        ui.html(f"<div class='mq-detail-text'>Charm {persistent_hoverable_item_name_html(charm_item, 'Empty', persist_key=hover_key_base + '-charm')}</div>")
+                                                                combat_snapshot = row.get('combat_snapshot', {}) if isinstance(row.get('combat_snapshot', {}), dict) else {}
+                                                                equipped_snapshot = combat_snapshot.get('equipped', {}) if isinstance(combat_snapshot.get('equipped', {}), dict) else {}
+                                                                weapon_item = coerce_item(equipped_snapshot.get('weapon'))
+                                                                armor_item = coerce_item(equipped_snapshot.get('armor'))
+                                                                charm_item = coerce_item(equipped_snapshot.get('charm'))
+                                                                hover_key_base = str(row.get('user_id') or f'lab-companion-{member_index}').strip() or f'lab-companion-{member_index}'
+                                                                with ui.column().classes('mq-lab-member-gear'):
+                                                                    ui.label('Companion Gear').classes('mq-lab-member-gear-label')
+                                                                    ui.html(f"<div class='mq-detail-text'>Weapon {persistent_hoverable_item_name_html(weapon_item, 'Empty', persist_key=hover_key_base + '-weapon')}</div>")
+                                                                    ui.html(f"<div class='mq-detail-text'>Armor {persistent_hoverable_item_name_html(armor_item, 'Empty', persist_key=hover_key_base + '-armor')}</div>")
+                                                                    ui.html(f"<div class='mq-detail-text'>Charm {persistent_hoverable_item_name_html(charm_item, 'Empty', persist_key=hover_key_base + '-charm')}</div>")
                                                 resolution_note = str(row.get('resolution_note') or '').strip()
                                                 if resolution_note:
                                                     ui.label(resolution_note).classes('mq-detail-text mt-2')
@@ -23252,15 +23342,16 @@ def main_page(request: Request) -> None:
                                                     monster_level = int(monster_snapshot.get('level', pending_encounter.get('monster_level', max(LABYRINTH_UNLOCK_LEVEL, player.level))) or max(LABYRINTH_UNLOCK_LEVEL, player.level))
                                                     monster_uri = _arena_monster_data_uri(monster_type)
                                                     with ui.column().classes('w-full items-center mt-4 gap-4'):
-                                                        with ui.element('div').classes('mq-scene-stage mq-town-scene-stage w-full max-w-[26rem]'):
+                                                        with ui.element('div').classes('mq-scene-stage mq-monster-stage-themed mq-lab-monster-stage mq-lab-monster-stage-large w-full max-w-[24rem]').style(monster_theme_style(monster_type)):
                                                             if monster_uri:
-                                                                ui.html(f"<img src='{html.escape(monster_uri, quote=True)}' alt='{html.escape(monster_type)}' class='mq-town-scene-image-static' loading='lazy' decoding='async' draggable='false'>")
+                                                                with ui.element('div').classes('mq-monster-image-wrap'):
+                                                                    ui.html(f"<img src='{html.escape(monster_uri, quote=True)}' alt='{html.escape(monster_type)}' class='mq-monster-image-static' loading='lazy' decoding='async' draggable='false'>")
                                                             else:
                                                                 ui.label(monster_species_name(monster_type)).classes('text-3xl font-semibold text-slate-100')
                                                         ui.label(f'{monster_type} • Level {monster_level}' + (' • Floor Boss' if bool(pending_encounter.get('boss', False)) else '')).classes('text-slate-200 text-2xl font-semibold text-center')
                                                         ui.html(animated_meter_html('labyrinth-monster-hp', 'HP', int(monster_snapshot.get('hp', 1) or 1), max(1, int(monster_snapshot.get('max_hp', 1) or 1)), 'hp', 950, cycle=f'{pending_encounter.get("sequence",0)}-{monster_snapshot.get("hp",0)}'))
                                                 else:
-                                                    with ui.element('div').classes('w-full grid grid-cols-1 min-[900px]:grid-cols-2 gap-4 mt-4'):
+                                                    with ui.element('div').classes('mq-lab-pack-grid mt-4'):
                                                         for monster_index, monster_snapshot in enumerate(encounter_monster_snapshots):
                                                             monster_type = str(monster_snapshot.get('monster_type') or 'Lantern Beast')
                                                             monster_level = int(monster_snapshot.get('level', max(LABYRINTH_UNLOCK_LEVEL, player.level)) or max(LABYRINTH_UNLOCK_LEVEL, player.level))
@@ -23269,14 +23360,15 @@ def main_page(request: Request) -> None:
                                                             monster_max_hp = max(1, int(monster_snapshot.get('max_hp', 1) or 1))
                                                             monster_alive = monster_hp > 0
                                                             is_acting_monster = monster_turn_pending and monster_index == current_monster_actor_index
-                                                            with ui.card().classes('mq-panel-frame w-full p-4').style(
+                                                            with ui.card().classes('mq-panel-frame mq-lab-monster-card w-full p-3').style(
                                                                 ('outline: 2px solid rgba(251,191,36,0.75); outline-offset: 0px;' if is_acting_monster else '')
                                                                 + ('opacity: 0.55;' if not monster_alive else '')
                                                             ):
                                                                 with ui.column().classes('w-full items-center gap-3'):
-                                                                    with ui.element('div').classes('mq-scene-stage mq-town-scene-stage w-full max-w-[16rem]'):
+                                                                    with ui.element('div').classes('mq-scene-stage mq-monster-stage-themed mq-lab-monster-stage w-full').style(monster_theme_style(monster_type)):
                                                                         if monster_uri:
-                                                                            ui.html(f"<img src='{html.escape(monster_uri, quote=True)}' alt='{html.escape(monster_type)}' class='mq-town-scene-image-static' loading='lazy' decoding='async' draggable='false'>")
+                                                                            with ui.element('div').classes('mq-monster-image-wrap'):
+                                                                                ui.html(f"<img src='{html.escape(monster_uri, quote=True)}' alt='{html.escape(monster_type)}' class='mq-monster-image-static' loading='lazy' decoding='async' draggable='false'>")
                                                                         else:
                                                                             ui.label(monster_species_name(monster_type)).classes('text-2xl font-semibold text-slate-100')
                                                                     heading = f'{monster_type} • Level {monster_level}'
@@ -23289,7 +23381,6 @@ def main_page(request: Request) -> None:
                                             else:
                                                 with ui.element('div').classes('mq-lab-grid-shell mt-1'):
                                                     ui.label('Labyrinth of Light').classes('mq-lab-grid-title')
-                                                    ui.label('Seven by seven. Every new square is either a calm gleam or a hostile flare. Clear them all to wake the prism-crowned boss.').classes('mq-detail-text mq-lab-grid-subtitle mt-2')
                                                     with ui.element('div').classes('mq-lab-grid'):
                                                         grid_size = max(3, int(session_row.get('grid_size', LABYRINTH_GRID_SIZE) or LABYRINTH_GRID_SIZE))
                                                         current_x = int(session_row.get('current_x', 0) or 0)
@@ -23413,7 +23504,111 @@ def main_page(request: Request) -> None:
                                                 else:
                                                     for entry in event_feed[:10]:
                                                         ui.html(f"<div class='mq-lab-feed-entry'>{html.escape(entry)}</div>")
-                        return
+                                ui.run_javascript("""
+(() => {
+  const manager = window.mqArenaHoverManager = window.mqArenaHoverManager || (() => {
+    let overlay = null;
+    const state = {
+      activeKey: '',
+      activeSide: 'right',
+      anchor: null,
+      pointerX: -1,
+      pointerY: -1,
+      hideTimer: 0,
+    };
+    const ensureOverlay = () => {
+      if (overlay && document.body.contains(overlay)) return overlay;
+      overlay = document.createElement('div');
+      overlay.className = 'mq-item-hover-floating';
+      overlay.style.display = 'none';
+      document.body.appendChild(overlay);
+      return overlay;
+    };
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+    const place = (el, side) => {
+      const target = ensureOverlay();
+      if (!el || target.style.display === 'none') return;
+      const rect = el.getBoundingClientRect();
+      const box = target.getBoundingClientRect();
+      const gap = 16;
+      const width = box.width || 320;
+      const height = box.height || 120;
+      let left = side === 'left' ? rect.left - width - gap : rect.right + gap;
+      left = clamp(left, 12, Math.max(12, window.innerWidth - width - 12));
+      const top = clamp(rect.top + (rect.height / 2) - (height / 2), 12, Math.max(12, window.innerHeight - height - 12));
+      target.style.left = `${Math.round(left)}px`;
+      target.style.top = `${Math.round(top)}px`;
+    };
+    const pointerInside = (el) => {
+      if (!el) return false;
+      const rect = el.getBoundingClientRect();
+      return state.pointerX >= rect.left && state.pointerX <= rect.right && state.pointerY >= rect.top && state.pointerY <= rect.bottom;
+    };
+    const show = (el) => {
+      const panel = el ? el.querySelector('.mq-item-hover-panel') : null;
+      if (!panel) return;
+      clearTimeout(state.hideTimer);
+      const target = ensureOverlay();
+      target.innerHTML = panel.innerHTML;
+      target.style.display = 'block';
+      state.activeKey = String(el.dataset.hoverKey || '');
+      state.activeSide = String(el.dataset.hoverSide || 'right');
+      state.anchor = el;
+      requestAnimationFrame(() => place(el, state.activeSide));
+    };
+    const hide = (force = false) => {
+      clearTimeout(state.hideTimer);
+      const run = () => {
+        const target = ensureOverlay();
+        target.style.display = 'none';
+        target.innerHTML = '';
+        state.activeKey = '';
+        state.anchor = null;
+      };
+      if (force) {
+        run();
+      } else {
+        state.hideTimer = window.setTimeout(run, 80);
+      }
+    };
+    if (!window.__mqArenaHoverPointerBound) {
+      document.addEventListener('pointermove', (event) => {
+        state.pointerX = event.clientX;
+        state.pointerY = event.clientY;
+        if (state.anchor) place(state.anchor, state.activeSide);
+      }, { passive: true });
+      window.addEventListener('scroll', () => {
+        if (state.anchor) place(state.anchor, state.activeSide);
+      }, { passive: true });
+      window.addEventListener('resize', () => {
+        if (state.anchor) place(state.anchor, state.activeSide);
+      }, { passive: true });
+      window.__mqArenaHoverPointerBound = true;
+    }
+    return {
+      bind(el) {
+        if (!el) return;
+        if (el.dataset.hoverBound !== '1') {
+          el.dataset.hoverBound = '1';
+          el.addEventListener('mouseenter', () => show(el));
+          el.addEventListener('mouseleave', () => hide());
+          el.addEventListener('focus', () => show(el));
+          el.addEventListener('blur', () => hide());
+        }
+        if (state.activeKey && state.activeKey === String(el.dataset.hoverKey || '')) {
+          if (pointerInside(el) || el.matches(':hover')) {
+            show(el);
+          } else if (state.anchor && String(state.anchor.dataset.hoverKey || '') === state.activeKey) {
+            hide(true);
+          }
+        }
+      },
+    };
+  })();
+  document.querySelectorAll('.mq-item-hover-wrap-persist').forEach((el) => manager.bind(el));
+})();
+""")
+                                return
                     elif state.game_tab == 'bazaar':
                         state.refresh_bazaar_listings(force=False, allow_cached=True)
                         with ui.column().classes('w-full gap-4'):
