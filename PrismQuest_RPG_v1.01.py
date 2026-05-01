@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
@@ -299,11 +299,11 @@ HOTKEY_SELECT_OPTIONS = ['Unbound'] + [chr(code) for code in range(ord('A'), ord
 DEFAULT_UI_LANGUAGE = 'en'
 UI_LANGUAGE_LABELS: Dict[str, str] = {
     'en': 'English',
-    'fr': 'Français',
-    'zh-Hans': '简体中文',
-    'ru': 'Русский',
-    'es': 'Español',
-    'pt-BR': 'Português (Brasil)',
+    'fr': 'FranÃ§ais',
+    'zh-Hans': 'ç®€ä½“ä¸­æ–‡',
+    'ru': 'Ð ÑƒÑÑÐºÐ¸Ð¹',
+    'es': 'EspaÃ±ol',
+    'pt-BR': 'PortuguÃªs (Brasil)',
 }
 TITLE_SCREEN_TRANSLATIONS: Dict[str, Dict[str, str]] = {
     'en': {
@@ -338,150 +338,150 @@ TITLE_SCREEN_TRANSLATIONS: Dict[str, Dict[str, str]] = {
     },
     'fr': {
         'fallback_title': APP_TITLE.upper(),
-        'restore_title_art_hint': 'Placez Title Screen.png dans Assets pour rétablir l’image titre originale.',
+        'restore_title_art_hint': 'Placez Title Screen.png dans Assets pour rÃ©tablir lâ€™image titre originale.',
         'title_art_alt': 'Illustration du titre de Prismatic Quest',
-        'title_caption': 'Entrez dans le registre, liez votre compte et réveillez la chronique qui portera votre ascension.',
+        'title_caption': 'Entrez dans le registre, liez votre compte et rÃ©veillez la chronique qui portera votre ascension.',
         'chronicle_caption': 'Choisissez la chronique qui fera progresser ce compte.',
         'account_cloud_saves': 'Compte et sauvegardes nuage',
-        'signed_in_as': 'Connecté en tant que {email}.',
-        'signed_in_ledger_hint': 'Votre registre de chronique est maintenant lié à ce compte. Ouvrez les emplacements pour choisir quel héros poursuivra l’ascension.',
-        'create_signin_hint': 'Créez un compte ou connectez-vous pour rendre vos emplacements de chronique privés et persistants sur plusieurs appareils.',
+        'signed_in_as': 'ConnectÃ© en tant que {email}.',
+        'signed_in_ledger_hint': 'Votre registre de chronique est maintenant liÃ© Ã  ce compte. Ouvrez les emplacements pour choisir quel hÃ©ros poursuivra lâ€™ascension.',
+        'create_signin_hint': 'CrÃ©ez un compte ou connectez-vous pour rendre vos emplacements de chronique privÃ©s et persistants sur plusieurs appareils.',
         'email': 'Courriel',
         'password': 'Mot de passe',
-        'email_confirmation_note': 'Une confirmation par courriel peut être requise lors de votre première inscription.',
-        'create_account': 'Créer un compte',
+        'email_confirmation_note': 'Une confirmation par courriel peut Ãªtre requise lors de votre premiÃ¨re inscription.',
+        'create_account': 'CrÃ©er un compte',
         'sign_in': 'Se connecter',
         'open_chronicle_slots': 'Ouvrir les emplacements de chronique',
-        'sign_out': 'Se déconnecter',
+        'sign_out': 'Se dÃ©connecter',
         'discord_login_hint': 'Ou connectez-vous avec Discord pour une connexion nuage en un clic.',
         'sign_in_with_discord': 'Se connecter avec Discord',
-        'local_slots_only': 'Supabase n’est pas configuré, donc cette version utilise encore seulement des emplacements locaux.',
+        'local_slots_only': 'Supabase nâ€™est pas configurÃ©, donc cette version utilise encore seulement des emplacements locaux.',
         'community_server': 'Serveur communautaire',
-        'community_description': 'Joignez le Discord officiel pour partager vos builds, parler d’équilibrage et suivre les mises à jour.',
+        'community_description': 'Joignez le Discord officiel pour partager vos builds, parler dâ€™Ã©quilibrage et suivre les mises Ã  jour.',
         'open_community_discord': 'Ouvrir le Discord communautaire',
-        'language_accessibility': 'Langue et accessibilité',
+        'language_accessibility': 'Langue et accessibilitÃ©',
         'language_label': 'Langue',
-        'accessibility_intro': 'Ces réglages s’appliquent immédiatement sur cet appareil et rendent l’écran titre plus facile à lire.',
+        'accessibility_intro': 'Ces rÃ©glages sâ€™appliquent immÃ©diatement sur cet appareil et rendent lâ€™Ã©cran titre plus facile Ã  lire.',
         'larger_text': 'Texte plus grand',
-        'higher_contrast': 'Contraste élevé',
-        'reduce_motion': 'Mouvement réduit',
+        'higher_contrast': 'Contraste Ã©levÃ©',
+        'reduce_motion': 'Mouvement rÃ©duit',
     },
     'zh-Hans': {
         'fallback_title': APP_TITLE.upper(),
-        'restore_title_art_hint': '将 Title Screen.png 放入 Assets 以恢复原始标题画面。',
-        'title_art_alt': 'Prismatic Quest 标题图',
-        'title_caption': '进入编年之册，绑定你的账户，唤醒承载你攀升之路的篇章。',
-        'chronicle_caption': '选择要在此账户上继续推进的编年记录。',
-        'account_cloud_saves': '账户与云存档',
-        'signed_in_as': '当前登录：{email}。',
-        'signed_in_ledger_hint': '你的编年账册现已绑定到此账户。打开槽位界面，选择继续攀登的英雄。',
-        'create_signin_hint': '创建账户或登录，以便让你的编年槽位保持私密并可跨设备保存。',
-        'email': '邮箱',
-        'password': '密码',
-        'email_confirmation_note': '首次注册时可能需要进行邮箱验证。',
-        'create_account': '创建账户',
-        'sign_in': '登录',
-        'open_chronicle_slots': '打开编年槽位',
-        'sign_out': '退出登录',
-        'discord_login_hint': '或者使用 Discord 一键登录云端编年记录。',
-        'sign_in_with_discord': '使用 Discord 登录',
-        'local_slots_only': 'Supabase 尚未配置，因此此版本仍只使用本地编年槽位。',
-        'community_server': '社区服务器',
-        'community_description': '加入官方 Discord，分享构筑、讨论平衡并关注更新。',
-        'open_community_discord': '打开社区 Discord',
-        'language_accessibility': '语言与无障碍',
-        'language_label': '语言',
-        'accessibility_intro': '这些设置会立即在此设备上生效，并让标题界面更易阅读。',
-        'larger_text': '更大文字',
-        'higher_contrast': '更高对比度',
-        'reduce_motion': '减少动态效果',
+        'restore_title_art_hint': 'å°† Title Screen.png æ”¾å…¥ Assets ä»¥æ¢å¤åŽŸå§‹æ ‡é¢˜ç”»é¢ã€‚',
+        'title_art_alt': 'Prismatic Quest æ ‡é¢˜å›¾',
+        'title_caption': 'è¿›å…¥ç¼–å¹´ä¹‹å†Œï¼Œç»‘å®šä½ çš„è´¦æˆ·ï¼Œå”¤é†’æ‰¿è½½ä½ æ”€å‡ä¹‹è·¯çš„ç¯‡ç« ã€‚',
+        'chronicle_caption': 'é€‰æ‹©è¦åœ¨æ­¤è´¦æˆ·ä¸Šç»§ç»­æŽ¨è¿›çš„ç¼–å¹´è®°å½•ã€‚',
+        'account_cloud_saves': 'è´¦æˆ·ä¸Žäº‘å­˜æ¡£',
+        'signed_in_as': 'å½“å‰ç™»å½•ï¼š{email}ã€‚',
+        'signed_in_ledger_hint': 'ä½ çš„ç¼–å¹´è´¦å†ŒçŽ°å·²ç»‘å®šåˆ°æ­¤è´¦æˆ·ã€‚æ‰“å¼€æ§½ä½ç•Œé¢ï¼Œé€‰æ‹©ç»§ç»­æ”€ç™»çš„è‹±é›„ã€‚',
+        'create_signin_hint': 'åˆ›å»ºè´¦æˆ·æˆ–ç™»å½•ï¼Œä»¥ä¾¿è®©ä½ çš„ç¼–å¹´æ§½ä½ä¿æŒç§å¯†å¹¶å¯è·¨è®¾å¤‡ä¿å­˜ã€‚',
+        'email': 'é‚®ç®±',
+        'password': 'å¯†ç ',
+        'email_confirmation_note': 'é¦–æ¬¡æ³¨å†Œæ—¶å¯èƒ½éœ€è¦è¿›è¡Œé‚®ç®±éªŒè¯ã€‚',
+        'create_account': 'åˆ›å»ºè´¦æˆ·',
+        'sign_in': 'ç™»å½•',
+        'open_chronicle_slots': 'æ‰“å¼€ç¼–å¹´æ§½ä½',
+        'sign_out': 'é€€å‡ºç™»å½•',
+        'discord_login_hint': 'æˆ–è€…ä½¿ç”¨ Discord ä¸€é”®ç™»å½•äº‘ç«¯ç¼–å¹´è®°å½•ã€‚',
+        'sign_in_with_discord': 'ä½¿ç”¨ Discord ç™»å½•',
+        'local_slots_only': 'Supabase å°šæœªé…ç½®ï¼Œå› æ­¤æ­¤ç‰ˆæœ¬ä»åªä½¿ç”¨æœ¬åœ°ç¼–å¹´æ§½ä½ã€‚',
+        'community_server': 'ç¤¾åŒºæœåŠ¡å™¨',
+        'community_description': 'åŠ å…¥å®˜æ–¹ Discordï¼Œåˆ†äº«æž„ç­‘ã€è®¨è®ºå¹³è¡¡å¹¶å…³æ³¨æ›´æ–°ã€‚',
+        'open_community_discord': 'æ‰“å¼€ç¤¾åŒº Discord',
+        'language_accessibility': 'è¯­è¨€ä¸Žæ— éšœç¢',
+        'language_label': 'è¯­è¨€',
+        'accessibility_intro': 'è¿™äº›è®¾ç½®ä¼šç«‹å³åœ¨æ­¤è®¾å¤‡ä¸Šç”Ÿæ•ˆï¼Œå¹¶è®©æ ‡é¢˜ç•Œé¢æ›´æ˜“é˜…è¯»ã€‚',
+        'larger_text': 'æ›´å¤§æ–‡å­—',
+        'higher_contrast': 'æ›´é«˜å¯¹æ¯”åº¦',
+        'reduce_motion': 'å‡å°‘åŠ¨æ€æ•ˆæžœ',
     },
     'ru': {
         'fallback_title': APP_TITLE.upper(),
-        'restore_title_art_hint': 'Поместите Title Screen.png в Assets, чтобы вернуть исходный титульный экран.',
-        'title_art_alt': 'Изображение титульного экрана Prismatic Quest',
-        'title_caption': 'Войдите в летопись, привяжите аккаунт и пробудите хронику, которая понесёт ваше восхождение.',
-        'chronicle_caption': 'Выберите хронику, которая будет продолжать прогресс этого аккаунта.',
-        'account_cloud_saves': 'Аккаунт и облачные сохранения',
-        'signed_in_as': 'Вы вошли как {email}.',
-        'signed_in_ledger_hint': 'Теперь ваша летопись привязана к этому аккаунту. Откройте слоты хроники и выберите героя, который продолжит восхождение.',
-        'create_signin_hint': 'Создайте аккаунт или войдите, чтобы ваши слоты хроники были приватными и сохранялись между устройствами.',
-        'email': 'Эл. почта',
-        'password': 'Пароль',
-        'email_confirmation_note': 'При первой регистрации может потребоваться подтверждение по электронной почте.',
-        'create_account': 'Создать аккаунт',
-        'sign_in': 'Войти',
-        'open_chronicle_slots': 'Открыть слоты хроники',
-        'sign_out': 'Выйти',
-        'discord_login_hint': 'Или подключитесь через Discord для входа в облачную хронику одним нажатием.',
-        'sign_in_with_discord': 'Войти через Discord',
-        'local_slots_only': 'Supabase не настроен, поэтому эта сборка всё ещё использует только локальные слоты хроники.',
-        'community_server': 'Сервер сообщества',
-        'community_description': 'Присоединяйтесь к официальному Discord: делитесь билдами, обсуждайте баланс и следите за обновлениями.',
-        'open_community_discord': 'Открыть Discord сообщества',
-        'language_accessibility': 'Язык и доступность',
-        'language_label': 'Язык',
-        'accessibility_intro': 'Эти параметры применяются сразу на этом устройстве и делают титульный экран удобнее для чтения.',
-        'larger_text': 'Крупный текст',
-        'higher_contrast': 'Высокий контраст',
-        'reduce_motion': 'Уменьшить движение',
+        'restore_title_art_hint': 'ÐŸÐ¾Ð¼ÐµÑÑ‚Ð¸Ñ‚Ðµ Title Screen.png Ð² Assets, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð²ÐµÑ€Ð½ÑƒÑ‚ÑŒ Ð¸ÑÑ…Ð¾Ð´Ð½Ñ‹Ð¹ Ñ‚Ð¸Ñ‚ÑƒÐ»ÑŒÐ½Ñ‹Ð¹ ÑÐºÑ€Ð°Ð½.',
+        'title_art_alt': 'Ð˜Ð·Ð¾Ð±Ñ€Ð°Ð¶ÐµÐ½Ð¸Ðµ Ñ‚Ð¸Ñ‚ÑƒÐ»ÑŒÐ½Ð¾Ð³Ð¾ ÑÐºÑ€Ð°Ð½Ð° Prismatic Quest',
+        'title_caption': 'Ð’Ð¾Ð¹Ð´Ð¸Ñ‚Ðµ Ð² Ð»ÐµÑ‚Ð¾Ð¿Ð¸ÑÑŒ, Ð¿Ñ€Ð¸Ð²ÑÐ¶Ð¸Ñ‚Ðµ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚ Ð¸ Ð¿Ñ€Ð¾Ð±ÑƒÐ´Ð¸Ñ‚Ðµ Ñ…Ñ€Ð¾Ð½Ð¸ÐºÑƒ, ÐºÐ¾Ñ‚Ð¾Ñ€Ð°Ñ Ð¿Ð¾Ð½ÐµÑÑ‘Ñ‚ Ð²Ð°ÑˆÐµ Ð²Ð¾ÑÑ…Ð¾Ð¶Ð´ÐµÐ½Ð¸Ðµ.',
+        'chronicle_caption': 'Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ñ…Ñ€Ð¾Ð½Ð¸ÐºÑƒ, ÐºÐ¾Ñ‚Ð¾Ñ€Ð°Ñ Ð±ÑƒÐ´ÐµÑ‚ Ð¿Ñ€Ð¾Ð´Ð¾Ð»Ð¶Ð°Ñ‚ÑŒ Ð¿Ñ€Ð¾Ð³Ñ€ÐµÑÑ ÑÑ‚Ð¾Ð³Ð¾ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚Ð°.',
+        'account_cloud_saves': 'ÐÐºÐºÐ°ÑƒÐ½Ñ‚ Ð¸ Ð¾Ð±Ð»Ð°Ñ‡Ð½Ñ‹Ðµ ÑÐ¾Ñ…Ñ€Ð°Ð½ÐµÐ½Ð¸Ñ',
+        'signed_in_as': 'Ð’Ñ‹ Ð²Ð¾ÑˆÐ»Ð¸ ÐºÐ°Ðº {email}.',
+        'signed_in_ledger_hint': 'Ð¢ÐµÐ¿ÐµÑ€ÑŒ Ð²Ð°ÑˆÐ° Ð»ÐµÑ‚Ð¾Ð¿Ð¸ÑÑŒ Ð¿Ñ€Ð¸Ð²ÑÐ·Ð°Ð½Ð° Ðº ÑÑ‚Ð¾Ð¼Ñƒ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚Ñƒ. ÐžÑ‚ÐºÑ€Ð¾Ð¹Ñ‚Ðµ ÑÐ»Ð¾Ñ‚Ñ‹ Ñ…Ñ€Ð¾Ð½Ð¸ÐºÐ¸ Ð¸ Ð²Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ð³ÐµÑ€Ð¾Ñ, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ Ð¿Ñ€Ð¾Ð´Ð¾Ð»Ð¶Ð¸Ñ‚ Ð²Ð¾ÑÑ…Ð¾Ð¶Ð´ÐµÐ½Ð¸Ðµ.',
+        'create_signin_hint': 'Ð¡Ð¾Ð·Ð´Ð°Ð¹Ñ‚Ðµ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚ Ð¸Ð»Ð¸ Ð²Ð¾Ð¹Ð´Ð¸Ñ‚Ðµ, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð²Ð°ÑˆÐ¸ ÑÐ»Ð¾Ñ‚Ñ‹ Ñ…Ñ€Ð¾Ð½Ð¸ÐºÐ¸ Ð±Ñ‹Ð»Ð¸ Ð¿Ñ€Ð¸Ð²Ð°Ñ‚Ð½Ñ‹Ð¼Ð¸ Ð¸ ÑÐ¾Ñ…Ñ€Ð°Ð½ÑÐ»Ð¸ÑÑŒ Ð¼ÐµÐ¶Ð´Ñƒ ÑƒÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ð°Ð¼Ð¸.',
+        'email': 'Ð­Ð». Ð¿Ð¾Ñ‡Ñ‚Ð°',
+        'password': 'ÐŸÐ°Ñ€Ð¾Ð»ÑŒ',
+        'email_confirmation_note': 'ÐŸÑ€Ð¸ Ð¿ÐµÑ€Ð²Ð¾Ð¹ Ñ€ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ð¸ Ð¼Ð¾Ð¶ÐµÑ‚ Ð¿Ð¾Ñ‚Ñ€ÐµÐ±Ð¾Ð²Ð°Ñ‚ÑŒÑÑ Ð¿Ð¾Ð´Ñ‚Ð²ÐµÑ€Ð¶Ð´ÐµÐ½Ð¸Ðµ Ð¿Ð¾ ÑÐ»ÐµÐºÑ‚Ñ€Ð¾Ð½Ð½Ð¾Ð¹ Ð¿Ð¾Ñ‡Ñ‚Ðµ.',
+        'create_account': 'Ð¡Ð¾Ð·Ð´Ð°Ñ‚ÑŒ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚',
+        'sign_in': 'Ð’Ð¾Ð¹Ñ‚Ð¸',
+        'open_chronicle_slots': 'ÐžÑ‚ÐºÑ€Ñ‹Ñ‚ÑŒ ÑÐ»Ð¾Ñ‚Ñ‹ Ñ…Ñ€Ð¾Ð½Ð¸ÐºÐ¸',
+        'sign_out': 'Ð’Ñ‹Ð¹Ñ‚Ð¸',
+        'discord_login_hint': 'Ð˜Ð»Ð¸ Ð¿Ð¾Ð´ÐºÐ»ÑŽÑ‡Ð¸Ñ‚ÐµÑÑŒ Ñ‡ÐµÑ€ÐµÐ· Discord Ð´Ð»Ñ Ð²Ñ…Ð¾Ð´Ð° Ð² Ð¾Ð±Ð»Ð°Ñ‡Ð½ÑƒÑŽ Ñ…Ñ€Ð¾Ð½Ð¸ÐºÑƒ Ð¾Ð´Ð½Ð¸Ð¼ Ð½Ð°Ð¶Ð°Ñ‚Ð¸ÐµÐ¼.',
+        'sign_in_with_discord': 'Ð’Ð¾Ð¹Ñ‚Ð¸ Ñ‡ÐµÑ€ÐµÐ· Discord',
+        'local_slots_only': 'Supabase Ð½Ðµ Ð½Ð°ÑÑ‚Ñ€Ð¾ÐµÐ½, Ð¿Ð¾ÑÑ‚Ð¾Ð¼Ñƒ ÑÑ‚Ð° ÑÐ±Ð¾Ñ€ÐºÐ° Ð²ÑÑ‘ ÐµÑ‰Ñ‘ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÐµÑ‚ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ñ‹Ðµ ÑÐ»Ð¾Ñ‚Ñ‹ Ñ…Ñ€Ð¾Ð½Ð¸ÐºÐ¸.',
+        'community_server': 'Ð¡ÐµÑ€Ð²ÐµÑ€ ÑÐ¾Ð¾Ð±Ñ‰ÐµÑÑ‚Ð²Ð°',
+        'community_description': 'ÐŸÑ€Ð¸ÑÐ¾ÐµÐ´Ð¸Ð½ÑÐ¹Ñ‚ÐµÑÑŒ Ðº Ð¾Ñ„Ð¸Ñ†Ð¸Ð°Ð»ÑŒÐ½Ð¾Ð¼Ñƒ Discord: Ð´ÐµÐ»Ð¸Ñ‚ÐµÑÑŒ Ð±Ð¸Ð»Ð´Ð°Ð¼Ð¸, Ð¾Ð±ÑÑƒÐ¶Ð´Ð°Ð¹Ñ‚Ðµ Ð±Ð°Ð»Ð°Ð½Ñ Ð¸ ÑÐ»ÐµÐ´Ð¸Ñ‚Ðµ Ð·Ð° Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸ÑÐ¼Ð¸.',
+        'open_community_discord': 'ÐžÑ‚ÐºÑ€Ñ‹Ñ‚ÑŒ Discord ÑÐ¾Ð¾Ð±Ñ‰ÐµÑÑ‚Ð²Ð°',
+        'language_accessibility': 'Ð¯Ð·Ñ‹Ðº Ð¸ Ð´Ð¾ÑÑ‚ÑƒÐ¿Ð½Ð¾ÑÑ‚ÑŒ',
+        'language_label': 'Ð¯Ð·Ñ‹Ðº',
+        'accessibility_intro': 'Ð­Ñ‚Ð¸ Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ñ‹ Ð¿Ñ€Ð¸Ð¼ÐµÐ½ÑÑŽÑ‚ÑÑ ÑÑ€Ð°Ð·Ñƒ Ð½Ð° ÑÑ‚Ð¾Ð¼ ÑƒÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ðµ Ð¸ Ð´ÐµÐ»Ð°ÑŽÑ‚ Ñ‚Ð¸Ñ‚ÑƒÐ»ÑŒÐ½Ñ‹Ð¹ ÑÐºÑ€Ð°Ð½ ÑƒÐ´Ð¾Ð±Ð½ÐµÐµ Ð´Ð»Ñ Ñ‡Ñ‚ÐµÐ½Ð¸Ñ.',
+        'larger_text': 'ÐšÑ€ÑƒÐ¿Ð½Ñ‹Ð¹ Ñ‚ÐµÐºÑÑ‚',
+        'higher_contrast': 'Ð’Ñ‹ÑÐ¾ÐºÐ¸Ð¹ ÐºÐ¾Ð½Ñ‚Ñ€Ð°ÑÑ‚',
+        'reduce_motion': 'Ð£Ð¼ÐµÐ½ÑŒÑˆÐ¸Ñ‚ÑŒ Ð´Ð²Ð¸Ð¶ÐµÐ½Ð¸Ðµ',
     },
     'es': {
         'fallback_title': APP_TITLE.upper(),
-        'restore_title_art_hint': 'Coloca Title Screen.png en Assets para restaurar la imagen original de la pantalla de título.',
-        'title_art_alt': 'Arte de la pantalla de título de Prismatic Quest',
-        'title_caption': 'Entra en el registro, vincula tu cuenta y despierta la crónica que llevará tu ascenso.',
-        'chronicle_caption': 'Elige la crónica que hará avanzar esta cuenta.',
+        'restore_title_art_hint': 'Coloca Title Screen.png en Assets para restaurar la imagen original de la pantalla de tÃ­tulo.',
+        'title_art_alt': 'Arte de la pantalla de tÃ­tulo de Prismatic Quest',
+        'title_caption': 'Entra en el registro, vincula tu cuenta y despierta la crÃ³nica que llevarÃ¡ tu ascenso.',
+        'chronicle_caption': 'Elige la crÃ³nica que harÃ¡ avanzar esta cuenta.',
         'account_cloud_saves': 'Cuenta y guardados en la nube',
-        'signed_in_as': 'Sesión iniciada como {email}.',
-        'signed_in_ledger_hint': 'Tu registro de crónica ahora vive detrás de esta cuenta. Abre las ranuras para elegir qué héroe seguirá el ascenso.',
-        'create_signin_hint': 'Crea una cuenta o inicia sesión para que tus ranuras de crónica sean privadas y persistan entre dispositivos.',
-        'email': 'Correo electrónico',
-        'password': 'Contraseña',
-        'email_confirmation_note': 'La confirmación por correo puede ser necesaria la primera vez que te registres.',
+        'signed_in_as': 'SesiÃ³n iniciada como {email}.',
+        'signed_in_ledger_hint': 'Tu registro de crÃ³nica ahora vive detrÃ¡s de esta cuenta. Abre las ranuras para elegir quÃ© hÃ©roe seguirÃ¡ el ascenso.',
+        'create_signin_hint': 'Crea una cuenta o inicia sesiÃ³n para que tus ranuras de crÃ³nica sean privadas y persistan entre dispositivos.',
+        'email': 'Correo electrÃ³nico',
+        'password': 'ContraseÃ±a',
+        'email_confirmation_note': 'La confirmaciÃ³n por correo puede ser necesaria la primera vez que te registres.',
         'create_account': 'Crear cuenta',
-        'sign_in': 'Iniciar sesión',
-        'open_chronicle_slots': 'Abrir ranuras de crónica',
-        'sign_out': 'Cerrar sesión',
-        'discord_login_hint': 'O conéctate con Discord para iniciar sesión en la crónica en la nube con un solo toque.',
-        'sign_in_with_discord': 'Iniciar sesión con Discord',
-        'local_slots_only': 'Supabase no está configurado, así que esta versión todavía usa solo ranuras locales.',
+        'sign_in': 'Iniciar sesiÃ³n',
+        'open_chronicle_slots': 'Abrir ranuras de crÃ³nica',
+        'sign_out': 'Cerrar sesiÃ³n',
+        'discord_login_hint': 'O conÃ©ctate con Discord para iniciar sesiÃ³n en la crÃ³nica en la nube con un solo toque.',
+        'sign_in_with_discord': 'Iniciar sesiÃ³n con Discord',
+        'local_slots_only': 'Supabase no estÃ¡ configurado, asÃ­ que esta versiÃ³n todavÃ­a usa solo ranuras locales.',
         'community_server': 'Servidor de la comunidad',
-        'community_description': 'Únete al Discord oficial para compartir builds, hablar del balance y seguir las actualizaciones.',
+        'community_description': 'Ãšnete al Discord oficial para compartir builds, hablar del balance y seguir las actualizaciones.',
         'open_community_discord': 'Abrir Discord de la comunidad',
         'language_accessibility': 'Idioma y accesibilidad',
         'language_label': 'Idioma',
-        'accessibility_intro': 'Estos ajustes se aplican de inmediato en este dispositivo y hacen que la pantalla de título sea más fácil de leer.',
-        'larger_text': 'Texto más grande',
+        'accessibility_intro': 'Estos ajustes se aplican de inmediato en este dispositivo y hacen que la pantalla de tÃ­tulo sea mÃ¡s fÃ¡cil de leer.',
+        'larger_text': 'Texto mÃ¡s grande',
         'higher_contrast': 'Mayor contraste',
         'reduce_motion': 'Reducir movimiento',
     },
     'pt-BR': {
         'fallback_title': APP_TITLE.upper(),
-        'restore_title_art_hint': 'Coloque Title Screen.png em Assets para restaurar a arte original da tela de título.',
-        'title_art_alt': 'Arte da tela de título de Prismatic Quest',
-        'title_caption': 'Entre no registro, vincule sua conta e desperte a crônica que levará sua ascensão.',
-        'chronicle_caption': 'Escolha a crônica que vai avançar esta conta.',
+        'restore_title_art_hint': 'Coloque Title Screen.png em Assets para restaurar a arte original da tela de tÃ­tulo.',
+        'title_art_alt': 'Arte da tela de tÃ­tulo de Prismatic Quest',
+        'title_caption': 'Entre no registro, vincule sua conta e desperte a crÃ´nica que levarÃ¡ sua ascensÃ£o.',
+        'chronicle_caption': 'Escolha a crÃ´nica que vai avanÃ§ar esta conta.',
         'account_cloud_saves': 'Conta e salvamentos na nuvem',
         'signed_in_as': 'Conectado como {email}.',
-        'signed_in_ledger_hint': 'Seu registro de crônica agora está ligado a esta conta. Abra os espaços para escolher qual herói continuará a ascensão.',
-        'create_signin_hint': 'Crie uma conta ou entre para tornar seus espaços de crônica privados e persistentes entre dispositivos.',
+        'signed_in_ledger_hint': 'Seu registro de crÃ´nica agora estÃ¡ ligado a esta conta. Abra os espaÃ§os para escolher qual herÃ³i continuarÃ¡ a ascensÃ£o.',
+        'create_signin_hint': 'Crie uma conta ou entre para tornar seus espaÃ§os de crÃ´nica privados e persistentes entre dispositivos.',
         'email': 'E-mail',
         'password': 'Senha',
-        'email_confirmation_note': 'A confirmação por e-mail pode ser necessária na primeira vez em que você se cadastrar.',
+        'email_confirmation_note': 'A confirmaÃ§Ã£o por e-mail pode ser necessÃ¡ria na primeira vez em que vocÃª se cadastrar.',
         'create_account': 'Criar conta',
         'sign_in': 'Entrar',
-        'open_chronicle_slots': 'Abrir espaços da crônica',
+        'open_chronicle_slots': 'Abrir espaÃ§os da crÃ´nica',
         'sign_out': 'Sair',
-        'discord_login_hint': 'Ou conecte com o Discord para entrar na crônica em nuvem com um toque.',
+        'discord_login_hint': 'Ou conecte com o Discord para entrar na crÃ´nica em nuvem com um toque.',
         'sign_in_with_discord': 'Entrar com Discord',
-        'local_slots_only': 'O Supabase não está configurado, então esta versão ainda usa apenas espaços locais de crônica.',
+        'local_slots_only': 'O Supabase nÃ£o estÃ¡ configurado, entÃ£o esta versÃ£o ainda usa apenas espaÃ§os locais de crÃ´nica.',
         'community_server': 'Servidor da comunidade',
-        'community_description': 'Entre no Discord oficial para compartilhar builds, falar de balanceamento e acompanhar atualizações.',
+        'community_description': 'Entre no Discord oficial para compartilhar builds, falar de balanceamento e acompanhar atualizaÃ§Ãµes.',
         'open_community_discord': 'Abrir Discord da comunidade',
         'language_accessibility': 'Idioma e acessibilidade',
         'language_label': 'Idioma',
-        'accessibility_intro': 'Essas opções são aplicadas imediatamente neste dispositivo e deixam a tela de título mais fácil de ler.',
+        'accessibility_intro': 'Essas opÃ§Ãµes sÃ£o aplicadas imediatamente neste dispositivo e deixam a tela de tÃ­tulo mais fÃ¡cil de ler.',
         'larger_text': 'Texto maior',
         'higher_contrast': 'Maior contraste',
         'reduce_motion': 'Reduzir movimento',
@@ -1177,12 +1177,16 @@ body {
   --mq-scene-glow: rgba(65, 96, 188, 0.15);
 }
 .mq-scene-labyrinth {
-  --mq-accent: #d4ecff;
-  --mq-accent-rgb: 212, 236, 255;
-  --mq-panel-bg: rgba(15, 18, 27, 0.90);
-  --mq-scene-core: rgba(18, 22, 33, 0.98);
-  --mq-scene-edge: rgba(8, 10, 16, 0.995);
-  --mq-scene-glow: rgba(136, 191, 255, 0.14);
+  --mq-accent: #dff6ff;
+  --mq-accent-rgb: 223, 246, 255;
+  --mq-panel-bg: rgba(13, 18, 32, 0.90);
+  --mq-scene-core: rgba(16, 24, 42, 0.98);
+  --mq-scene-edge: rgba(7, 10, 18, 0.995);
+  --mq-scene-glow: rgba(137, 199, 255, 0.18);
+  background:
+    radial-gradient(circle at 18% 14%, rgba(136, 218, 255, 0.09), rgba(0,0,0,0) 28%),
+    radial-gradient(circle at 84% 20%, rgba(210, 170, 255, 0.08), rgba(0,0,0,0) 26%),
+    radial-gradient(circle at 50% 78%, rgba(255, 241, 184, 0.06), rgba(0,0,0,0) 30%);
 }
 .mq-lab-layout {
   display: grid;
@@ -1208,13 +1212,33 @@ body {
   position: absolute;
   inset: 0 0 auto 0;
   height: 34%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
+  background: linear-gradient(180deg, rgba(184, 230, 255, 0.10), rgba(255,255,255,0));
+  pointer-events: none;
+}
+.mq-lab-member-card::after,
+.mq-lab-grid-card::after,
+.mq-lab-reward-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow:
+    inset 0 0 0 1px rgba(167, 216, 255, 0.06),
+    inset 0 0 18px rgba(97, 142, 255, 0.05);
   pointer-events: none;
 }
 .mq-lab-member-top {
   display: flex;
   align-items: center;
   gap: 0.8rem;
+}
+.mq-lab-member-meters {
+  display: grid;
+  gap: 0.1rem;
+}
+.mq-lab-member-meters .mq-meter {
+  margin-top: 0;
 }
 .mq-lab-member-portrait {
   width: 76px;
@@ -1239,11 +1263,24 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem;
+  justify-items: center;
+  text-align: center;
+}
+.mq-lab-grid-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #eff8ff;
+  letter-spacing: 0.03em;
+}
+.mq-lab-grid-subtitle {
+  max-width: 34rem;
 }
 .mq-lab-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.55rem;
+  width: min(100%, 34rem);
+  margin-inline: auto;
 }
 .mq-lab-tile {
   aspect-ratio: 1;
@@ -1258,9 +1295,12 @@ body {
   text-transform: uppercase;
   border: 1px solid rgba(255,255,255,0.06);
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
-    linear-gradient(180deg, rgba(14, 19, 28, 0.98), rgba(8, 10, 16, 1));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), inset 0 -18px 28px rgba(0,0,0,0.18);
+    linear-gradient(180deg, rgba(230,244,255,0.05), rgba(255,255,255,0.01)),
+    linear-gradient(180deg, rgba(13, 21, 36, 0.98), rgba(8, 10, 16, 1));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    inset 0 -18px 28px rgba(0,0,0,0.18),
+    0 0 0 1px rgba(151, 202, 255, 0.03);
   color: rgba(214, 224, 235, 0.88);
 }
 .mq-lab-tile.unseen {
@@ -1268,25 +1308,29 @@ body {
   border-style: dashed;
 }
 .mq-lab-tile.safe {
-  border-color: rgba(126, 211, 160, 0.22);
+  border-color: rgba(139, 222, 255, 0.26);
   background:
-    linear-gradient(180deg, rgba(109, 196, 137, 0.08), rgba(0,0,0,0) 38%),
-    linear-gradient(180deg, rgba(14, 19, 28, 0.98), rgba(8, 10, 16, 1));
+    linear-gradient(180deg, rgba(127, 216, 255, 0.12), rgba(0,0,0,0) 38%),
+    linear-gradient(180deg, rgba(14, 20, 33, 0.98), rgba(8, 10, 16, 1));
 }
 .mq-lab-tile.encounter {
-  border-color: rgba(231, 120, 134, 0.26);
+  border-color: rgba(255, 170, 227, 0.26);
   background:
-    linear-gradient(180deg, rgba(231, 120, 134, 0.10), rgba(0,0,0,0) 40%),
-    linear-gradient(180deg, rgba(20, 16, 22, 0.98), rgba(8, 10, 16, 1));
+    linear-gradient(180deg, rgba(191, 133, 255, 0.12), rgba(0,0,0,0) 40%),
+    linear-gradient(180deg, rgba(20, 16, 30, 0.98), rgba(8, 10, 16, 1));
 }
 .mq-lab-tile.start {
-  border-color: rgba(214, 236, 255, 0.24);
+  border-color: rgba(255, 233, 151, 0.30);
+  background:
+    linear-gradient(180deg, rgba(255, 244, 180, 0.14), rgba(0,0,0,0) 42%),
+    linear-gradient(180deg, rgba(18, 20, 28, 0.98), rgba(8, 10, 16, 1));
 }
 .mq-lab-tile.current {
-  border-color: rgba(255, 248, 202, 0.54);
+  border-color: rgba(255, 248, 202, 0.62);
   box-shadow:
-    0 0 0 1px rgba(255,248,202,0.18),
-    0 0 28px rgba(255,248,202,0.12),
+    0 0 0 1px rgba(255,248,202,0.22),
+    0 0 30px rgba(155,226,255,0.18),
+    0 0 36px rgba(255,248,202,0.12),
     inset 0 1px 0 rgba(255,255,255,0.06);
   transform: translateY(-1px);
 }
@@ -1294,7 +1338,8 @@ body {
 .mq-lab-tile.current.encounter,
 .mq-lab-tile.current.start {
   background:
-    radial-gradient(circle at 50% 26%, rgba(255, 248, 202, 0.12) 0%, rgba(0,0,0,0) 54%),
+    radial-gradient(circle at 50% 26%, rgba(255, 248, 202, 0.16) 0%, rgba(0,0,0,0) 54%),
+    radial-gradient(circle at 20% 18%, rgba(133, 220, 255, 0.14) 0%, rgba(0,0,0,0) 42%),
     linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
     linear-gradient(180deg, rgba(16, 20, 30, 0.98), rgba(8, 10, 16, 1));
 }
@@ -6220,12 +6265,12 @@ def get_class_unlock_requirement_for_season(player_class: str, season_id: object
     return 'Pass Prismatic Quest as ' + ' or '.join(prerequisites) + '.'
 def format_class_path_entry(player_class: str, unlocked_classes: set[str]) -> str:
     player_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
-    marker = '◆' if player_class in unlocked_classes else '◇'
+    marker = 'â—†' if player_class in unlocked_classes else 'â—‡'
     state = 'Ready' if player_class in unlocked_classes else get_class_unlock_requirement(player_class)
     return f'{marker} {player_class:<11} {state}'
 def format_class_path_entry_for_season(player_class: str, unlocked_classes: set[str], season_id: object = DEFAULT_LADDER_SEASON_ID) -> str:
     player_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
-    marker = '◆' if player_class in unlocked_classes else '◇'
+    marker = 'â—†' if player_class in unlocked_classes else 'â—‡'
     state = 'Ready' if player_class in unlocked_classes else get_class_unlock_requirement_for_season(player_class, season_id)
     return f'{marker} {player_class:<11} {state}'
 
@@ -6598,76 +6643,81 @@ LABYRINTH_SESSION_TABLE = 'labyrinth_sessions'
 LABYRINTH_SESSION_MEMBER_TABLE = 'labyrinth_session_members'
 LABYRINTH_SESSION_VOTE_TABLE = 'labyrinth_session_votes'
 LABYRINTH_JOIN_CODE_PREFIX = 'LUX'
+LABYRINTH_REWARD_VOTE_SECONDS = 15
 LABYRINTH_CONTROLLER_DIRECTIONS: Dict[str, Tuple[int, int]] = {
     'up': (0, -1),
     'down': (0, 1),
     'left': (-1, 0),
     'right': (1, 0),
 }
-LABYRINTH_REWARD_POOL: List[Dict[str, object]] = [
-    {
-        'id': 'fang',
-        'title': 'Fang of the Lantern Wolf',
-        'boon': '+18% Labyrinth damage',
-        'bane': '-12% maximum health',
-        'effects': {'damage_mult': 0.18, 'hp_mult': -0.12},
-    },
-    {
-        'id': 'carapace',
-        'title': 'Silver Carapace',
-        'boon': '+20% maximum health',
-        'bane': '-10 speed',
-        'effects': {'hp_mult': 0.20, 'speed_flat': -10},
-    },
-    {
-        'id': 'scholar',
-        'title': 'Scholar of the Glass Maze',
-        'boon': '+24% Labyrinth XP',
-        'bane': '-18% Labyrinth gold',
-        'effects': {'xp_mult': 0.24, 'gold_mult': -0.18},
-    },
-    {
-        'id': 'tribute',
-        'title': 'Glittering Tribute',
-        'boon': '+30% Labyrinth gold',
-        'bane': '-12% Labyrinth damage',
-        'effects': {'gold_mult': 0.30, 'damage_mult': -0.12},
-    },
-    {
-        'id': 'quickstep',
-        'title': 'Quickstep Mosaic',
-        'boon': '+16 speed',
-        'bane': '-14% armor and resistance',
-        'effects': {'speed_flat': 16, 'armor_mult': -0.14, 'mres_mult': -0.14},
-    },
-    {
-        'id': 'ward',
-        'title': 'Ward of Quiet Mirrors',
-        'boon': '+18% armor and resistance',
-        'bane': '-10% Labyrinth damage',
-        'effects': {'armor_mult': 0.18, 'mres_mult': 0.18, 'damage_mult': -0.10},
-    },
-    {
-        'id': 'hoard',
-        'title': 'Hoardlight Prism',
-        'boon': '+15% item drop chance',
-        'bane': '-12% Labyrinth XP',
-        'effects': {'drop_bonus': 0.15, 'xp_mult': -0.12},
-    },
-    {
-        'id': 'mercy',
-        'title': 'Mercy of Shattered Dawn',
-        'boon': '+22% encounter recovery healing',
-        'bane': '-10% Labyrinth gold',
-        'effects': {'heal_between_mult': 0.22, 'gold_mult': -0.10},
-    },
-    {
-        'id': 'overcharge',
-        'title': 'Overcharged Halo',
-        'boon': '+14% boss damage dealt',
-        'bane': '+10% boss damage taken',
-        'effects': {'boss_damage_mult': 0.14, 'boss_taken_mult': 0.10},
-    },
+LABYRINTH_REWARD_CARD_TITLES = [
+    'Prism Offer I',
+    'Prism Offer II',
+    'Prism Offer III',
+]
+LABYRINTH_BUFF_TEMPLATES: List[Dict[str, object]] = [
+    {'id': 'gold_now_small', 'effect_key': 'instant_gold_flat', 'min': 10, 'max': 50, 'kind': 'flat', 'text': 'Gain {value} gold immediately.'},
+    {'id': 'gold_now_large', 'effect_key': 'instant_gold_flat', 'min': 25, 'max': 100, 'kind': 'flat', 'text': 'Gain {value} gold immediately.'},
+    {'id': 'gold_mult', 'effect_key': 'gold_mult', 'min': 10, 'max': 25, 'kind': 'percent', 'text': 'Gain +{value} more flat gold rewards until leaving the Labyrinth.'},
+    {'id': 'elite_gold_mult', 'effect_key': 'elite_gold_mult', 'min': 20, 'max': 40, 'kind': 'percent', 'text': 'Gain +{value} more flat gold rewards from elite fights until leaving the Labyrinth.'},
+    {'id': 'victory_gold_flat', 'effect_key': 'victory_gold_flat', 'min': 5, 'max': 20, 'kind': 'flat', 'text': 'Gain {value} bonus gold after each victory until leaving the Labyrinth.'},
+    {'id': 'elite_victory_gold_flat', 'effect_key': 'elite_gold_flat', 'min': 10, 'max': 35, 'kind': 'flat', 'text': 'Gain {value} bonus gold after each elite victory until leaving the Labyrinth.'},
+    {'id': 'treasure_gold_mult', 'effect_key': 'treasure_gold_mult', 'min': 25, 'max': 60, 'kind': 'percent', 'text': 'Gain +{value} more gold from treasure rooms until leaving the Labyrinth.'},
+    {'id': 'magic_find', 'effect_key': 'magic_find', 'min': 4, 'max': 10, 'kind': 'percent', 'text': 'Gain +{value} Magic Find until leaving the Labyrinth.'},
+    {'id': 'affix_quality', 'effect_key': 'affix_quality', 'min': 3, 'max': 8, 'kind': 'percent', 'text': 'Gain +{value} affix quality weighting until leaving the Labyrinth.'},
+    {'id': 'affix_value', 'effect_key': 'affix_value', 'min': 4, 'max': 10, 'kind': 'percent', 'text': 'Gain +{value} chance for higher affix values until leaving the Labyrinth.'},
+    {'id': 'attack_damage', 'effect_key': 'attack_damage_mult', 'min': 3, 'max': 7, 'kind': 'percent', 'text': 'Gain +{value} attack damage until leaving the Labyrinth.'},
+    {'id': 'crit_chance', 'effect_key': 'crit_chance', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Gain +{value} crit chance until leaving the Labyrinth.'},
+    {'id': 'crit_damage', 'effect_key': 'crit_damage_mult', 'min': 5, 'max': 12, 'kind': 'percent', 'text': 'Gain +{value} crit damage until leaving the Labyrinth.'},
+    {'id': 'armor_pen', 'effect_key': 'armor_pen_mult', 'min': 2, 'max': 6, 'kind': 'percent', 'text': 'Gain +{value} armor penetration until leaving the Labyrinth.'},
+    {'id': 'lifesteal', 'effect_key': 'lifesteal', 'min': 1, 'max': 3, 'kind': 'percent', 'text': 'Gain +{value} lifesteal until leaving the Labyrinth.'},
+    {'id': 'max_hp', 'effect_key': 'max_hp_mult', 'min': 4, 'max': 9, 'kind': 'percent', 'text': 'Gain +{value} max health until leaving the Labyrinth.'},
+    {'id': 'max_mana', 'effect_key': 'max_mana_mult', 'min': 4, 'max': 9, 'kind': 'percent', 'text': 'Gain +{value} max mana until leaving the Labyrinth.'},
+    {'id': 'life_regen', 'effect_key': 'life_regen_flat', 'min': 2, 'max': 6, 'kind': 'flat', 'text': 'Gain +{value} life regen until leaving the Labyrinth.'},
+    {'id': 'mana_regen', 'effect_key': 'mana_regen_flat', 'min': 2, 'max': 6, 'kind': 'flat', 'text': 'Gain +{value} mana regen until leaving the Labyrinth.'},
+    {'id': 'evasion', 'effect_key': 'evasion', 'min': 3, 'max': 7, 'kind': 'percent', 'text': 'Gain +{value} evasion until leaving the Labyrinth.'},
+    {'id': 'accuracy', 'effect_key': 'accuracy', 'min': 3, 'max': 8, 'kind': 'percent', 'text': 'Gain +{value} accuracy until leaving the Labyrinth.'},
+    {'id': 'physical_armor', 'effect_key': 'physical_armor_mult', 'min': 4, 'max': 10, 'kind': 'percent', 'text': 'Gain +{value} physical armor until leaving the Labyrinth.'},
+    {'id': 'magic_resistance', 'effect_key': 'magic_resistance_mult', 'min': 4, 'max': 10, 'kind': 'percent', 'text': 'Gain +{value} magic resistance until leaving the Labyrinth.'},
+    {'id': 'enhanced_effect', 'effect_key': 'enhanced_effect', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Gain +{value} enhanced effect until leaving the Labyrinth.'},
+    {'id': 'thorns', 'effect_key': 'thorns', 'min': 4, 'max': 12, 'kind': 'thorns', 'text': 'Gain +{value} thorns until leaving the Labyrinth.'},
+    {'id': 'life_per_kill', 'effect_key': 'life_per_kill_flat', 'min': 1, 'max': 3, 'kind': 'flat', 'text': 'Gain +{value} life per kill until leaving the Labyrinth.'},
+    {'id': 'mana_per_kill', 'effect_key': 'mana_per_kill_flat', 'min': 1, 'max': 3, 'kind': 'flat', 'text': 'Gain +{value} mana per kill until leaving the Labyrinth.'},
+    {'id': 'strength', 'effect_key': 'strength_mult', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Gain +{value} STR until leaving the Labyrinth.'},
+    {'id': 'dexterity', 'effect_key': 'dexterity_mult', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Gain +{value} DEX until leaving the Labyrinth.'},
+    {'id': 'intelligence', 'effect_key': 'intelligence_mult', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Gain +{value} INT until leaving the Labyrinth.'},
+]
+LABYRINTH_DEBUFF_TEMPLATES: List[Dict[str, object]] = [
+    {'id': 'attack_damage_down', 'effect_key': 'attack_damage_mult', 'min': 3, 'max': 8, 'kind': 'percent', 'text': 'Lose {value} attack damage until leaving the Labyrinth.', 'negative': True},
+    {'id': 'crit_chance_down', 'effect_key': 'crit_chance', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Lose {value} crit chance until leaving the Labyrinth.', 'negative': True},
+    {'id': 'crit_damage_down', 'effect_key': 'crit_damage_mult', 'min': 5, 'max': 12, 'kind': 'percent', 'text': 'Lose {value} crit damage until leaving the Labyrinth.', 'negative': True},
+    {'id': 'armor_pen_down', 'effect_key': 'armor_pen_mult', 'min': 2, 'max': 6, 'kind': 'percent', 'text': 'Lose {value} armor penetration until leaving the Labyrinth.', 'negative': True},
+    {'id': 'lifesteal_down', 'effect_key': 'lifesteal', 'min': 1, 'max': 3, 'kind': 'percent', 'text': 'Lose {value} lifesteal until leaving the Labyrinth.', 'negative': True},
+    {'id': 'max_hp_down', 'effect_key': 'max_hp_mult', 'min': 4, 'max': 9, 'kind': 'percent', 'text': 'Lose {value} max health until leaving the Labyrinth.', 'negative': True},
+    {'id': 'max_mana_down', 'effect_key': 'max_mana_mult', 'min': 4, 'max': 9, 'kind': 'percent', 'text': 'Lose {value} max mana until leaving the Labyrinth.', 'negative': True},
+    {'id': 'life_regen_down', 'effect_key': 'life_regen_flat', 'min': 2, 'max': 6, 'kind': 'flat', 'text': 'Lose {value} life regen until leaving the Labyrinth.', 'negative': True},
+    {'id': 'mana_regen_down', 'effect_key': 'mana_regen_flat', 'min': 2, 'max': 6, 'kind': 'flat', 'text': 'Lose {value} mana regen until leaving the Labyrinth.', 'negative': True},
+    {'id': 'evasion_down', 'effect_key': 'evasion', 'min': 3, 'max': 7, 'kind': 'percent', 'text': 'Lose {value} evasion until leaving the Labyrinth.', 'negative': True},
+    {'id': 'accuracy_down', 'effect_key': 'accuracy', 'min': 3, 'max': 8, 'kind': 'percent', 'text': 'Lose {value} accuracy until leaving the Labyrinth.', 'negative': True},
+    {'id': 'physical_armor_down', 'effect_key': 'physical_armor_mult', 'min': 4, 'max': 10, 'kind': 'percent', 'text': 'Lose {value} physical armor until leaving the Labyrinth.', 'negative': True},
+    {'id': 'magic_resistance_down', 'effect_key': 'magic_resistance_mult', 'min': 4, 'max': 10, 'kind': 'percent', 'text': 'Lose {value} magic resistance until leaving the Labyrinth.', 'negative': True},
+    {'id': 'enhanced_effect_down', 'effect_key': 'enhanced_effect', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Lose {value} enhanced effect until leaving the Labyrinth.', 'negative': True},
+    {'id': 'strength_down', 'effect_key': 'strength_mult', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Lose {value} STR until leaving the Labyrinth.', 'negative': True},
+    {'id': 'dexterity_down', 'effect_key': 'dexterity_mult', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Lose {value} DEX until leaving the Labyrinth.', 'negative': True},
+    {'id': 'intelligence_down', 'effect_key': 'intelligence_mult', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Lose {value} INT until leaving the Labyrinth.', 'negative': True},
+    {'id': 'vitality_down', 'effect_key': 'vitality_mult', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Lose {value} VIT until leaving the Labyrinth.', 'negative': True},
+    {'id': 'life_per_kill_down', 'effect_key': 'life_per_kill_flat', 'min': 1, 'max': 3, 'kind': 'flat', 'text': 'Lose {value} life per kill until leaving the Labyrinth.', 'negative': True},
+    {'id': 'mana_per_kill_down', 'effect_key': 'mana_per_kill_flat', 'min': 1, 'max': 3, 'kind': 'flat', 'text': 'Lose {value} mana per kill until leaving the Labyrinth.', 'negative': True},
+    {'id': 'physical_taken_up', 'effect_key': 'physical_taken_mult', 'min': 3, 'max': 8, 'kind': 'percent', 'text': 'Take +{value} damage from physical-school monsters until leaving the Labyrinth.'},
+    {'id': 'magic_taken_up', 'effect_key': 'magic_taken_mult', 'min': 3, 'max': 8, 'kind': 'percent', 'text': 'Take +{value} damage from magic-school monsters until leaving the Labyrinth.'},
+    {'id': 'monster_accuracy_up', 'effect_key': 'monster_accuracy', 'min': 3, 'max': 8, 'kind': 'percent', 'text': 'Monsters gain +{value} accuracy against you until leaving the Labyrinth.'},
+    {'id': 'monster_crit_chance_up', 'effect_key': 'monster_crit_chance', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Monsters gain +{value} crit chance against you until leaving the Labyrinth.'},
+    {'id': 'monster_crit_damage_up', 'effect_key': 'monster_crit_damage_mult', 'min': 5, 'max': 12, 'kind': 'percent', 'text': 'Monsters gain +{value} crit damage against you until leaving the Labyrinth.'},
+    {'id': 'monster_physical_armor_up', 'effect_key': 'monster_physical_armor_mult', 'min': 4, 'max': 10, 'kind': 'percent', 'text': 'Monsters gain +{value} physical armor until leaving the Labyrinth.'},
+    {'id': 'monster_magic_resistance_up', 'effect_key': 'monster_magic_resistance_mult', 'min': 4, 'max': 10, 'kind': 'percent', 'text': 'Monsters gain +{value} magic resistance until leaving the Labyrinth.'},
+    {'id': 'healing_reduction', 'effect_key': 'healing_taken_mult', 'min': 4, 'max': 10, 'kind': 'percent', 'text': 'Healing effects on you are reduced by {value} until leaving the Labyrinth.', 'negative': True},
+    {'id': 'first_hit_dealt_down', 'effect_key': 'first_hit_dealt_mult', 'min': 5, 'max': 12, 'kind': 'percent', 'text': 'Your first hit each fight deals {value} less damage until leaving the Labyrinth.', 'negative': True},
+    {'id': 'first_hit_taken_up', 'effect_key': 'first_hit_taken_mult', 'min': 5, 'max': 12, 'kind': 'percent', 'text': 'Your first incoming hit each fight deals {value} more damage until leaving the Labyrinth.'},
 ]
 
 
@@ -6824,7 +6874,7 @@ def _bazaar_ledger_now() -> str:
 def format_bazaar_ledger_stamp(value: object) -> str:
     raw = str(value or '').strip()
     if not raw:
-        return '—'
+        return 'â€”'
     return raw.replace('T', ' ').replace('Z', ' UTC')
 
 
@@ -6894,7 +6944,7 @@ def _pq_ledger_iso_now() -> str:
 def format_completed_stamp(value: object) -> str:
     raw = str(value or '').strip()
     if not raw:
-        return '—'
+        return 'â€”'
     return raw.replace('T', ' ').replace('Z', ' UTC')
 
 
@@ -8298,7 +8348,7 @@ def safe_item_base_stat_text(item: Optional[Item], empty_text: str = 'No base st
             parts.append(f'MRES {r_low}-{r_high}')
         if item.slot == 'charm':
             parts.append(f'Mana {get_charm_mana_cost(item_required_level(item))}')
-        return ' • '.join(parts) if parts else empty_text
+        return ' â€¢ '.join(parts) if parts else empty_text
     except Exception:
         return empty_text
 def safe_item_affix_preview_text(item: Optional[Item], empty_text: str = 'No affixes') -> str:
@@ -8309,7 +8359,7 @@ def safe_item_affix_preview_text(item: Optional[Item], empty_text: str = 'No aff
         for key in STAT_ORDER:
             if key in getattr(item, 'affix_stats', {}):
                 parts.append(format_stat_value(key, item.affix_stats[key], int(getattr(item, 'level', 1) or 1)))
-        return ' • '.join(parts[:2]) if parts else empty_text
+        return ' â€¢ '.join(parts[:2]) if parts else empty_text
     except Exception:
         return empty_text
 def inventory_base_detail_rows(item: Optional[Item]) -> List[Tuple[str, str]]:
@@ -8885,8 +8935,8 @@ def inventory_tier_spread_text(items: List[Item]) -> str:
         except Exception:
             tier = 1
         counts[tier] = counts.get(tier, 0) + 1
-    parts = [f'T{tier}×{counts[tier]}' for tier in ITEM_BUCKETS if counts.get(tier)]
-    return ' • '.join(parts) if parts else 'No items in your bag.'
+    parts = [f'T{tier}Ã—{counts[tier]}' for tier in ITEM_BUCKETS if counts.get(tier)]
+    return ' â€¢ '.join(parts) if parts else 'No items in your bag.'
 def saved_set_summary_text(saved_item_sets: Dict[str, Dict[int, Item]]) -> str:
     parts: List[str] = []
     total = 0
@@ -8895,7 +8945,7 @@ def saved_set_summary_text(saved_item_sets: Dict[str, Dict[int, Item]]) -> str:
         count = len(slot_items) if isinstance(slot_items, dict) else 0
         total += count
         parts.append(f"{SAVED_ITEM_SET_LABELS.get(slot, slot.title())} {count}")
-    return f"{' • '.join(parts)} • Total {total}"
+    return f"{' â€¢ '.join(parts)} â€¢ Total {total}"
 def inventory_item_compare_lines(item: Optional[Item]) -> List[str]:
     if item is None:
         return ['No item selected.']
@@ -8944,12 +8994,12 @@ def build_proficiency_tooltip_text(player: Optional['Player']) -> str:
         level = int(levels.get(key, 0))
         current = int(progress.get(key, 0))
         needed = proficiency_threshold_for_level(level)
-        marker = '◆' if key in active_keys else '·'
+        marker = 'â—†' if key in active_keys else 'Â·'
         lines.append(f"{marker} {key:<16} Lv {level:<3}   {current:>4}/{needed:<4}   (+{level}% EE)")
     if active_keys:
         lines.append('')
         lines.append('Active loadout')
-        lines.append('  ' + ' • '.join(active_proficiency_keys(player)))
+        lines.append('  ' + ' â€¢ '.join(active_proficiency_keys(player)))
     return '\n'.join(lines)
 
 def build_proficiency_tooltip_html(player: Optional['Player']) -> str:
@@ -8964,7 +9014,7 @@ def build_proficiency_tooltip_html(player: Optional['Player']) -> str:
         current = int(progress.get(key, 0) or 0)
         needed = int(proficiency_threshold_for_level(level))
         row_class = ' active' if key in active_keys else ''
-        marker = '◆' if key in active_keys else '◇'
+        marker = 'â—†' if key in active_keys else 'â—‡'
         rows.append(
             "<div class='mq-prof-row%s'>"
             "<span class='mq-prof-marker'>%s</span>"
@@ -8984,7 +9034,7 @@ def build_proficiency_tooltip_html(player: Optional['Player']) -> str:
             )
         )
     if active_keys:
-        active_text = html.escape(' • '.join(active_proficiency_keys(player)))
+        active_text = html.escape(' â€¢ '.join(active_proficiency_keys(player)))
     else:
         active_text = 'No active weapon or charm proficiency'
     return (
@@ -9005,7 +9055,7 @@ def active_proficiency_summary(player: Optional['Player']) -> str:
     for key in keys:
         level = int(levels.get(key, 0))
         parts.append(f"{key} Lv {level}")
-    return ' • '.join(parts)
+    return ' â€¢ '.join(parts)
 
 def item_rarity_sort_key(item: Item) -> int:
     try:
@@ -9248,7 +9298,7 @@ def meter_fill_pct(current: int, maximum: int) -> float:
     return clamp((current / maximum) * 100.0, 0.0, 100.0)
 def attack_mode_label(player: Player) -> str:
     if player.damage_school == 'magic' and player.spell_attack_max > 0 and player.mana >= player.cast_mana_cost > 0:
-        return f'Spell {player.spell_attack_min}-{player.spell_attack_max} • Cost {player.cast_mana_cost}'
+        return f'Spell {player.spell_attack_min}-{player.spell_attack_max} â€¢ Cost {player.cast_mana_cost}'
     if player.weapon_attack_max > 0:
         return f'Weapon {player.weapon_attack_min}-{player.weapon_attack_max}'
     return f'Base {player.attack_min}-{player.attack_max}'
@@ -9257,7 +9307,7 @@ def format_log_html(event: CombatEvent) -> str:
     classes = ['mq-log-line']
     if event.text.startswith('-- Round '):
         label = html.escape(event.text.strip().strip('-').strip())
-        text = f'────────  {label}  ────────'
+        text = f'â”€â”€â”€â”€â”€â”€â”€â”€  {label}  â”€â”€â”€â”€â”€â”€â”€â”€'
         classes.append('round')
     elif event.text.startswith('Enemy says:'):
         classes.append('quote')
@@ -9439,7 +9489,7 @@ class Item:
             parts.append(f'Mana {get_charm_mana_cost(self.level)}')
         affixes = [format_stat_value(k, v, self.level) for k, v in self.affix_stats.items()]
         parts.extend(affixes[:3])
-        return ' • '.join(parts) if parts else 'No bonuses'
+        return ' â€¢ '.join(parts) if parts else 'No bonuses'
     def sell_value(self) -> int:
         base = {'Common': 1, 'Fine': 2, 'Rare': 4, 'Epic': 7, 'Mythic': 11, 'Ancient': 16, 'Relic': 22, 'Ascendant': 29, 'Legendary': 37, 'Unspawnable': 55}[self.rarity]
         return base + max(0, self.level // 5)
@@ -10423,7 +10473,7 @@ def build_combat_timeline(player: Player, monster: Fighter) -> List[Tuple[Combat
                     parts.append(f'{hp_gained} life')
                 if mana_gained:
                     parts.append(f'{mana_gained} mana')
-                event = CombatEvent(f'{player.name} regenerates {' and '.join(parts)}.', 'success')
+                event = CombatEvent(f"{player.name} regenerates {' and '.join(parts)}.", 'success')
                 timeline.append((event, player.hp, player.mana, monster.hp, player.wins, player.losses))
         round_no += 1
     if player.is_alive() and not monster.is_alive():
@@ -10440,7 +10490,7 @@ def build_combat_timeline(player: Player, monster: Fighter) -> List[Tuple[Combat
 
 def format_duration(seconds: Optional[float]) -> str:
     if seconds is None:
-        return '—'
+        return 'â€”'
     total = max(0, int(round(float(seconds))))
     minutes, secs = divmod(total, 60)
     hours, minutes = divmod(minutes, 60)
@@ -10650,7 +10700,7 @@ def build_masterquest_oracle_panel_html(player_class: str, next_class: str, line
     elif player_class:
         rite = (
             f'For a {player_class}, this chamber is the last audit of discipline. '
-            'There is no higher class to claim now—only proof that you can read the pattern when no mercy is offered.'
+            'There is no higher class to claim nowâ€”only proof that you can read the pattern when no mercy is offered.'
         )
     else:
         rite = 'This chamber strips every run down to pattern, nerve, and consequence.'
@@ -10733,15 +10783,15 @@ def build_glossary_text() -> str:
     lines.append('')
     lines.append('Current System Notes')
     lines.append('-' * 96)
-    lines.append('• Arena item drops roll affixes with disadvantage. Well of Evil rewards roll affixes with advantage, but the shaped ritual reward itself is still only a 50% drop chance after victory.')
-    lines.append('• Affix rolls are deliberately bottom-heavy: low rolls are common, top-end rolls are sharply rarer.')
-    lines.append("• Well of Evil costs 10 gold plus one Common inventory item. After a winning ritual, there is a 50% chance to receive a drop that matches the offering's tier and type, and you return to the Well after the fight.")
-    lines.append('• Proficiency gains 1 point on each successful player hit for the active weapon or charm family. Each proficiency level grants +1% Enhanced Effect to that family. Threshold per level: 1000 × (current proficiency level + 1).')
-    lines.append("• Transmutation needs two Fine-or-better items of the same tier. The second offering can be any type, but the result always keeps Offering One's type. Gold cost = 2 + both items' total affix counts.")
-    lines.append('• Transmutation rarity odds: 35% one step up from the lower rarity, 50% stay near the higher rarity, 15% one step down from the higher rarity.')
-    lines.append('• Marketplace has three stalls: a cheap Fine utility piece, a premium rare-goods slot, and a Special Stall. Unspawnables come only from the Special Stall. Bazaar sellers can manage up to 100 active listings and may reprice or remove unsold posts.')
-    lines.append('• Arena drop chance starts at 33.3% and scales with Magic Find up to 60%. Winning a Well fight gives a 50% chance at a shaped reward.')
-    lines.append(f'• Inn Vault starts at 0 slots. Spend {VAULT_SLOT_BUNDLE_COST} gold to buy {VAULT_SLOT_BUNDLE_SIZE} more slots at a time, then deposit and withdraw items freely. Legacy saves keep at least {LEGACY_VAULT_CAPACITY} slots. SSF disables the Bazaar entirely, while Core / SSF / HC keep separate ladders and fastest-PQ boards.')
+    lines.append('â€¢ Arena item drops roll affixes with disadvantage. Well of Evil rewards roll affixes with advantage, but the shaped ritual reward itself is still only a 50% drop chance after victory.')
+    lines.append('â€¢ Affix rolls are deliberately bottom-heavy: low rolls are common, top-end rolls are sharply rarer.')
+    lines.append("â€¢ Well of Evil costs 10 gold plus one Common inventory item. After a winning ritual, there is a 50% chance to receive a drop that matches the offering's tier and type, and you return to the Well after the fight.")
+    lines.append('â€¢ Proficiency gains 1 point on each successful player hit for the active weapon or charm family. Each proficiency level grants +1% Enhanced Effect to that family. Threshold per level: 1000 Ã— (current proficiency level + 1).')
+    lines.append("â€¢ Transmutation needs two Fine-or-better items of the same tier. The second offering can be any type, but the result always keeps Offering One's type. Gold cost = 2 + both items' total affix counts.")
+    lines.append('â€¢ Transmutation rarity odds: 35% one step up from the lower rarity, 50% stay near the higher rarity, 15% one step down from the higher rarity.')
+    lines.append('â€¢ Marketplace has three stalls: a cheap Fine utility piece, a premium rare-goods slot, and a Special Stall. Unspawnables come only from the Special Stall. Bazaar sellers can manage up to 100 active listings and may reprice or remove unsold posts.')
+    lines.append('â€¢ Arena drop chance starts at 33.3% and scales with Magic Find up to 60%. Winning a Well fight gives a 50% chance at a shaped reward.')
+    lines.append(f'â€¢ Inn Vault starts at 0 slots. Spend {VAULT_SLOT_BUNDLE_COST} gold to buy {VAULT_SLOT_BUNDLE_SIZE} more slots at a time, then deposit and withdraw items freely. Legacy saves keep at least {LEGACY_VAULT_CAPACITY} slots. SSF disables the Bazaar entirely, while Core / SSF / HC keep separate ladders and fastest-PQ boards.')
     return '\n'.join(lines)
 
 class SessionState:
@@ -11840,7 +11890,7 @@ class SessionState:
             if not oauth_url:
                 self.set_auth_status('Discord sign-in could not generate an OAuth redirect URL.', 'warning')
                 return ''
-            self.set_auth_status('Redirecting to Discord sign-in…', 'info')
+            self.set_auth_status('Redirecting to Discord sign-inâ€¦', 'info')
             return oauth_url
         except Exception as exc:
             self.set_auth_status(f'Discord sign in failed: {exc}', 'danger')
@@ -12483,9 +12533,9 @@ class SessionState:
                 vault_capacity = 0
             vault_capacity = max(vault_capacity, vault_count, 0)
             return (
-                f'{player.player_class} • Level {player.level}\n'
-                f'HP {player.hp}/{player.max_hp} • Gold {player.gold} • XP {player.xp}/{player.xp_to_next}\n'
-                f'Wins {player.wins} • Losses {player.losses} • Inventory {len(player.inventory)} items • Vault {vault_count}/{vault_capacity}'
+                f'{player.player_class} â€¢ Level {player.level}\n'
+                f'HP {player.hp}/{player.max_hp} â€¢ Gold {player.gold} â€¢ XP {player.xp}/{player.xp_to_next}\n'
+                f'Wins {player.wins} â€¢ Losses {player.losses} â€¢ Inventory {len(player.inventory)} items â€¢ Vault {vault_count}/{vault_capacity}'
             )
         except Exception:
             return 'The chronicle is damaged. Opening this slot will begin a fresh hero.'
@@ -13152,7 +13202,7 @@ def masterquest_status_text(self) -> str:
     cost = masterquest_attempt_cost(current_class)
     xp_penalty_pct = int(round(masterquest_xp_debuff_fraction(current_class) * 1000)) / 10
     return (
-        f"Path {path_text}  •  Solved {solved}/{total_slots}  •  Blind clear odds {masterquest_blind_clear_text(normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard')))}  •  Entry {cost}g  •  XP Penalty -{xp_penalty_pct}%\n"
+        f"Path {path_text}  â€¢  Solved {solved}/{total_slots}  â€¢  Blind clear odds {masterquest_blind_clear_text(normalize_player_class_name(self.player.player_class, str(self.player.player_class or 'Black Guard')))}  â€¢  Entry {cost}g  â€¢  XP Penalty -{xp_penalty_pct}%\n"
         f"Any wrong vessel fails the rite immediately."
     )
 
@@ -13388,8 +13438,8 @@ def well_sacrifice_item_map(self) -> Dict[str, Tuple[int, Item]]:
         tier_value = bucket_item_level(int(getattr(item, "level", 1) or 1))
         type_label = saved_item_type_label(item)
         tier_label = f'Tier {tier_value}'
-        requirement = '' if player_level >= tier_value else f' • Requires Lv {tier_value}'
-        base_label = f'INV {index + 1} • {safe_item_name(item)} • {tier_label} {type_label}{requirement}'
+        requirement = '' if player_level >= tier_value else f' â€¢ Requires Lv {tier_value}'
+        base_label = f'INV {index + 1} â€¢ {safe_item_name(item)} â€¢ {tier_label} {type_label}{requirement}'
         label = base_label
         suffix = 2
         while label in item_map:
@@ -13425,7 +13475,7 @@ def well_status_text(self) -> str:
         return ''
     return (
         "<div class='mq-status-line--stacked'>"
-        f"<div class='mq-status-line'><span class='mq-status-identity'>{html.escape(self.player.name)} the {html.escape(self.player.player_class)}</span><span class='mq-status-sep'>•</span>{gold_inline_html(self.player.gold)}<span class='mq-status-sep'>•</span>{resource_inline_html('HP', self.player.hp, self.player.max_hp, 'hp')}<span class='mq-status-sep'>•</span>{resource_inline_html('Mana', self.player.mana, self.player.max_mana, 'mana')}</div>"
+        f"<div class='mq-status-line'><span class='mq-status-identity'>{html.escape(self.player.name)} the {html.escape(self.player.player_class)}</span><span class='mq-status-sep'>â€¢</span>{gold_inline_html(self.player.gold)}<span class='mq-status-sep'>â€¢</span>{resource_inline_html('HP', self.player.hp, self.player.max_hp, 'hp')}<span class='mq-status-sep'>â€¢</span>{resource_inline_html('Mana', self.player.mana, self.player.max_mana, 'mana')}</div>"
         "</div>"
     )
 
@@ -14679,7 +14729,7 @@ def inn_status_text(self) -> str:
     vault_capacity = max(int(getattr(self, 'vault_capacity', 0) or 0), len(getattr(self, 'vault_items', [])))
     return (
         "<div class='mq-status-line--stacked'>"
-        f"<div class='mq-status-line'><span class='mq-status-identity'>{html.escape(self.player.name)} the {html.escape(self.player.player_class)}</span><span class='mq-status-sep'>•</span>{gold_inline_html(self.player.gold)}<span class='mq-status-sep'>•</span>{resource_inline_html('HP', self.player.hp, self.player.max_hp, 'hp')}<span class='mq-status-sep'>•</span>{resource_inline_html('Mana', self.player.mana, self.player.max_mana, 'mana')}</div>"
+        f"<div class='mq-status-line'><span class='mq-status-identity'>{html.escape(self.player.name)} the {html.escape(self.player.player_class)}</span><span class='mq-status-sep'>â€¢</span>{gold_inline_html(self.player.gold)}<span class='mq-status-sep'>â€¢</span>{resource_inline_html('HP', self.player.hp, self.player.max_hp, 'hp')}<span class='mq-status-sep'>â€¢</span>{resource_inline_html('Mana', self.player.mana, self.player.max_mana, 'mana')}</div>"
         f"<div class='mq-status-note'>A room costs {html.escape(cost_text)}. Resting restores 35% HP (min 10), 35% Mana (min 4), and resets your Monster Chain Combo.</div>"
         f"<div class='mq-status-note'>Inn Vault: {len(self.vault_items)}/{vault_capacity} slots filled. Buy {VAULT_SLOT_BUNDLE_SIZE} more slots for {VAULT_SLOT_BUNDLE_COST} gold. Deposits and withdrawals are free.</div>"
         "</div>"
@@ -14779,7 +14829,7 @@ def ladder_totals_text(self) -> str:
     total_kills = sum(int(stats['enemy_kills']) for stats in self.ladder_stats.values())
     total_deaths = sum(int(stats['total_deaths']) for stats in self.ladder_stats.values())
     total_wellspawns = sum(int(stats['wellspawns_killed']) for stats in self.ladder_stats.values())
-    return f'Prismatic Quest Attempts {total_attempts}  •  Ladder Resets {self.current_account_ladder_resets()}  •  Season {self.current_global_season_id}\nEnemy Kills {total_kills}  •  Deaths {total_deaths}  •  Wellspawns {total_wellspawns}'
+    return f'Prismatic Quest Attempts {total_attempts}  â€¢  Ladder Resets {self.current_account_ladder_resets()}  â€¢  Season {self.current_global_season_id}\nEnemy Kills {total_kills}  â€¢  Deaths {total_deaths}  â€¢  Wellspawns {total_wellspawns}'
 
 def ladder_fastest_rows(self) -> List[Tuple[str, float]]:
     fastest = [(class_name, stats['fastest_masterquest_seconds']) for class_name, stats in self.ladder_stats.items() if stats.get('fastest_masterquest_seconds') is not None]
@@ -15506,19 +15556,7 @@ def _labyrinth_append_event(events: object, text: object) -> List[str]:
 
 
 def _labyrinth_reward_effect_totals(raw_rewards: object) -> Dict[str, float]:
-    totals = {
-        'damage_mult': 0.0,
-        'hp_mult': 0.0,
-        'xp_mult': 0.0,
-        'gold_mult': 0.0,
-        'speed_flat': 0.0,
-        'armor_mult': 0.0,
-        'mres_mult': 0.0,
-        'drop_bonus': 0.0,
-        'heal_between_mult': 0.0,
-        'boss_damage_mult': 0.0,
-        'boss_taken_mult': 0.0,
-    }
+    totals: Dict[str, float] = {}
     if not isinstance(raw_rewards, list):
         return totals
     for reward in raw_rewards:
@@ -15527,12 +15565,49 @@ def _labyrinth_reward_effect_totals(raw_rewards: object) -> Dict[str, float]:
         effects = reward.get('effects', {})
         if not isinstance(effects, dict):
             continue
-        for key in list(totals.keys()):
+        for key, value in effects.items():
             try:
-                totals[key] += float(effects.get(key, 0.0) or 0.0)
+                totals[str(key)] = float(totals.get(str(key), 0.0) or 0.0) + float(value or 0.0)
             except Exception:
                 continue
     return totals
+
+
+def _labyrinth_reward_display_value(template: Dict[str, object], roll: int) -> str:
+    kind = str(template.get('kind') or 'flat').strip().lower()
+    if kind == 'percent':
+        return f'{int(roll)}%'
+    return str(int(roll))
+
+
+def _labyrinth_reward_effect_value(template: Dict[str, object], roll: int) -> float:
+    kind = str(template.get('kind') or 'flat').strip().lower()
+    if kind in {'percent', 'thorns'}:
+        value = float(roll) / 100.0
+    else:
+        value = float(roll)
+    if bool(template.get('negative', False)):
+        value *= -1.0
+    return value
+
+
+def _labyrinth_build_reward_offer(template: Dict[str, object], index: int, floor: int, title: str, tone: str) -> Dict[str, object]:
+    safe_min = int(template.get('min', 1) or 1)
+    safe_max = int(template.get('max', safe_min) or safe_min)
+    roll = random.randint(min(safe_min, safe_max), max(safe_min, safe_max))
+    text = str(template.get('text') or '').format(value=_labyrinth_reward_display_value(template, roll))
+    effect_key = str(template.get('effect_key') or '').strip()
+    effects = {effect_key: _labyrinth_reward_effect_value(template, roll)} if effect_key else {}
+    return {
+        'id': f'{tone}-{template.get("id") or index}-{uuid.uuid4().hex[:8]}',
+        'title': title,
+        'choice_index': index,
+        'offered_floor': max(1, int(floor or 1)),
+        'template_id': str(template.get('id') or '').strip(),
+        'effects': effects,
+        'text': text,
+        'tone': tone,
+    }
 
 
 def _labyrinth_build_reward_choices(floor: object) -> List[Dict[str, object]]:
@@ -15540,18 +15615,51 @@ def _labyrinth_build_reward_choices(floor: object) -> List[Dict[str, object]]:
         safe_floor = max(1, int(floor or 1))
     except Exception:
         safe_floor = 1
-    pool = [dict(entry) for entry in LABYRINTH_REWARD_POOL]
-    if len(pool) <= 3:
-        choices = pool
-    else:
-        choices = random.sample(pool, 3)
+    titles = list(LABYRINTH_REWARD_CARD_TITLES)
+    if len(titles) < 3:
+        titles = ['Prism Offer I', 'Prism Offer II', 'Prism Offer III']
+    buff_choices = random.sample(LABYRINTH_BUFF_TEMPLATES, k=min(3, len(LABYRINTH_BUFF_TEMPLATES)))
+    debuff_choices = random.sample(LABYRINTH_DEBUFF_TEMPLATES, k=min(3, len(LABYRINTH_DEBUFF_TEMPLATES)))
     output: List[Dict[str, object]] = []
-    for index, entry in enumerate(choices):
-        reward = dict(entry)
-        reward['offered_floor'] = safe_floor
-        reward['choice_index'] = index
+    for index in range(min(3, len(buff_choices), len(debuff_choices))):
+        buff = _labyrinth_build_reward_offer(dict(buff_choices[index]), index, safe_floor, titles[index], 'boon')
+        debuff = _labyrinth_build_reward_offer(dict(debuff_choices[index]), index, safe_floor, titles[index], 'bane')
+        reward = {
+            'id': f'lab-reward-{safe_floor}-{index}-{uuid.uuid4().hex[:6]}',
+            'title': titles[index],
+            'offered_floor': safe_floor,
+            'choice_index': index,
+            'boon': str(buff.get('text') or '').strip(),
+            'bane': str(debuff.get('text') or '').strip(),
+            'effects': {**dict(buff.get('effects', {})), **dict(debuff.get('effects', {}))},
+            'buff_offer': buff,
+            'debuff_offer': debuff,
+        }
         output.append(reward)
     return output
+
+
+def _labyrinth_parse_iso_timestamp(raw_value: object) -> Optional[datetime]:
+    text = str(raw_value or '').strip()
+    if not text:
+        return None
+    try:
+        return datetime.fromisoformat(text.replace('Z', '+00:00'))
+    except Exception:
+        return None
+
+
+def _labyrinth_reward_seconds_remaining(session_row: object) -> int:
+    if not isinstance(session_row, dict):
+        return 0
+    pending = session_row.get('pending_encounter', {})
+    if not isinstance(pending, dict):
+        return 0
+    started_at = _labyrinth_parse_iso_timestamp(pending.get('reward_vote_started_at'))
+    if started_at is None:
+        return LABYRINTH_REWARD_VOTE_SECONDS
+    elapsed = (datetime.now(timezone.utc) - started_at).total_seconds()
+    return max(0, int(math.ceil(LABYRINTH_REWARD_VOTE_SECONDS - elapsed)))
 
 
 def _labyrinth_normalize_tile_states(raw_states: object) -> Dict[str, Dict[str, object]]:
@@ -15711,7 +15819,7 @@ def _generate_labyrinth_monster(monster_type: object, target_level: object, floo
 
 def ensure_labyrinth_state(self) -> None:
     defaults = {
-        'labyrinth_status': 'The hedges are still and silent.',
+        'labyrinth_status': 'The Labyrinth of Light is still and silent.',
         'labyrinth_join_code_draft': '',
         'labyrinth_session_id': '',
         'labyrinth_join_code': '',
@@ -15727,6 +15835,7 @@ def ensure_labyrinth_state(self) -> None:
         'labyrinth_last_sync_at': 0.0,
         'labyrinth_last_member_sync_at': 0.0,
         'labyrinth_acknowledged_floor': 0,
+        'labyrinth_claimed_reward_ids': set(),
         'labyrinth_controller_target': '',
     }
     for key, value in defaults.items():
@@ -15949,7 +16058,33 @@ def _labyrinth_restore_self_for_floor(self, floor: int) -> None:
     self.player.recalculate_stats()
     self.player.hp = self.player.max_hp
     self.player.mana = self.player.max_mana
-    self.labyrinth_local_resolution_text = f'Floor {target_floor} begins. The party regroups at full strength.'
+    reward_messages: List[str] = []
+    claimed_reward_ids = getattr(self, 'labyrinth_claimed_reward_ids', set())
+    if not isinstance(claimed_reward_ids, set):
+        claimed_reward_ids = set(claimed_reward_ids or [])
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    modifier_stack = list(session_row.get('modifier_stack', []) or []) if isinstance(session_row, dict) else []
+    for reward in modifier_stack:
+        if not isinstance(reward, dict):
+            continue
+        if int(reward.get('granted_floor', 0) or 0) != target_floor:
+            continue
+        reward_id = str(reward.get('id') or '').strip()
+        if reward_id and reward_id in claimed_reward_ids:
+            continue
+        effects = reward.get('effects', {})
+        if isinstance(effects, dict):
+            bonus_gold = max(0, int(round(float(effects.get('instant_gold_flat', 0.0) or 0.0))))
+            if bonus_gold > 0:
+                self.player.gold += bonus_gold
+                reward_messages.append(f'+{bonus_gold}g from {reward.get("title") or "the prism offer"}')
+        if reward_id:
+            claimed_reward_ids.add(reward_id)
+    self.labyrinth_claimed_reward_ids = claimed_reward_ids
+    if reward_messages:
+        self.labyrinth_local_resolution_text = f'Floor {target_floor} begins. The party regroups at full strength. ' + ' '.join(reward_messages)
+    else:
+        self.labyrinth_local_resolution_text = f'Floor {target_floor} begins. The party regroups at full strength.'
     self.sync_active_slot()
     try:
         labyrinth_sync_member_snapshot(self, force=True, extra_updates={
@@ -16023,7 +16158,7 @@ def labyrinth_refresh_session_state(self, force: bool = False) -> bool:
             return False
         current_floor = int(session_row.get('floor', 1) or 1)
         current_state = str(session_row.get('status') or 'lobby').title()
-        self.labyrinth_status = f'Floor {current_floor} • {current_state} • Solo Expedition'
+        self.labyrinth_status = f'Floor {current_floor} â€¢ {current_state} â€¢ Solo Expedition'
         self_member = _labyrinth_self_member_row(self)
         if self_member:
             _labyrinth_restore_self_for_floor(self, current_floor)
@@ -16060,6 +16195,7 @@ def labyrinth_refresh_session_state(self, force: bool = False) -> bool:
             self.labyrinth_member_rows = []
             self.labyrinth_vote_rows = []
             self.labyrinth_recent_events = []
+            self.labyrinth_claimed_reward_ids = set()
             self.labyrinth_local_combat_log = []
             self.labyrinth_local_resolution_text = ''
             self.sync_active_slot()
@@ -16073,6 +16209,7 @@ def labyrinth_refresh_session_state(self, force: bool = False) -> bool:
             self.labyrinth_member_rows = []
             self.labyrinth_vote_rows = []
             self.labyrinth_recent_events = []
+            self.labyrinth_claimed_reward_ids = set()
             self.labyrinth_local_combat_log = []
             self.labyrinth_local_resolution_text = ''
             self.sync_active_slot()
@@ -16109,12 +16246,12 @@ def labyrinth_refresh_session_state(self, force: bool = False) -> bool:
                     vote_rows.append({
                         'session_id': str(raw_vote.get('session_id') or '').strip(),
                         'floor': max(1, int(raw_vote.get('floor', 1) or 1)),
-                        'voter_user_id': str(raw_vote.get('voter_user_id') or '').strip(),
+                        'user_id': str(raw_vote.get('user_id') or raw_vote.get('voter_user_id') or '').strip(),
                         'choice_index': max(-1, int(raw_vote.get('choice_index', -1) or -1)),
                         'updated_at': str(raw_vote.get('updated_at') or '').strip(),
                     })
         changed = _labyrinth_store_snapshot(self, session_row, member_rows, vote_rows)
-        self.labyrinth_status = f'Floor {int(session_row.get("floor", 1) or 1)} • {str(session_row.get("status") or "lobby").title()} • Join Code {session_row.get("join_code") or "Unknown"}'
+        self.labyrinth_status = f'Floor {int(session_row.get("floor", 1) or 1)} â€¢ {str(session_row.get("status") or "lobby").title()} â€¢ Join Code {session_row.get("join_code") or "Unknown"}'
         self.sync_active_slot()
         self_member = _labyrinth_self_member_row(self)
         if self_member:
@@ -16151,7 +16288,7 @@ def labyrinth_current_vote_choice(self) -> int:
     for row in list(getattr(self, 'labyrinth_vote_rows', []) or []):
         if not isinstance(row, dict):
             continue
-        if str(row.get('voter_user_id') or '').strip() == user_id and int(row.get('floor', floor) or floor) == floor:
+        if str(row.get('user_id') or row.get('voter_user_id') or '').strip() == user_id and int(row.get('floor', floor) or floor) == floor:
             return int(row.get('choice_index', -1) or -1)
     return -1
 
@@ -16245,6 +16382,7 @@ def create_labyrinth_session(self) -> bool:
     self.labyrinth_join_code = str(created_session.get('join_code') or '').strip().upper()
     self.labyrinth_floor = int(created_session.get('floor', 1) or 1)
     self.labyrinth_acknowledged_floor = 0
+    self.labyrinth_claimed_reward_ids = set()
     labyrinth_sync_member_snapshot(self, force=True)
     changed = labyrinth_refresh_session_state(self, force=True)
     self.labyrinth_status = f'Labyrinth expedition opened. Share {self.labyrinth_join_code} with your party.'
@@ -16291,6 +16429,7 @@ def create_labyrinth_solo_session(self) -> bool:
     self.labyrinth_join_code = ''
     self.labyrinth_floor = int(session_row.get('floor', 1) or 1)
     self.labyrinth_acknowledged_floor = 0
+    self.labyrinth_claimed_reward_ids = set()
     member_payload = _labyrinth_member_payload(self, extra_updates={
         'user_id': member_id,
         'joined_at': _labyrinth_now_iso(),
@@ -16350,6 +16489,7 @@ def join_labyrinth_session(self, raw_code: str) -> bool:
         self.labyrinth_session_id = str(session_row.get('id') or '').strip()
         self.labyrinth_join_code = join_code
         self.labyrinth_acknowledged_floor = 0
+        self.labyrinth_claimed_reward_ids = set()
         if not existing_member:
             labyrinth_sync_member_snapshot(self, force=True, extra_updates={
                 'last_resolution_sequence': 0,
@@ -16376,7 +16516,8 @@ def leave_labyrinth_session(self) -> bool:
         self.labyrinth_member_rows = []
         self.labyrinth_vote_rows = []
         self.labyrinth_recent_events = []
-        self.labyrinth_status = 'You step away from the cold hedge.'
+        self.labyrinth_claimed_reward_ids = set()
+        self.labyrinth_status = 'You step away from the cold prism walls.'
         self.labyrinth_floor = 0
         self.sync_active_slot()
         return True
@@ -16422,6 +16563,7 @@ def leave_labyrinth_session(self) -> bool:
     self.labyrinth_member_rows = []
     self.labyrinth_vote_rows = []
     self.labyrinth_recent_events = []
+    self.labyrinth_claimed_reward_ids = set()
     self.labyrinth_status = 'You leave the Labyrinth of Light behind.'
     self.labyrinth_floor = 0
     self.labyrinth_local_combat_log = []
@@ -16505,21 +16647,21 @@ def labyrinth_reset_after_defeat(self) -> bool:
     payload['tile_states'] = _labyrinth_build_tile_states(session_row.get('grid_size', LABYRINTH_GRID_SIZE))
     payload['pending_encounter'] = {}
     payload['reward_options'] = []
-    payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The shattered party regathers at the hedge line.')
+    payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The shattered party regathers at the prism gate.')
     if not _labyrinth_upsert_session_row(self, payload):
         return False
     self.labyrinth_acknowledged_floor = 0
     self.labyrinth_local_combat_log = []
     self.labyrinth_local_resolution_text = ''
     labyrinth_refresh_session_state(self, force=True)
-    self.labyrinth_status = 'The expedition has been reset at the hedge line.'
+    self.labyrinth_status = 'The expedition has been reset at the prism gate.'
     return True
 
 
 def labyrinth_move_party(self, direction: str) -> bool:
     ensure_labyrinth_state(self)
     if not labyrinth_is_controller(self):
-        self.labyrinth_status = 'Only the current controller can move the party through the hedge.'
+        self.labyrinth_status = 'Only the current controller can move the party through the Labyrinth of Light.'
         return False
     session_row = getattr(self, 'labyrinth_session_row', {})
     if not isinstance(session_row, dict) or not session_row:
@@ -16537,7 +16679,7 @@ def labyrinth_move_party(self, direction: str) -> bool:
     next_x = max(0, min(grid_size - 1, current_x + dx))
     next_y = max(0, min(grid_size - 1, current_y + dy))
     if next_x == current_x and next_y == current_y:
-        self.labyrinth_status = 'The hedge wall rejects that step.'
+        self.labyrinth_status = 'The prism wall rejects that step.'
         return False
     tile_states = copy.deepcopy(session_row.get('tile_states', {})) if isinstance(session_row.get('tile_states', {}), dict) else _labyrinth_build_tile_states(grid_size)
     tile_key = _labyrinth_tile_key(next_x, next_y)
@@ -16629,34 +16771,286 @@ def labyrinth_start_boss_encounter(self) -> bool:
     return True
 
 
+def _labyrinth_apply_enhanced_bonus(player: Player, extra_enhanced: float) -> None:
+    if abs(float(extra_enhanced or 0.0)) < 1e-6:
+        return
+    weapon = player.equipped.get('weapon')
+    if weapon is not None:
+        base_bonus = player.get_item_proficiency_bonus(weapon)
+        base_low, base_high = weapon.get_scaled_base_range('attack_damage', base_bonus)
+        bonus_low, bonus_high = weapon.get_scaled_base_range('attack_damage', base_bonus + extra_enhanced)
+        if weapon.subtype == 'Axe':
+            weighted_stat = (player.strength * 0.95) + (player.dexterity * 0.05)
+        elif weapon.subtype == 'Dagger':
+            weighted_stat = (player.strength * 0.05) + (player.dexterity * 0.95)
+        else:
+            weighted_stat = (player.strength * 0.75) + (player.dexterity * 0.75)
+        weapon_stat_factor = max(0.0, weighted_stat / 25.0) * CORE_STAT_DAMAGE_POWER
+        weapon_average_multiplier = 1.0 + (weapon_stat_factor * SPELL_STAT_SCALING_POWER)
+        weapon_current_spread_multiplier = 1.0 + weapon_stat_factor
+        base_variance_ratio = (base_high - base_low) / max(1.0, (base_low + base_high) / 2.0)
+        bonus_variance_ratio = (bonus_high - bonus_low) / max(1.0, (bonus_low + bonus_high) / 2.0)
+        base_spread_multiplier = weapon_current_spread_multiplier * (1.0 + min(0.25, base_variance_ratio * 0.07))
+        bonus_spread_multiplier = weapon_current_spread_multiplier * (1.0 + min(0.25, bonus_variance_ratio * 0.07))
+        scaled_base_low, scaled_base_high = scale_damage_range_with_variance(base_low, base_high, weapon_average_multiplier, base_spread_multiplier)
+        scaled_bonus_low, scaled_bonus_high = scale_damage_range_with_variance(bonus_low, bonus_high, weapon_average_multiplier, bonus_spread_multiplier)
+        player.weapon_attack_min += scaled_bonus_low - scaled_base_low
+        player.weapon_attack_max += scaled_bonus_high - scaled_base_high
+    armor = player.equipped.get('armor')
+    if armor is not None:
+        base_a_low, base_a_high = armor.get_scaled_base_range('physical_armor')
+        base_r_low, base_r_high = armor.get_scaled_base_range('magic_resistance')
+        bonus_a_low, bonus_a_high = armor.get_scaled_base_range('physical_armor', extra_enhanced)
+        bonus_r_low, bonus_r_high = armor.get_scaled_base_range('magic_resistance', extra_enhanced)
+        player.physical_armor += int(round(((bonus_a_low + bonus_a_high) - (base_a_low + base_a_high)) / 2.0))
+        player.magic_resistance += int(round(((bonus_r_low + bonus_r_high) - (base_r_low + base_r_high)) / 2.0))
+    charm = player.equipped.get('charm')
+    if charm is not None:
+        base_bonus = player.get_item_proficiency_bonus(charm)
+        base_low, base_high = charm.get_scaled_base_range('attack_damage', base_bonus)
+        bonus_low, bonus_high = charm.get_scaled_base_range('attack_damage', base_bonus + extra_enhanced)
+        spell_stat_factor = max(0.0, player.intelligence / 25.0) * CORE_STAT_DAMAGE_POWER
+        spell_average_multiplier = 1.0 + (spell_stat_factor * SPELL_STAT_SCALING_POWER)
+        spell_current_spread_multiplier = 1.0 + spell_stat_factor
+        base_variance_ratio = (base_high - base_low) / max(1.0, (base_low + base_high) / 2.0)
+        bonus_variance_ratio = (bonus_high - bonus_low) / max(1.0, (bonus_low + bonus_high) / 2.0)
+        base_spread_multiplier = spell_current_spread_multiplier * (1.0 + min(0.20, base_variance_ratio * 0.05))
+        bonus_spread_multiplier = spell_current_spread_multiplier * (1.0 + min(0.20, bonus_variance_ratio * 0.05))
+        scaled_base_low, scaled_base_high = scale_damage_range_with_variance(base_low, base_high, spell_average_multiplier, base_spread_multiplier)
+        scaled_bonus_low, scaled_bonus_high = scale_damage_range_with_variance(bonus_low, bonus_high, spell_average_multiplier, bonus_spread_multiplier)
+        player.spell_attack_min += scaled_bonus_low - scaled_base_low
+        player.spell_attack_max += scaled_bonus_high - scaled_base_high
+
+
 def _labyrinth_apply_effects_to_player(player: Player, effects: Dict[str, float], boss: bool = False) -> None:
-    hp_ratio = player.hp / max(1, player.max_hp)
+    hp_ratio = player.hp / max(1, player.max_hp) if player.max_hp > 0 else 1.0
     mana_ratio = player.mana / max(1, player.max_mana) if player.max_mana > 0 else 1.0
-    hp_scale = max(0.55, 1.0 + float(effects.get('hp_mult', 0.0) or 0.0))
-    damage_scale = max(0.50, 1.0 + float(effects.get('damage_mult', 0.0) or 0.0) + (float(effects.get('boss_damage_mult', 0.0) or 0.0) if boss else 0.0))
-    armor_scale = max(0.45, 1.0 + float(effects.get('armor_mult', 0.0) or 0.0))
-    mres_scale = max(0.45, 1.0 + float(effects.get('mres_mult', 0.0) or 0.0))
-    speed_flat = int(round(float(effects.get('speed_flat', 0.0) or 0.0)))
-    player.max_hp = max(1, int(round(player.max_hp * hp_scale)))
+    strength_mult = float(effects.get('strength_mult', 0.0) or 0.0)
+    dexterity_mult = float(effects.get('dexterity_mult', 0.0) or 0.0)
+    intelligence_mult = float(effects.get('intelligence_mult', 0.0) or 0.0)
+    vitality_mult = float(effects.get('vitality_mult', 0.0) or 0.0)
+    if strength_mult:
+        player.base_strength = max(0, int(round(player.base_strength * max(0.25, 1.0 + strength_mult))))
+    if dexterity_mult:
+        player.base_dexterity = max(0, int(round(player.base_dexterity * max(0.25, 1.0 + dexterity_mult))))
+    if intelligence_mult:
+        player.base_intelligence = max(0, int(round(player.base_intelligence * max(0.25, 1.0 + intelligence_mult))))
+    if vitality_mult:
+        player.base_vitality = max(0, int(round(player.base_vitality * max(0.25, 1.0 + vitality_mult))))
+    player.recalculate_stats()
     player.hp = max(0, min(player.max_hp, int(round(player.max_hp * hp_ratio))))
-    player.max_mana = max(0, player.max_mana)
     player.mana = max(0, min(player.max_mana, int(round(player.max_mana * mana_ratio))))
+    max_hp_mult = float(effects.get('max_hp_mult', 0.0) or 0.0)
+    max_mana_mult = float(effects.get('max_mana_mult', 0.0) or 0.0)
+    if max_hp_mult:
+        player.max_hp = max(1, int(round(player.max_hp * max(0.25, 1.0 + max_hp_mult))))
+        player.hp = max(0, min(player.max_hp, int(round(player.max_hp * hp_ratio))))
+    if max_mana_mult:
+        player.max_mana = max(0, int(round(player.max_mana * max(0.20, 1.0 + max_mana_mult))))
+        player.mana = max(0, min(player.max_mana, int(round(player.max_mana * mana_ratio))))
+    _labyrinth_apply_enhanced_bonus(player, float(effects.get('enhanced_effect', 0.0) or 0.0))
+    damage_scale = max(0.30, 1.0 + float(effects.get('attack_damage_mult', 0.0) or 0.0))
+    player.attack_min = max(1, int(round(player.attack_min * damage_scale)))
+    player.attack_max = max(player.attack_min + 1, int(round(player.attack_max * damage_scale)))
     player.weapon_attack_min = max(1, int(round(player.weapon_attack_min * damage_scale)))
     player.weapon_attack_max = max(player.weapon_attack_min + 1, int(round(player.weapon_attack_max * damage_scale)))
     if player.spell_attack_max > 0:
         player.spell_attack_min = max(1, int(round(player.spell_attack_min * damage_scale)))
         player.spell_attack_max = max(player.spell_attack_min + 1, int(round(player.spell_attack_max * damage_scale)))
-    player.physical_armor = max(0, int(round(player.physical_armor * armor_scale)))
-    player.magic_resistance = max(0, int(round(player.magic_resistance * mres_scale)))
-    player.speed = max(1, int(round(player.speed + speed_flat)))
+    player.crit_chance = clamp(player.crit_chance + float(effects.get('crit_chance', 0.0) or 0.0), 0.0, 0.85)
+    crit_damage_mult = float(effects.get('crit_damage_mult', 0.0) or 0.0)
+    if crit_damage_mult:
+        player.crit_damage = clamp(player.crit_damage * max(0.35, 1.0 + crit_damage_mult), 1.10, 6.0)
+    armor_pen_mult = float(effects.get('armor_pen_mult', 0.0) or 0.0)
+    if armor_pen_mult:
+        if player.armor_penetration > 0:
+            player.armor_penetration = max(0, int(round(player.armor_penetration * max(0.20, 1.0 + armor_pen_mult))))
+        elif armor_pen_mult > 0:
+            player.armor_penetration = 1
+    player.lifesteal = clamp(player.lifesteal + float(effects.get('lifesteal', 0.0) or 0.0), 0.0, 0.60)
+    player.evasion = clamp(player.evasion + float(effects.get('evasion', 0.0) or 0.0), 0.0, 0.45)
+    player.accuracy = clamp(player.accuracy + float(effects.get('accuracy', 0.0) or 0.0), 0.10, 1.50)
+    player.magic_find = max(0.0, player.magic_find + float(effects.get('magic_find', 0.0) or 0.0))
+    player.life_regen = max(0, player.life_regen + int(round(float(effects.get('life_regen_flat', 0.0) or 0.0))))
+    player.mana_regen = max(0, player.mana_regen + int(round(float(effects.get('mana_regen_flat', 0.0) or 0.0))))
+    player.life_per_kill = max(0, player.life_per_kill + int(round(float(effects.get('life_per_kill_flat', 0.0) or 0.0))))
+    player.mana_per_kill = max(0, player.mana_per_kill + int(round(float(effects.get('mana_per_kill_flat', 0.0) or 0.0))))
+    player.thorns = clamp(player.thorns + float(effects.get('thorns', 0.0) or 0.0), 0.0, 0.75)
+    physical_armor_mult = float(effects.get('physical_armor_mult', 0.0) or 0.0)
+    magic_resistance_mult = float(effects.get('magic_resistance_mult', 0.0) or 0.0)
+    if physical_armor_mult:
+        player.physical_armor = max(0, int(round(player.physical_armor * max(0.30, 1.0 + physical_armor_mult))))
+    if magic_resistance_mult:
+        player.magic_resistance = max(0, int(round(player.magic_resistance * max(0.30, 1.0 + magic_resistance_mult))))
+    setattr(player, 'labyrinth_healing_factor', max(0.10, 1.0 + float(effects.get('healing_taken_mult', 0.0) or 0.0)))
+    setattr(player, 'labyrinth_first_hit_damage_mult', max(0.10, 1.0 + float(effects.get('first_hit_dealt_mult', 0.0) or 0.0)))
+    setattr(player, 'labyrinth_first_incoming_hit_mult', max(0.10, 1.0 + float(effects.get('first_hit_taken_mult', 0.0) or 0.0)))
+    setattr(player, 'labyrinth_physical_taken_mult', max(0.10, 1.0 + float(effects.get('physical_taken_mult', 0.0) or 0.0)))
+    setattr(player, 'labyrinth_magic_taken_mult', max(0.10, 1.0 + float(effects.get('magic_taken_mult', 0.0) or 0.0)))
 
 
 def _labyrinth_apply_effects_to_monster(monster: Fighter, effects: Dict[str, float], boss: bool = False) -> None:
-    if not boss:
-        return
-    taken_scale = max(0.65, 1.0 + float(effects.get('boss_taken_mult', 0.0) or 0.0))
-    monster.attack_min = max(1, int(round(monster.attack_min * taken_scale)))
-    monster.attack_max = max(monster.attack_min + 1, int(round(monster.attack_max * taken_scale)))
+    monster.accuracy = clamp(monster.accuracy + float(effects.get('monster_accuracy', 0.0) or 0.0), 0.10, 1.50)
+    monster.crit_chance = clamp(monster.crit_chance + float(effects.get('monster_crit_chance', 0.0) or 0.0), 0.0, 0.85)
+    crit_damage_mult = float(effects.get('monster_crit_damage_mult', 0.0) or 0.0)
+    if crit_damage_mult:
+        monster.crit_damage = clamp(monster.crit_damage * max(0.35, 1.0 + crit_damage_mult), 1.10, 6.0)
+    physical_armor_mult = float(effects.get('monster_physical_armor_mult', 0.0) or 0.0)
+    magic_resistance_mult = float(effects.get('monster_magic_resistance_mult', 0.0) or 0.0)
+    if physical_armor_mult:
+        monster.physical_armor = max(0, int(round(monster.physical_armor * max(0.30, 1.0 + physical_armor_mult))))
+    if magic_resistance_mult:
+        monster.magic_resistance = max(0, int(round(monster.magic_resistance * max(0.30, 1.0 + magic_resistance_mult))))
+
+
+def _labyrinth_apply_damage(attacker: Fighter, defender: Fighter, low: int, high: int, school: str, context: Dict[str, object]) -> Tuple[int, bool, int, int]:
+    raw = random.randint(low, high)
+    crit = random.random() <= attacker.crit_chance
+    if crit:
+        raw = int(round(raw * attacker.crit_damage))
+    if school == 'magic':
+        mitigation = random.randint(0, max(0, int(round(defender.magic_resistance))))
+    else:
+        armor_roll = random.randint(0, max(0, int(round(defender.physical_armor))))
+        mitigation = max(0, armor_roll - attacker.armor_penetration)
+    damage = max(1, raw - int(round(mitigation)))
+    if isinstance(attacker, Player) and not bool(context.get('player_first_hit_consumed', False)):
+        damage = max(1, int(round(damage * float(getattr(attacker, 'labyrinth_first_hit_damage_mult', 1.0) or 1.0))))
+        context['player_first_hit_consumed'] = True
+    if not isinstance(attacker, Player) and isinstance(defender, Player):
+        if not bool(context.get('monster_first_hit_consumed', False)):
+            damage = max(1, int(round(damage * float(getattr(defender, 'labyrinth_first_incoming_hit_mult', 1.0) or 1.0))))
+            context['monster_first_hit_consumed'] = True
+        school_factor = float(getattr(defender, 'labyrinth_magic_taken_mult', 1.0) or 1.0) if school == 'magic' else float(getattr(defender, 'labyrinth_physical_taken_mult', 1.0) or 1.0)
+        damage = max(1, int(round(damage * max(0.10, school_factor))))
+    defender.hp = max(0, defender.hp - damage)
+    reflected = 0
+    if damage > 0 and defender.thorns > 0 and attacker.is_alive():
+        reflected = max(1, int(round(damage * defender.thorns)))
+        attacker.hp = max(0, attacker.hp - reflected)
+    healed = 0
+    if damage > 0 and attacker.lifesteal > 0 and attacker.is_alive():
+        healed = int(round(damage * attacker.lifesteal))
+        if isinstance(attacker, Player):
+            healed = int(round(healed * float(getattr(attacker, 'labyrinth_healing_factor', 1.0) or 1.0)))
+        if healed > 0:
+            attacker.hp = min(attacker.max_hp, attacker.hp + healed)
+    return damage, crit, healed, reflected
+
+
+def _labyrinth_resolve_turn(attacker: Fighter, defender: Fighter, context: Dict[str, object]) -> CombatEvent:
+    low, high, school, used_spell, proficiency_key = get_attack_context(attacker)
+    if used_spell and isinstance(attacker, Player):
+        attacker.mana = max(0, attacker.mana - attacker.cast_mana_cost)
+    if not hit_success(attacker, defender):
+        action = 'casts and misses' if used_spell else 'misses'
+        return CombatEvent(f'{attacker.name} {action} {defender.name}.', 'warning')
+    damage, crit, healed, reflected = _labyrinth_apply_damage(attacker, defender, low, high, school, context)
+    school_text = 'magic' if school == 'magic' else 'physical'
+    verb = 'casts into' if used_spell else 'hits'
+    text = f'{attacker.name} {verb} {defender.name} for {damage} {school_text} damage'
+    if crit:
+        text += ' (CRIT)'
+    text += '.'
+    if healed > 0:
+        text += f' {attacker.name} steals {healed} life.'
+    if reflected > 0:
+        text += f' {defender.name} reflects {reflected} damage.'
+    if isinstance(attacker, Player):
+        old_level, new_level = attacker.grant_proficiency_point(proficiency_key, 1)
+        if proficiency_key and new_level > old_level:
+            text += f' {proficiency_key} proficiency reaches {new_level} (+{new_level}% enhanced effect).'
+    damage_to = 'player' if isinstance(defender, Player) else 'monster'
+    return CombatEvent(text, 'danger' if crit else 'info', damage_to=damage_to, damage_amount=damage, crit=crit)
+
+
+def _build_labyrinth_combat_timeline(player: Player, monster: Fighter) -> List[Tuple[CombatEvent, int, int, int, int, int]]:
+    timeline: List[Tuple[CombatEvent, int, int, int, int, int]] = []
+    round_no = 1
+    context: Dict[str, object] = {
+        'player_first_hit_consumed': False,
+        'monster_first_hit_consumed': False,
+    }
+    while player.is_alive() and monster.is_alive() and round_no <= 100:
+        round_event = CombatEvent(f'-- Round {round_no} --', 'round')
+        timeline.append((round_event, player.hp, player.mana, monster.hp, player.wins, player.losses))
+        player_goes_first = player.speed > monster.speed or (player.speed == monster.speed and random.random() < 0.5)
+        if player_goes_first:
+            event = _labyrinth_resolve_turn(player, monster, context)
+            timeline.append((event, player.hp, player.mana, monster.hp, player.wins, player.losses))
+            if monster.is_alive():
+                event = _labyrinth_resolve_turn(monster, player, context)
+                timeline.append((event, player.hp, player.mana, monster.hp, player.wins, player.losses))
+        else:
+            event = _labyrinth_resolve_turn(monster, player, context)
+            timeline.append((event, player.hp, player.mana, monster.hp, player.wins, player.losses))
+            if player.is_alive():
+                event = _labyrinth_resolve_turn(player, monster, context)
+                timeline.append((event, player.hp, player.mana, monster.hp, player.wins, player.losses))
+        if player.is_alive() and (player.life_regen > 0 or player.mana_regen > 0):
+            healing_factor = float(getattr(player, 'labyrinth_healing_factor', 1.0) or 1.0)
+            hp_gained = 0
+            mana_gained = 0
+            if player.life_regen > 0:
+                hp_gained = min(player.max_hp - player.hp, max(0, int(round(player.life_regen * healing_factor))))
+                if hp_gained > 0:
+                    player.hp += hp_gained
+            if player.mana_regen > 0:
+                mana_gained = min(player.max_mana - player.mana, player.mana_regen)
+                if mana_gained > 0:
+                    player.mana += mana_gained
+            if hp_gained or mana_gained:
+                parts = []
+                if hp_gained:
+                    parts.append(f'{hp_gained} life')
+                if mana_gained:
+                    parts.append(f'{mana_gained} mana')
+                event = CombatEvent(f'{player.name} regenerates {' and '.join(parts)}.', 'success')
+                timeline.append((event, player.hp, player.mana, monster.hp, player.wins, player.losses))
+        round_no += 1
+    if player.is_alive() and not monster.is_alive():
+        player.wins += 1
+        event = CombatEvent(f'You defeated {monster.monster_personal_name} ({monster.monster_type})!', 'success')
+    elif monster.is_alive() and not player.is_alive():
+        player.losses += 1
+        event = CombatEvent(f'You were slain by {monster.monster_personal_name} ({monster.monster_type})...', 'danger')
+    else:
+        player.losses += 1
+        event = CombatEvent('The fight timed out in a draw. Counted as a loss.', 'warning')
+    timeline.append((event, player.hp, player.mana, monster.hp, player.wins, player.losses))
+    return timeline
+
+
+def _labyrinth_scale_item_affixes(item: Optional[Item], affix_value_bonus: float) -> Optional[Item]:
+    if item is None or affix_value_bonus <= 0.0:
+        return item
+    scale = 1.0 + min(0.45, affix_value_bonus * 0.90)
+    adjusted_affixes: Dict[str, float] = {}
+    for key, value in dict(getattr(item, 'affix_stats', {}) or {}).items():
+        try:
+            adjusted_affixes[str(key)] = round(float(value) * scale, 2)
+        except Exception:
+            adjusted_affixes[str(key)] = value
+    item.affix_stats = adjusted_affixes
+    return item
+
+
+def _labyrinth_generate_loot_item(monster: Fighter, player: Player, effects: Dict[str, float], boss: bool = False) -> Optional[Item]:
+    quality_bonus = max(0.0, float(effects.get('affix_quality', 0.0) or 0.0))
+    value_bonus = max(0.0, float(effects.get('affix_value', 0.0) or 0.0))
+    effective_magic_find = max(0.0, player.magic_find)
+    affix_mode = 'advantage' if boss or quality_bonus >= 0.04 else 'normal'
+    if boss:
+        preview_item = generate_item_drop(min(60, monster.level), player.player_class, effective_magic_find + 0.10, affix_roll_mode='advantage')
+        rarity_shift = 1 + (1 if quality_bonus >= 0.07 else 0)
+        boosted_rarity = shift_rarity(preview_item.rarity, min(2, rarity_shift))
+        reward_item = generate_specific_item(item_required_level(preview_item), preview_item.slot, preview_item.subtype, boosted_rarity, affix_roll_mode='advantage')
+    else:
+        reward_item = generate_item_drop(min(60, monster.level), player.player_class, effective_magic_find, affix_roll_mode=affix_mode)
+        if reward_item is not None and quality_bonus > 0.0 and random.random() < min(0.45, quality_bonus * 3.5):
+            boosted_rarity = shift_rarity(reward_item.rarity, 1)
+            reward_item = generate_specific_item(item_required_level(reward_item), reward_item.slot, reward_item.subtype, boosted_rarity, affix_roll_mode='advantage')
+    return _labyrinth_scale_item_affixes(reward_item, value_bonus)
 
 
 def labyrinth_finalize_encounter_if_ready(self) -> bool:
@@ -16699,12 +17093,13 @@ def labyrinth_finalize_encounter_if_ready(self) -> bool:
         payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), f'Floor {floor} overwhelms the party. No active adventurer remains standing.')
     elif bool(pending.get('boss', False)):
         payload['status'] = 'reward'
+        payload['pending_encounter'] = {'reward_vote_started_at': _labyrinth_now_iso()}
         payload['reward_options'] = _labyrinth_build_reward_choices(floor)
-        payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), f'The floor boss falls. The prism offers three unstable blessings.')
+        payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The floor boss falls. Three unstable prism offers descend into view.')
     else:
         payload['reward_options'] = []
         payload['status'] = 'boss_ready' if _labyrinth_floor_fully_cleared(tile_states, payload.get('grid_size', LABYRINTH_GRID_SIZE)) else 'exploring'
-        payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The path clears and the hedges part a little further.')
+        payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The path clears and the Labyrinth opens a little further.')
     if not _labyrinth_upsert_session_row(self, payload):
         return False
     labyrinth_refresh_session_state(self, force=True)
@@ -16756,44 +17151,42 @@ def run_labyrinth_encounter(self) -> bool:
     effects = _labyrinth_reward_effect_totals(session_row.get('modifier_stack', []))
     _labyrinth_apply_effects_to_player(sim_player, effects, boss=boss)
     _labyrinth_apply_effects_to_monster(monster, effects, boss=boss)
-    timeline = build_combat_timeline(sim_player, monster)
+    timeline = _build_labyrinth_combat_timeline(sim_player, monster)
     self.labyrinth_local_combat_log = [event.text for event, *_rest in timeline[-18:]]
     won = sim_player.is_alive()
     result_tone = 'success' if won else 'danger'
     reward_item: Optional[Item] = None
     summary_bits: List[str] = []
     if won:
-        xp_multiplier = max(0.05, 1.0 + float(effects.get('xp_mult', 0.0) or 0.0))
-        gold_multiplier = max(0.05, 1.0 + float(effects.get('gold_mult', 0.0) or 0.0))
-        xp_gain_amount = max(1, int(round(xp_reward * xp_multiplier)))
+        gold_multiplier = max(0.05, 1.0 + float(effects.get('gold_mult', 0.0) or 0.0) + (float(effects.get('elite_gold_mult', 0.0) or 0.0) if boss else 0.0))
         gold_gain_amount = max(1, int(round(((18 + monster.level * 3) * (2.35 if boss else 1.0)) * gold_multiplier)))
+        gold_gain_amount += max(0, int(round(float(effects.get('victory_gold_flat', 0.0) or 0.0))))
+        if boss:
+            gold_gain_amount += max(0, int(round(float(effects.get('elite_gold_flat', 0.0) or 0.0))))
         sim_player.gold += gold_gain_amount
         summary_bits.append(f'+{gold_gain_amount}g')
-        for message in gain_xp(sim_player, xp_gain_amount, None):
-            summary_bits.append(message)
-        drop_bonus = float(effects.get('drop_bonus', 0.0) or 0.0)
-        drop_roll = clamp((0.24 + (sim_player.magic_find * 0.08) + drop_bonus + (0.24 if boss else 0.0)), 0.0, 1.0)
+        if boss:
+            xp_gain_amount = max(1, int(sim_player.xp_to_next - sim_player.xp))
+            for message in gain_xp(sim_player, xp_gain_amount, None):
+                summary_bits.append(message)
+        drop_roll = clamp((0.24 + (sim_player.magic_find * 0.08) + (0.24 if boss else 0.0)), 0.0, 1.0)
         if boss or random.random() < drop_roll:
-            if boss:
-                preview_item = generate_item_drop(min(60, monster.level), sim_player.player_class, sim_player.magic_find + 0.20, affix_roll_mode='advantage')
-                boosted_rarity = shift_rarity(preview_item.rarity, 1)
-                reward_item = generate_specific_item(item_required_level(preview_item), preview_item.slot, preview_item.subtype, boosted_rarity, affix_roll_mode='advantage')
-            else:
-                reward_item = generate_item_drop(min(60, monster.level), sim_player.player_class, sim_player.magic_find, affix_roll_mode='normal')
+            reward_item = _labyrinth_generate_loot_item(monster, sim_player, effects, boss=boss)
             if reward_item is not None:
                 sim_player.inventory.append(reward_item)
                 self.remember_last_monster_drop(reward_item, 'labyrinth')
                 summary_bits.append(f'Found {reward_item.summary()}.')
-        heal_between = max(0.0, float(effects.get('heal_between_mult', 0.0) or 0.0))
-        if heal_between > 0.0:
-            healed_hp = max(0, int(round(sim_player.max_hp * min(0.35, heal_between))))
-            healed_mana = max(0, int(round(sim_player.max_mana * min(0.35, heal_between)))) if sim_player.max_mana > 0 else 0
+        healing_factor = max(0.10, float(getattr(sim_player, 'labyrinth_healing_factor', 1.0) or 1.0))
+        if sim_player.life_per_kill > 0:
+            healed_hp = max(0, min(sim_player.max_hp - sim_player.hp, int(round(sim_player.life_per_kill * healing_factor))))
             if healed_hp > 0:
                 sim_player.hp = min(sim_player.max_hp, sim_player.hp + healed_hp)
-            if healed_mana > 0:
-                sim_player.mana = min(sim_player.max_mana, sim_player.mana + healed_mana)
-            if healed_hp or healed_mana:
-                summary_bits.append(f'Lantern pulse restores {healed_hp} HP and {healed_mana} Mana.')
+                summary_bits.append(f'+{healed_hp} HP on kill')
+        if sim_player.mana_per_kill > 0:
+            restored_mana = max(0, min(sim_player.max_mana - sim_player.mana, sim_player.mana_per_kill))
+            if restored_mana > 0:
+                sim_player.mana = min(sim_player.max_mana, sim_player.mana + restored_mana)
+                summary_bits.append(f'+{restored_mana} Mana on kill')
     self.player = sim_player
     self.sync_active_slot()
     resolution_note = 'Victory.' if won else 'Defeat. This adventurer is downed until the floor turns.'
@@ -16838,7 +17231,7 @@ def vote_labyrinth_reward(self, choice_index: object) -> bool:
         selected_index = -1
     reward_options = list(session_row.get('reward_options', []) or [])
     if not (0 <= selected_index < len(reward_options)):
-        self.labyrinth_status = 'Choose one of the offered blessings first.'
+        self.labyrinth_status = 'Choose one of the offered prism options first.'
         return False
     if bool(getattr(self, 'labyrinth_is_local', False)):
         voter_user_id = _labyrinth_member_identity(self)
@@ -16846,32 +17239,32 @@ def vote_labyrinth_reward(self, choice_index: object) -> bool:
         vote_rows = [
             dict(row) for row in list(getattr(self, 'labyrinth_vote_rows', []) or [])
             if isinstance(row, dict) and not (
-                str(row.get('voter_user_id') or '').strip() == voter_user_id
+                str(row.get('user_id') or row.get('voter_user_id') or '').strip() == voter_user_id
                 and int(row.get('floor', floor) or floor) == floor
             )
         ]
         vote_rows.append({
             'session_id': str(session_row.get('id') or '').strip(),
             'floor': floor,
-            'voter_user_id': voter_user_id,
+            'user_id': voter_user_id,
             'choice_index': selected_index,
             'updated_at': _labyrinth_now_iso(),
         })
         self.labyrinth_vote_rows = vote_rows
         chosen = reward_options[selected_index] if isinstance(reward_options[selected_index], dict) else {}
-        self.labyrinth_status = f'Vote recorded for {chosen.get("title") or "that blessing"}.'
+        self.labyrinth_status = f'Vote recorded for {chosen.get("title") or "that prism offer"}.'
         return True
     try:
         self.supabase.table(LABYRINTH_SESSION_VOTE_TABLE).upsert({
             'session_id': str(session_row.get('id') or '').strip(),
             'floor': int(session_row.get('floor', 1) or 1),
-            'voter_user_id': str(self.auth_user_id or '').strip(),
+            'user_id': str(self.auth_user_id or '').strip(),
             'choice_index': selected_index,
             'updated_at': _labyrinth_now_iso(),
-        }, on_conflict='session_id,floor,voter_user_id').execute()
+        }, on_conflict='session_id,floor,user_id').execute()
         labyrinth_refresh_session_state(self, force=True)
         chosen = reward_options[selected_index] if isinstance(reward_options[selected_index], dict) else {}
-        self.labyrinth_status = f'Vote recorded for {chosen.get("title") or "that blessing"}.'
+        self.labyrinth_status = f'Vote recorded for {chosen.get("title") or "that prism offer"}.'
         return True
     except Exception as exc:
         self.labyrinth_status = f'Could not record the Labyrinth vote: {exc}'
@@ -16913,10 +17306,12 @@ def finalize_labyrinth_reward_vote(self) -> bool:
     payload['tile_states'] = _labyrinth_build_tile_states(session_row.get('grid_size', LABYRINTH_GRID_SIZE))
     payload['pending_encounter'] = {}
     payload['reward_options'] = []
-    payload['modifier_stack'] = [dict(entry) for entry in list(session_row.get('modifier_stack', []) or []) if isinstance(entry, dict)] + [dict(selected_reward)]
+    chosen_reward = dict(selected_reward)
+    chosen_reward['granted_floor'] = next_floor
+    payload['modifier_stack'] = [dict(entry) for entry in list(session_row.get('modifier_stack', []) or []) if isinstance(entry, dict)] + [chosen_reward]
     payload['recent_events'] = _labyrinth_append_event(
         payload.get('recent_events', []),
-        f'{selected_reward.get("title") or "A blessing"} is chosen. Floor {next_floor} begins.'
+        f'{selected_reward.get("title") or "A prism offer"} is chosen. Floor {next_floor} begins.'
     )
     if not _labyrinth_upsert_session_row(self, payload):
         return False
@@ -16924,7 +17319,7 @@ def finalize_labyrinth_reward_vote(self) -> bool:
     self.labyrinth_local_combat_log = []
     self.labyrinth_local_resolution_text = ''
     labyrinth_refresh_session_state(self, force=True)
-    self.labyrinth_status = f'{selected_reward.get("title") or "A blessing"} is chosen. Floor {next_floor} begins.'
+    self.labyrinth_status = f'{selected_reward.get("title") or "A prism offer"} is chosen. Floor {next_floor} begins.'
     return True
 
 def load_private_messages(self) -> bool:
@@ -18374,7 +18769,7 @@ def format_transmute_choice(self, source: str, key: object, item: Item) -> str:
     type_label = saved_item_type_label(item)
     affix_count = len(getattr(item, 'affix_stats', {}) or {})
     affix_text = f'{affix_count} Affix' if affix_count == 1 else f'{affix_count} Affixes'
-    return f'{source_label} • {safe_item_name(item)} • Tier {tier_value} {type_label} • {item.rarity} • {affix_text}'
+    return f'{source_label} â€¢ {safe_item_name(item)} â€¢ Tier {tier_value} {type_label} â€¢ {item.rarity} â€¢ {affix_text}'
 def transmute_items_match(self, first: Item, second: Item) -> bool:
     return int(item_required_level(first)) == int(item_required_level(second))
 def transmute_affix_count(self, item: Optional[Item]) -> int:
@@ -18539,7 +18934,7 @@ def transmute_selected(self) -> None:
         "Ash lifts in a slow spiral as the sanctum searches for the first relic's silhouette.",
         'Golden sparks gather along the outline while the second offering burns away into debt.',
     ])
-    self.add_log(f'Transmutation: {first_item.summary()} + {second_item.summary()} → {new_item.summary()} for {ritual_cost} gold.', 'success')
+    self.add_log(f'Transmutation: {first_item.summary()} + {second_item.summary()} â†’ {new_item.summary()} for {ritual_cost} gold.', 'success')
     self.transmute_choice_one = ''
     self.transmute_choice_two = ''
     self.sync_active_slot()
@@ -18792,7 +19187,7 @@ def refresh_bazaar_listings(self, force: bool = False, allow_cached: bool = Fals
     visible_buy = len([entry for entry in listings if (not entry.sold) and entry.seller_id != actor_id])
     own_active = len([entry for entry in listings if (not entry.sold) and entry.seller_id == actor_id])
     mode_text = 'cloud' if self._bazaar_cloud_enabled() else 'local chronicle'
-    self.set_bazaar_status(f'{visible_buy} live listing(s) to browse • {own_active} of your listing(s) active • {mode_text.title()} bazaar ledger.', 'info')
+    self.set_bazaar_status(f'{visible_buy} live listing(s) to browse â€¢ {own_active} of your listing(s) active â€¢ {mode_text.title()} bazaar ledger.', 'info')
 
 def claim_bazaar_proceeds(self) -> int:
     if self.player is None:
@@ -19758,8 +20153,8 @@ def main_page(request: Request) -> None:
                             if item is not None:
                                 saved_rows.append((SAVED_ITEM_SET_LABELS.get(slot_key, slot_key), int(bucket), item))
 
-                    ui.label(f'{character_name}  •  {highest_class}  •  Level {level}').classes('text-slate-100 text-xl mt-3')
-                    ui.label(f'PQ Points {pq_points}  •  Ladder Resets {ladder_resets}  •  Season {season_id}').classes('mq-detail-text mt-2')
+                    ui.label(f'{character_name}  â€¢  {highest_class}  â€¢  Level {level}').classes('text-slate-100 text-xl mt-3')
+                    ui.label(f'PQ Points {pq_points}  â€¢  Ladder Resets {ladder_resets}  â€¢  Season {season_id}').classes('mq-detail-text mt-2')
                     if updated_at:
                         ui.label(f'Last Public Sync {updated_at}').classes('mq-detail-text mt-1')
                     status_text = getattr(state, 'profile_status', '')
@@ -19808,7 +20203,7 @@ def main_page(request: Request) -> None:
                                 with ui.scroll_area().classes('w-full max-h-[420px] pr-2'):
                                     for slot_label, bucket, item in saved_rows:
                                         with ui.card().classes('mq-panel-frame p-3 mt-3'):
-                                            ui.label(f"{slot_label} • Tier {bucket}").classes('text-slate-300 text-sm tracking-[0.12em]')
+                                            ui.label(f"{slot_label} â€¢ Tier {bucket}").classes('text-slate-300 text-sm tracking-[0.12em]')
                                             ui.html(f"<div class='mq-detail-text mt-2'>{hoverable_item_name_html(item, 'Empty')}</div>")
                                             ui.label(item.short_stat_text()).classes('mq-detail-text mt-2')
                     with ui.row().classes('justify-end gap-3 mt-6 max-[640px]:w-full max-[640px]:flex-wrap'):
@@ -20176,7 +20571,7 @@ def main_page(request: Request) -> None:
                         with ui.column().classes('gap-1 shrink-0 min-w-[260px] max-w-[340px]'):
                             ui.label(safe_item_name(item)).classes('mq-inv-entry-title')
                             ui.label(safe_item_base_stat_text(item)).classes('mq-inv-entry-base')
-                            ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{html.escape(str(getattr(item, 'subtype', '') or item.slot.title()))}</span> • <span class='mq-inv-label-tier'>Tier {int(saved_bucket)}</span> • <span class='mq-inv-label-set'>{html.escape(SAVED_ITEM_SET_LABELS.get(saved_slot, str(saved_slot).title()))}</span></div>")
+                            ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{html.escape(str(getattr(item, 'subtype', '') or item.slot.title()))}</span> â€¢ <span class='mq-inv-label-tier'>Tier {int(saved_bucket)}</span> â€¢ <span class='mq-inv-label-set'>{html.escape(SAVED_ITEM_SET_LABELS.get(saved_slot, str(saved_slot).title()))}</span></div>")
                         with ui.column().classes('flex-1 min-w-[340px] gap-2 items-start'):
                             ui.html(saved_manifest_meta_html(item, saved_slot, int(saved_bucket)))
                             ui.html(inventory_affix_tag_html(item))
@@ -20190,7 +20585,7 @@ def main_page(request: Request) -> None:
                         with ui.column().classes('gap-0.5 flex-grow min-w-0'):
                             ui.html(safe_rarity_badge_html(item))
                             ui.label(safe_item_name(item)).classes('mq-inv-entry-title')
-                            ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{html.escape(str(getattr(item, 'subtype', '') or item.slot.title()))}</span> • <span class='mq-inv-label-tier'>Tier {item_required_level(item)}</span></div>")
+                            ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{html.escape(str(getattr(item, 'subtype', '') or item.slot.title()))}</span> â€¢ <span class='mq-inv-label-tier'>Tier {item_required_level(item)}</span></div>")
                             ui.label(safe_item_base_stat_text(item)).classes('mq-inv-entry-base')
                             ui.label(safe_item_affix_preview_text(item)).classes('mq-inv-entry-affix')
                         with ui.column().classes('items-end gap-1 max-[900px]:items-start shrink-0'):
@@ -20248,11 +20643,11 @@ def main_page(request: Request) -> None:
                             ui.html(f"<div class='mq-inv-summary-line mq-equipped-summary-line'><span class='mq-inv-equip-slot'>Charm</span><span class='mq-inv-summary-divider'>:</span><span class='mq-inv-equip-item'>{equipped_item_inline_html(player.equipped.get('charm'), 'Empty')}</span></div>")
                         with ui.card().classes('mq-panel-frame mq-inv-top-card p-4 flex-[1.05] min-w-[250px]'):
                             ui.label('PACK SPREAD').classes('mq-panel-caption')
-                            ui.html(f"<div class='mq-inv-summary-line mt-2'><span class='mq-inv-label-info'>Bag Items</span> <span class='mq-inv-summary-strong'>{len(player.inventory)}</span> • <span class='mq-inv-label-gold'>Gold</span> <span class='mq-inv-summary-strong'>{player.gold}</span></div>")
+                            ui.html(f"<div class='mq-inv-summary-line mt-2'><span class='mq-inv-label-info'>Bag Items</span> <span class='mq-inv-summary-strong'>{len(player.inventory)}</span> â€¢ <span class='mq-inv-label-gold'>Gold</span> <span class='mq-inv-summary-strong'>{player.gold}</span></div>")
                             ui.label(inventory_tier_spread_text(player.inventory)).classes('mq-inv-detail-block mt-1')
                         with ui.card().classes('mq-panel-frame mq-inv-top-card p-4 flex-[0.68] min-w-[200px]'):
                             ui.label('VIEW STATE').classes('mq-panel-caption')
-                            ui.html(f"<div class='mq-inv-summary-line mt-2'><span class='mq-inv-label-info'>Mode</span> <span class='mq-inv-summary-strong'>{html.escape(state.inventory_view)}</span> • <span class='mq-inv-label-tier'>Matches</span> <span class='mq-inv-summary-strong'>{len(entries)}</span></div>")
+                            ui.html(f"<div class='mq-inv-summary-line mt-2'><span class='mq-inv-label-info'>Mode</span> <span class='mq-inv-summary-strong'>{html.escape(state.inventory_view)}</span> â€¢ <span class='mq-inv-label-tier'>Matches</span> <span class='mq-inv-summary-strong'>{len(entries)}</span></div>")
                 render_inventory_top_summary()
                 refresh_top = render_inventory_top_summary
 
@@ -20345,7 +20740,7 @@ def main_page(request: Request) -> None:
                                             with divider:
                                                 ui.html(
                                                     f"<div class='mq-saved-divider-body'>"
-                                                    f"<span class='mq-saved-divider-chevron'>{'▸' if collapsed else '▾'}</span>"
+                                                    f"<span class='mq-saved-divider-chevron'>{'â–¸' if collapsed else 'â–¾'}</span>"
                                                     f"<span class='mq-inv-section-title'>{html.escape(SAVED_ITEM_SET_LABELS[slot])}</span>"
                                                     f"<span class='mq-saved-divider-meta'>{html.escape(count_text)}</span>"
                                                     f"</div>"
@@ -20363,7 +20758,7 @@ def main_page(request: Request) -> None:
                                                     if slot_items.get(bucket) is None:
                                                         shown_any = True
                                                         with ui.card().classes('mq-saved-placeholder w-full p-3'):
-                                                            ui.html(f"<div class='mq-saved-placeholder-title'><span class='mq-inv-label-accent'>{html.escape(SAVED_ITEM_SET_LABELS[slot])}</span> • <span class='mq-inv-label-tier'>Tier {bucket}</span></div>")
+                                                            ui.html(f"<div class='mq-saved-placeholder-title'><span class='mq-inv-label-accent'>{html.escape(SAVED_ITEM_SET_LABELS[slot])}</span> â€¢ <span class='mq-inv-label-tier'>Tier {bucket}</span></div>")
                                                             ui.label('No saved item rests in this mark yet.').classes('mq-saved-placeholder-sub mt-1')
                                     if not shown_any:
                                         with ui.card().classes('mq-item-card w-full p-4'):
@@ -20845,7 +21240,7 @@ def main_page(request: Request) -> None:
                                                 with ui.column().classes('gap-1 flex-grow'):
                                                     ui.html(safe_rarity_badge_html(item))
                                                     ui.label(safe_item_name(item)).classes('mq-inv-entry-title')
-                                                    ui.label(f'{saved_item_type_label(item)} • Tier {item_required_level(item)}').classes('mq-detail-text')
+                                                    ui.label(f'{saved_item_type_label(item)} â€¢ Tier {item_required_level(item)}').classes('mq-detail-text')
                                                     ui.label(safe_item_base_stat_text(item)).classes('mq-inv-entry-base')
                                                     ui.label(safe_item_affix_preview_text(item)).classes('mq-inv-entry-affix')
                                                 ui.html(inn_vault_selected_flag_html(selected))
@@ -20883,7 +21278,7 @@ def main_page(request: Request) -> None:
                                     placeholder='PQV-...'
                                 ).props('outlined clearable input-style=color: #e2e8f0;').classes('w-full mt-2')
                                 courier_input.on_value_change(lambda e: setattr(state, 'inn_vault_transfer_code_draft', str(e.value or '').strip().upper()))
-                                ui.label('Select an item from Vault Storage, enter the other player’s Vault Code, then send.').classes('mq-detail-text text-center mt-2')
+                                ui.label('Select an item from Vault Storage, enter the other playerâ€™s Vault Code, then send.').classes('mq-detail-text text-center mt-2')
                                 ui.button('Dispatch Selected Item', on_click=send_selected_inn_vault_item).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold w-full mt-3')
                             refresh_btn = ui.button('Refresh Deliveries', on_click=refresh_inn_vault_transfers).classes('mq-btn-secondary rounded-xl px-4 py-2 font-semibold w-full mt-4')
                             if courier_locked:
@@ -20904,9 +21299,9 @@ def main_page(request: Request) -> None:
                                                 claim_btn_label = 'Claim to Inventory'
                                             with ui.card().classes('mq-panel-frame w-full p-3'):
                                                 ui.label(transfer_summary).classes('mq-inv-entry-title')
-                                                ui.label(f'From {sender_name} • {_chat_stamp_from_created_at(transfer.get("created_at")) or "Recent"}').classes('mq-detail-text mt-1')
+                                                ui.label(f'From {sender_name} â€¢ {_chat_stamp_from_created_at(transfer.get("created_at")) or "Recent"}').classes('mq-detail-text mt-1')
                                                 if transfer_item is not None:
-                                                    ui.label(f'{saved_item_type_label(transfer_item)} • Tier {item_required_level(transfer_item)}').classes('mq-detail-text mt-1')
+                                                    ui.label(f'{saved_item_type_label(transfer_item)} â€¢ Tier {item_required_level(transfer_item)}').classes('mq-detail-text mt-1')
                                                 ui.button(claim_btn_label, on_click=lambda transfer_id=str(transfer.get('id') or ''): (state.claim_pending_vault_transfer(transfer_id), refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True))).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold w-full mt-3')
                     with ui.card().classes('mq-card flex-1 min-w-[340px] p-4'):
                         ui.label(f'Vault Storage ({len(filtered_vault_entries)}/{vault_count})').classes('mq-inv-section-title mb-3')
@@ -20928,7 +21323,7 @@ def main_page(request: Request) -> None:
                                                 with ui.column().classes('gap-1 flex-grow'):
                                                     ui.html(safe_rarity_badge_html(item))
                                                     ui.label(safe_item_name(item)).classes('mq-inv-entry-title')
-                                                    ui.label(f'{saved_item_type_label(item)} • Tier {item_required_level(item)}').classes('mq-detail-text')
+                                                    ui.label(f'{saved_item_type_label(item)} â€¢ Tier {item_required_level(item)}').classes('mq-detail-text')
                                                     ui.label(safe_item_base_stat_text(item)).classes('mq-inv-entry-base')
                                                     ui.label(safe_item_affix_preview_text(item)).classes('mq-inv-entry-affix')
                                                 ui.html(inn_vault_selected_flag_html(selected))
@@ -21281,8 +21676,8 @@ def main_page(request: Request) -> None:
             if state.screen == 'class_select':
                 active_slot_text = state.current_slot_title()
                 stash_line = (
-                    f'Gold {state.shared_gold}   •   Inventory relics {len(state.shared_inventory)}   •   '
-                    f'Vault items {len(state.vault_items)}/{max(int(getattr(state, "vault_capacity", 0) or 0), len(state.vault_items))}   •   Pity bonus +{state.masterquest_pity_bonus} stat point(s)'
+                    f'Gold {state.shared_gold}   â€¢   Inventory relics {len(state.shared_inventory)}   â€¢   '
+                    f'Vault items {len(state.vault_items)}/{max(int(getattr(state, "vault_capacity", 0) or 0), len(state.vault_items))}   â€¢   Pity bonus +{state.masterquest_pity_bonus} stat point(s)'
                 )
                 reroll_line = (
                     f'Current class on file: {state.selection_return_class}. You may reroll it instantly if you want a fresh run without taking Prismatic Quest.'
@@ -21296,7 +21691,7 @@ def main_page(request: Request) -> None:
                         with ui.row().classes('w-full items-stretch gap-5 no-wrap max-[1180px]:flex-wrap'):
                             with ui.column().classes('w-full flex-[3] gap-4'):
                                 ui.label('Class Selection').classes('text-3xl md:text-4xl font-semibold text-slate-100')
-                                ui.label(f'{active_slot_text}  •  Choose the next face of your ascent.').classes('text-slate-300 text-base md:text-lg')
+                                ui.label(f'{active_slot_text}  â€¢  Choose the next face of your ascent.').classes('text-slate-300 text-base md:text-lg')
                                 if state.class_select_notice:
                                     ui.html(f"<div class='mq-state-banner {'success' if 'passed' in state.class_select_notice.lower() else 'warning'}'>{html.escape(state.class_select_notice)}</div>")
                                 with ui.card().classes('mq-panel-frame p-4'):
@@ -21325,7 +21720,7 @@ def main_page(request: Request) -> None:
                                 for class_name in active_selection_class_order:
                                     unlocked = class_name in state.unlocked_classes
                                     with ui.row().classes('w-full items-center justify-between gap-3 mt-2'):
-                                        ui.label(f"{'◆' if unlocked else '◇'} {class_name}").classes('text-slate-200')
+                                        ui.label(f"{'â—†' if unlocked else 'â—‡'} {class_name}").classes('text-slate-200')
                                         ui.label('Ready' if unlocked else get_class_unlock_requirement_for_season(class_name, active_selection_season_id)).classes('text-right text-sm ' + ('text-amber-300' if unlocked else 'text-slate-500'))
                                 ui.separator().classes('my-3 opacity-20')
                                 ui.label('RITUAL NOTE').classes('mq-panel-caption')
@@ -21361,8 +21756,8 @@ def main_page(request: Request) -> None:
                                     with ui.card().classes('mq-panel-frame p-3'):
                                         ui.label('OPENING PROFILE').classes('mq-panel-caption')
                                         ui.label(
-                                            f'HP {preview.max_hp} • Mana {preview.max_mana} • Speed {preview.speed}\n'
-                                            f'STR {preview.strength} • DEX {preview.dexterity} • INT {preview.intelligence} • VIT {preview.vitality}\n'
+                                            f'HP {preview.max_hp} â€¢ Mana {preview.max_mana} â€¢ Speed {preview.speed}\n'
+                                            f'STR {preview.strength} â€¢ DEX {preview.dexterity} â€¢ INT {preview.intelligence} â€¢ VIT {preview.vitality}\n'
                                             f"Start: {starter_weapon.name if starter_weapon else 'None'} / {starter_armor.name if starter_armor else 'None'} / {starter_charm.name if starter_charm else 'None'}"
                                         ).classes('mq-stat-block mt-1')
                                 choose = ui.button(f'Enter the ascent as {player_class}', on_click=lambda c=player_class: (state.start_game(c), request_render_refresh()))
@@ -21427,9 +21822,9 @@ def main_page(request: Request) -> None:
                                                         with ui.card().classes('mq-panel-frame p-4'):
                                                             ui.label('Starting Profile').classes('mq-panel-caption')
                                                             lines = [
-                                                                f'HP {preview.max_hp}   •   Mana {preview.max_mana}   •   Speed {preview.speed}',
-                                                                f'Accuracy {int(round(preview.accuracy * 100))}%   •   Crit {int(round(preview.crit_chance * 100))}%   •   Crit Dmg {preview.crit_damage:.2f}x',
-                                                                f'STR {preview.strength}   •   DEX {preview.dexterity}   •   INT {preview.intelligence}   •   VIT {preview.vitality}',
+                                                                f'HP {preview.max_hp}   â€¢   Mana {preview.max_mana}   â€¢   Speed {preview.speed}',
+                                                                f'Accuracy {int(round(preview.accuracy * 100))}%   â€¢   Crit {int(round(preview.crit_chance * 100))}%   â€¢   Crit Dmg {preview.crit_damage:.2f}x',
+                                                                f'STR {preview.strength}   â€¢   DEX {preview.dexterity}   â€¢   INT {preview.intelligence}   â€¢   VIT {preview.vitality}',
                                                             ]
                                                             ui.label('\n'.join(lines)).classes('mq-detail-text mt-2')
                                                     with ui.card().classes('mq-panel-frame p-4'):
@@ -21475,9 +21870,9 @@ def main_page(request: Request) -> None:
                                                     with ui.card().classes('mq-panel-frame p-4'):
                                                         ui.label('Starting Profile').classes('mq-panel-caption')
                                                         lines = [
-                                                            f'HP {preview.max_hp}   •   Mana {preview.max_mana}   •   Speed {preview.speed}',
-                                                            f'Accuracy {int(round(preview.accuracy * 100))}%   •   Crit {int(round(preview.crit_chance * 100))}%   •   Crit Dmg {preview.crit_damage:.2f}x',
-                                                            f'STR {preview.strength}   •   DEX {preview.dexterity}   •   INT {preview.intelligence}   •   VIT {preview.vitality}',
+                                                            f'HP {preview.max_hp}   â€¢   Mana {preview.max_mana}   â€¢   Speed {preview.speed}',
+                                                            f'Accuracy {int(round(preview.accuracy * 100))}%   â€¢   Crit {int(round(preview.crit_chance * 100))}%   â€¢   Crit Dmg {preview.crit_damage:.2f}x',
+                                                            f'STR {preview.strength}   â€¢   DEX {preview.dexterity}   â€¢   INT {preview.intelligence}   â€¢   VIT {preview.vitality}',
                                                         ]
                                                         ui.label('\n'.join(lines)).classes('mq-detail-text mt-2')
                                                 with ui.card().classes('mq-panel-frame p-4'):
@@ -21504,11 +21899,11 @@ def main_page(request: Request) -> None:
                 assert player is not None
                 slot_label = state.current_slot_title()
                 primary_html = (
-                    f"<span class='mq-status-identity'>{html.escape(player.name)} the {html.escape(player.player_class)}</span> <span class='mq-status-sep'>•</span> Level {player.level}<br>"
-                    f"<span class='mq-status-line'>{gold_inline_html(player.gold)}<span class='mq-status-sep'>•</span>{resource_inline_html('HP', player.hp, player.max_hp, 'hp')}<span class='mq-status-sep'>•</span>{resource_inline_html('Mana', player.mana, player.max_mana, 'mana')}</span>"
+                    f"<span class='mq-status-identity'>{html.escape(player.name)} the {html.escape(player.player_class)}</span> <span class='mq-status-sep'>â€¢</span> Level {player.level}<br>"
+                    f"<span class='mq-status-line'>{gold_inline_html(player.gold)}<span class='mq-status-sep'>â€¢</span>{resource_inline_html('HP', player.hp, player.max_hp, 'hp')}<span class='mq-status-sep'>â€¢</span>{resource_inline_html('Mana', player.mana, player.max_mana, 'mana')}</span>"
                 )
                 class_ladder = state.ladder_stats.get(player.player_class, {})
-                secondary = f'Wins {player.wins}  •  Losses {player.losses}  •  Chain x{state.monster_chain_combo}  •  Inventory {len(player.inventory)}  •  Vault {len(state.vault_items)}/{max(int(getattr(state, "vault_capacity", 0) or 0), len(state.vault_items))}  •  PQ Attempts {int(class_ladder.get('masterquest_attempts', 0))}'
+                secondary = f'Wins {player.wins}  â€¢  Losses {player.losses}  â€¢  Chain x{state.monster_chain_combo}  â€¢  Inventory {len(player.inventory)}  â€¢  Vault {len(state.vault_items)}/{max(int(getattr(state, "vault_capacity", 0) or 0), len(state.vault_items))}  â€¢  PQ Attempts {int(class_ladder.get('masterquest_attempts', 0))}'
                 hint = state.town_crier_status_text()
                 town_hero_uri = _hero_data_uri(player.player_class)
                 with ui.column().classes('mq-town-shell w-full gap-5'):
@@ -21568,7 +21963,7 @@ def main_page(request: Request) -> None:
                                         ui.button('Inn', on_click=lambda: (state.open_game_tab('inn', 'Warm firelight spills out from the inn.'), request_render_refresh())).classes('mq-route-btn')
                                         masterquest_town_btn = ui.button('Prismatic Quest', on_click=lambda: (state.begin_masterquest(), request_render_refresh())).classes('mq-route-btn')
                                         masterquest_blocker = state.masterquest_entry_blocker()
-                                        labyrinth_btn = ui.button('Labyrinth of Light', on_click=lambda: (state.open_game_tab('labyrinth', 'Lantern-light folds over the hedge walls as the Labyrinth of Light opens.'), request_render_refresh())).classes('mq-route-btn')
+                                        labyrinth_btn = ui.button('Labyrinth of Light', on_click=lambda: (state.open_game_tab('labyrinth', 'Lantern-light folds into the Labyrinth of Light as the route opens.'), request_render_refresh())).classes('mq-route-btn')
                                         labyrinth_blocker = state.labyrinth_route_blocker()
                                         if labyrinth_blocker:
                                             labyrinth_btn.classes('opacity-70')
@@ -21671,7 +22066,7 @@ def main_page(request: Request) -> None:
                                                                         with ui.element('div').classes('min-w-0 flex-1'):
                                                                             with ui.element('div').classes('mq-town-chat-author-row flex-wrap gap-2'):
                                                                                 ui.label(author_name).classes(author_classes)
-                                                                                ui.label(f'→ {other_name}' if other_name else 'Direct courier').classes('mq-town-chat-stamp')
+                                                                                ui.label(f'â†’ {other_name}' if other_name else 'Direct courier').classes('mq-town-chat-stamp')
                                                                                 if stamp:
                                                                                     ui.label(stamp).classes('mq-town-chat-stamp')
                                                                         if other_name:
@@ -21716,7 +22111,7 @@ def main_page(request: Request) -> None:
                                         ui.label('Post to the Square').classes('mq-town-chat-compose-title')
                                         chat_input = ui.input(
                                             label='Town Chat',
-                                            placeholder='Say something to the channel…',
+                                            placeholder='Say something to the channelâ€¦',
                                             value=state.town_communications_draft,
                                         ).props('outlined clearable input-style=color: #e2e8f0;').classes('mq-town-chat-input w-full')
                                         chat_input.on_value_change(lambda e: state.set_town_communications_draft(e.value))
@@ -21742,7 +22137,7 @@ def main_page(request: Request) -> None:
                                             target_input.on_value_change(lambda e: setattr(state, 'private_message_target', clean_character_name(e.value or '')))
                                             message_input = ui.input(
                                                 label='Whisper',
-                                                placeholder='Send a private courier…',
+                                                placeholder='Send a private courierâ€¦',
                                                 value=getattr(state, 'private_message_draft', ''),
                                             ).props('outlined clearable input-style=color: #e2e8f0;').classes('mq-town-chat-input flex-[2] min-w-[280px]')
                                             message_input.on_value_change(lambda e: setattr(state, 'private_message_draft', str(e.value or '')[:220]))
@@ -21766,7 +22161,7 @@ def main_page(request: Request) -> None:
                                         ui.label('Guild Channel').classes('mq-town-chat-compose-title')
                                         guild_input = ui.input(
                                             label='Guild Message',
-                                            placeholder='Speak to the hall…',
+                                            placeholder='Speak to the hallâ€¦',
                                             value=getattr(state, 'guild_message_draft', ''),
                                         ).props('outlined clearable input-style=color: #e2e8f0;').classes('mq-town-chat-input w-full')
                                         guild_input.on_value_change(lambda e: setattr(state, 'guild_message_draft', str(e.value or '')[:220]))
@@ -21797,7 +22192,7 @@ def main_page(request: Request) -> None:
                     with ui.column().classes('gap-1'):
                         slot_label = state.current_slot_title()
                         ui.label(slot_label).classes('mq-section-title')
-                        ui.label(f'{player.player_class} • Level {player.level}').classes('text-3xl font-semibold text-slate-100')
+                        ui.label(f'{player.player_class} â€¢ Level {player.level}').classes('text-3xl font-semibold text-slate-100')
                     with ui.row().classes('gap-2 max-[700px]:w-full'):
                         town_btn = ui.button('Return to Town', on_click=lambda: (state.enter_town('You return to town to choose your next route.'), request_render_refresh()))
                         town_btn.classes('font-semibold tracking-wide rounded-xl py-3 px-5 mq-btn-gold max-[700px]:w-full')
@@ -21838,31 +22233,31 @@ def main_page(request: Request) -> None:
                         with ui.column().classes('w-full gap-4'):
                             with ui.card().classes('mq-card w-full p-5'):
                                 ui.label('Labyrinth of Light').classes('mq-inv-title')
-                                ui.label('A shared hedge-maze for late-chronicle parties. Explore every tile, survive what the hedges spit back, then vote on unstable blessings after the boss falls.').classes('text-slate-100 text-xl leading-9 mt-2')
+                                ui.label('A prismatic endgame maze for late-chronicle parties. Explore every tile, survive what the light casts back, then vote on unstable prism offers after the boss falls.').classes('text-slate-100 text-xl leading-9 mt-2')
                                 with ui.card().classes('mq-panel-frame p-4 mt-4'):
                                     ui.label('LABYRINTH STATUS').classes('mq-panel-caption')
                                     if session_row:
                                         ui.html(
                                             f"<div class='mq-inv-summary-line mt-2'>"
-                                            f"<span class='mq-inv-label-tier'>Floor</span> <span class='mq-inv-summary-strong'>{current_floor}</span> • "
-                                            f"<span class='mq-inv-label-accent'>State</span> <span class='mq-inv-summary-strong'>{html.escape(session_status.title() if session_status else 'Lobby')}</span> • "
+                                            f"<span class='mq-inv-label-tier'>Floor</span> <span class='mq-inv-summary-strong'>{current_floor}</span> â€¢ "
+                                            f"<span class='mq-inv-label-accent'>State</span> <span class='mq-inv-summary-strong'>{html.escape(session_status.title() if session_status else 'Lobby')}</span> â€¢ "
                                             f"<span class='mq-inv-label-gold'>{'Mode' if is_local_labyrinth else 'Join Code'}</span> <span class='mq-inv-summary-strong'>{html.escape('Solo Expedition' if is_local_labyrinth else (join_code or 'Unknown'))}</span>"
                                             f"</div>"
                                         )
                                     else:
                                         ui.html(
                                             f"<div class='mq-inv-summary-line mt-2'>"
-                                            f"<span class='mq-inv-label-tier'>Unlock</span> <span class='mq-inv-summary-strong'>Lv {LABYRINTH_UNLOCK_LEVEL}</span> • "
-                                            f"<span class='mq-inv-label-accent'>Party</span> <span class='mq-inv-summary-strong'>Up to {LABYRINTH_MAX_PARTY_SIZE}</span> • "
+                                            f"<span class='mq-inv-label-tier'>Unlock</span> <span class='mq-inv-summary-strong'>Lv {LABYRINTH_UNLOCK_LEVEL}</span> â€¢ "
+                                            f"<span class='mq-inv-label-accent'>Party</span> <span class='mq-inv-summary-strong'>Up to {LABYRINTH_MAX_PARTY_SIZE}</span> â€¢ "
                                             f"<span class='mq-inv-label-gold'>Mode</span> <span class='mq-inv-summary-strong'>{html.escape(state.current_slot_mode())}</span>"
                                             f"</div>"
                                         )
-                                    ui.label(str(getattr(state, 'labyrinth_status', '') or 'The hedges are still and silent.')).classes('text-slate-300 mt-2 leading-7')
+                                    ui.label(str(getattr(state, 'labyrinth_status', '') or 'The Labyrinth of Light is still and silent.')).classes('text-slate-300 mt-2 leading-7')
                                 if not session_row:
                                     with ui.row().classes('w-full gap-4 mt-4 max-[1100px]:flex-col'):
                                         with ui.card().classes('mq-panel-frame flex-1 p-4'):
                                             ui.label('Solo Expedition').classes('text-slate-100 text-2xl font-semibold')
-                                            ui.label('Run the hedge alone with the same maze, encounters, bosses, and blessing votes, but without party setup or sign-in requirements.').classes('mq-detail-text mt-2')
+                                            ui.label('Run the Labyrinth of Light alone with the same maze, encounters, bosses, and prism votes, but without party setup or sign-in requirements.').classes('mq-detail-text mt-2')
                                             solo_btn = ui.button('Create Solo Expedition', on_click=lambda: (state.create_labyrinth_solo_session(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold mt-4')
                                             if scene_blocker:
                                                 solo_btn.disable()
@@ -21870,7 +22265,7 @@ def main_page(request: Request) -> None:
                                                 ui.label(scene_blocker).classes('text-amber-300 text-sm mt-3')
                                         with ui.card().classes('mq-panel-frame flex-1 p-4'):
                                             ui.label('Host Expedition').classes('text-slate-100 text-2xl font-semibold')
-                                            ui.label('Create a shared lobby, invite up to four more players, and choose who controls the party through the hedge.').classes('mq-detail-text mt-2')
+                                            ui.label('Create a shared lobby, invite up to four more players, and choose who controls the party through the Labyrinth.').classes('mq-detail-text mt-2')
                                             host_btn = ui.button('Create New Expedition', on_click=lambda: (state.create_labyrinth_session(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold mt-4')
                                             if multiplayer_blocker:
                                                 host_btn.disable()
@@ -21878,7 +22273,7 @@ def main_page(request: Request) -> None:
                                                 ui.label(multiplayer_blocker).classes('text-slate-400 text-sm mt-3')
                                         with ui.card().classes('mq-panel-frame flex-1 p-4'):
                                             ui.label('Join Expedition').classes('text-slate-100 text-2xl font-semibold')
-                                            ui.label('Use a join code from another party leader to drop directly into that active hedge run.').classes('mq-detail-text mt-2')
+                                            ui.label('Use a join code from another party leader to drop directly into that active Labyrinth run.').classes('mq-detail-text mt-2')
                                             join_input = ui.input(
                                                 label='Join Code',
                                                 placeholder='LUX-XXXXXX',
@@ -21897,7 +22292,7 @@ def main_page(request: Request) -> None:
                                         ui.label(f'Controller: {next((row.get("character_name") for row in member_rows if str(row.get("user_id") or "").strip() == str(session_row.get("controller_user_id") or "").strip()), session_row.get("leader_character_name") or "Unknown")}').classes('mq-lab-pill')
                                         ui.label(f'{len(member_rows)}/{LABYRINTH_MAX_PARTY_SIZE} Members').classes('mq-lab-pill')
                                         if modifier_stack:
-                                            ui.label(f'{len(modifier_stack)} Active Blessing{"s" if len(modifier_stack) != 1 else ""}').classes('mq-lab-pill')
+                                                ui.label(f'{len(modifier_stack)} Active Prism Effect{"s" if len(modifier_stack) != 1 else ""}').classes('mq-lab-pill')
                                     with ui.row().classes('gap-2 flex-wrap'):
                                         ui.button('Refresh Expedition', on_click=lambda: (state.refresh_labyrinth_session_state(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-4 py-2 font-semibold')
                                         ui.button('Leave Expedition', on_click=lambda: ((state.enter_town('You leave the Labyrinth of Light behind.') if state.leave_labyrinth_session() else None), request_render_refresh())).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold')
@@ -21906,7 +22301,6 @@ def main_page(request: Request) -> None:
                                         for member_index, row in enumerate(member_rows):
                                             hero_class = normalize_player_class_name(row.get('player_class'), 'Black Guard')
                                             hero_uri = _hero_data_uri(hero_class)
-                                            snapshot = row.get('profile_snapshot', {}) if isinstance(row.get('profile_snapshot', {}), dict) else {}
                                             with ui.card().classes('mq-panel-frame mq-lab-member-card p-4'):
                                                 with ui.element('div').classes('mq-lab-member-top'):
                                                     with ui.element('div').classes('mq-lab-member-portrait'):
@@ -21916,7 +22310,7 @@ def main_page(request: Request) -> None:
                                                             ui.label(hero_class[:2].upper()).classes('text-slate-100 text-xl font-semibold w-full h-full flex items-center justify-center')
                                                     with ui.column().classes('gap-1 min-w-0'):
                                                         ui.label(str(row.get('character_name') or 'Unknown Adventurer')).classes('text-slate-100 text-xl font-semibold')
-                                                        ui.label(f'{hero_class} • Level {int(row.get("level", 1) or 1)}').classes('text-slate-300')
+                                                        ui.label(f'{hero_class} â€¢ Level {int(row.get("level", 1) or 1)}').classes('text-slate-300')
                                                         with ui.row().classes('gap-2 flex-wrap'):
                                                             if str(row.get('user_id') or '').strip() == str(session_row.get('leader_user_id') or '').strip():
                                                                 ui.label('Leader').classes('mq-lab-pill')
@@ -21924,21 +22318,18 @@ def main_page(request: Request) -> None:
                                                                 ui.label('Controller').classes('mq-lab-pill')
                                                             if bool(row.get('is_downed', False)):
                                                                 ui.label('Downed').classes('mq-lab-pill')
-                                                ui.html(animated_meter_html(f'lab-party-hp-{member_index}', 'HP', int(row.get('current_hp', 0) or 0), max(1, int(row.get('max_hp', 1) or 1)), 'hp', 900, cycle=f'{row.get("updated_at","")}-hp'))
-                                                ui.html(animated_meter_html(f'lab-party-mana-{member_index}', 'Mana', int(row.get('current_mana', 0) or 0), max(1, int(row.get('max_mana', 1) or 1)), 'mana', 1200, cycle=f'{row.get("updated_at","")}-mana'))
+                                                with ui.column().classes('mq-lab-member-meters mt-3'):
+                                                    ui.html(animated_meter_html(f'lab-party-hp-{member_index}', 'HP', int(row.get('current_hp', 0) or 0), max(1, int(row.get('max_hp', 1) or 1)), 'hp', 900, cycle=f'{row.get("updated_at","")}-hp'))
+                                                    ui.html(animated_meter_html(f'lab-party-mana-{member_index}', 'Mana', int(row.get('current_mana', 0) or 0), max(1, int(row.get('max_mana', 1) or 1)), 'mana', 1200, cycle=f'{row.get("updated_at","")}-mana'))
                                                 ui.html(animated_meter_html(f'lab-party-xp-{member_index}', 'XP', int(row.get('current_xp', 0) or 0), max(1, int(row.get('xp_to_next', 1) or 1)), 'exp', 1800, cycle=f'{row.get("level",1)}-{row.get("current_xp",0)}', rollover=True))
                                                 resolution_note = str(row.get('resolution_note') or '').strip()
                                                 if resolution_note:
                                                     ui.label(resolution_note).classes('mq-detail-text mt-2')
-                                                profile_user_id = str(snapshot.get('user_id') or row.get('user_id') or '').strip()
-                                                profile_name = str(snapshot.get('character_name') or row.get('character_name') or '').strip()
-                                                if profile_user_id and not profile_user_id.startswith('local::'):
-                                                    ui.button('View Profile', on_click=lambda uid=profile_user_id, name=profile_name, mode=str(row.get('mode') or state.current_slot_mode()): (state.open_public_profile_scene(uid, name, 'labyrinth', mode), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-4 py-2 font-semibold mt-3')
                                         with ui.card().classes('mq-panel-frame mq-lab-grid-card p-4'):
                                             ui.label('Expedition Controls').classes('text-slate-100 text-2xl font-semibold')
                                             modifier_titles = [str(entry.get('title') or '').strip() for entry in modifier_stack if isinstance(entry, dict) and str(entry.get('title') or '').strip()]
                                             if modifier_titles:
-                                                ui.label('Blessings: ' + ' • '.join(modifier_titles)).classes('mq-detail-text mt-2')
+                                                ui.label('Active Effects: ' + ' â€¢ '.join(modifier_titles)).classes('mq-detail-text mt-2')
                                             if state.labyrinth_is_leader() and member_rows:
                                                 controller_options = {str(row.get('user_id') or '').strip(): str(row.get('character_name') or 'Unknown Adventurer') for row in member_rows}
                                                 current_controller = str(session_row.get('controller_user_id') or session_row.get('leader_user_id') or '').strip()
@@ -21948,14 +22339,15 @@ def main_page(request: Request) -> None:
                                                 ui.label('Use arrow keys or WASD, or click the direction pad below.').classes('mq-detail-text mt-3')
                                                 with ui.element('div').classes('mq-lab-direction-pad mt-4'):
                                                     ui.element('div').classes('mq-lab-dir-spacer')
-                                                    ui.button('↑', on_click=lambda: (state.labyrinth_move_party('up'), request_render_refresh())).props('id=mq-lab-move-up').classes('mq-btn-gold mq-lab-dir-btn')
+                                                    ui.button('â†‘', on_click=lambda: (state.labyrinth_move_party('up'), request_render_refresh())).props('id=mq-lab-move-up').classes('mq-btn-gold mq-lab-dir-btn')
                                                     ui.element('div').classes('mq-lab-dir-spacer')
-                                                    ui.button('←', on_click=lambda: (state.labyrinth_move_party('left'), request_render_refresh())).props('id=mq-lab-move-left').classes('mq-btn-secondary mq-lab-dir-btn')
-                                                    ui.button('↓', on_click=lambda: (state.labyrinth_move_party('down'), request_render_refresh())).props('id=mq-lab-move-down').classes('mq-btn-gold mq-lab-dir-btn')
-                                                    ui.button('→', on_click=lambda: (state.labyrinth_move_party('right'), request_render_refresh())).props('id=mq-lab-move-right').classes('mq-btn-secondary mq-lab-dir-btn')
+                                                    ui.button('â†', on_click=lambda: (state.labyrinth_move_party('left'), request_render_refresh())).props('id=mq-lab-move-left').classes('mq-btn-secondary mq-lab-dir-btn')
+                                                    ui.button('â†“', on_click=lambda: (state.labyrinth_move_party('down'), request_render_refresh())).props('id=mq-lab-move-down').classes('mq-btn-gold mq-lab-dir-btn')
+                                                    ui.button('â†’', on_click=lambda: (state.labyrinth_move_party('right'), request_render_refresh())).props('id=mq-lab-move-right').classes('mq-btn-secondary mq-lab-dir-btn')
                                             else:
                                                 ui.label('Movement belongs to the current controller, or the expedition is paused between events.').classes('mq-detail-text mt-3')
                                             with ui.row().classes('gap-2 mt-4 flex-wrap'):
+                                                ui.button('Open Inventory', on_click=lambda: open_inventory_scene('You unpack your gear without abandoning the Labyrinth.')).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
                                                 if state.labyrinth_is_leader() and session_status in {'lobby', 'defeated'}:
                                                     ui.button('Start Floor' if session_status == 'lobby' else 'Reform Expedition', on_click=lambda: (state.labyrinth_start_floor() if session_status == 'lobby' else state.labyrinth_reset_after_defeat(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
                                                 if session_status == 'boss_ready' and state.labyrinth_is_controller():
@@ -21964,45 +22356,46 @@ def main_page(request: Request) -> None:
                                                     ui.button('Finalize Vote', on_click=lambda: (state.finalize_labyrinth_reward_vote(), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
                                     with ui.column().classes('mq-lab-side-stack'):
                                         with ui.card().classes('mq-scene-card mq-lab-grid-card w-full p-5'):
-                                            ui.label('Hedge Maze').classes('text-2xl font-semibold text-slate-100')
-                                            ui.label('Seven by seven. Every new square is either a clean breath or a problem. Clear them all to wake the floor boss.').classes('mq-detail-text mt-2')
-                                            with ui.element('div').classes('mq-lab-grid mt-4'):
-                                                grid_size = max(3, int(session_row.get('grid_size', LABYRINTH_GRID_SIZE) or LABYRINTH_GRID_SIZE))
-                                                current_x = int(session_row.get('current_x', 0) or 0)
-                                                current_y = int(session_row.get('current_y', 0) or 0)
-                                                tile_states = session_row.get('tile_states', {}) if isinstance(session_row.get('tile_states', {}), dict) else {}
-                                                for tile_y in range(grid_size):
-                                                    for tile_x in range(grid_size):
-                                                        tile_key = _labyrinth_tile_key(tile_x, tile_y)
-                                                        tile = tile_states.get(tile_key, {})
-                                                        tile_kind = str(tile.get('kind') or '').strip().lower() if isinstance(tile, dict) else ''
-                                                        seen = bool(tile) and bool(tile.get('visited', False))
-                                                        is_current = tile_x == current_x and tile_y == current_y
-                                                        tile_classes = ['mq-lab-tile']
-                                                        tile_label = '?'
-                                                        if not seen:
-                                                            tile_classes.append('unseen')
-                                                        else:
-                                                            if tile_kind == 'encounter':
-                                                                tile_classes.append('encounter')
-                                                                tile_label = '✦'
+                                            with ui.element('div').classes('mq-lab-grid-shell mt-1'):
+                                                ui.label('Labyrinth of Light').classes('mq-lab-grid-title')
+                                                ui.label('Seven by seven. Every new square is either a calm gleam or a hostile flare. Clear them all to wake the prism-crowned boss.').classes('mq-detail-text mq-lab-grid-subtitle mt-2')
+                                                with ui.element('div').classes('mq-lab-grid'):
+                                                    grid_size = max(3, int(session_row.get('grid_size', LABYRINTH_GRID_SIZE) or LABYRINTH_GRID_SIZE))
+                                                    current_x = int(session_row.get('current_x', 0) or 0)
+                                                    current_y = int(session_row.get('current_y', 0) or 0)
+                                                    tile_states = session_row.get('tile_states', {}) if isinstance(session_row.get('tile_states', {}), dict) else {}
+                                                    for tile_y in range(grid_size):
+                                                        for tile_x in range(grid_size):
+                                                            tile_key = _labyrinth_tile_key(tile_x, tile_y)
+                                                            tile = tile_states.get(tile_key, {})
+                                                            tile_kind = str(tile.get('kind') or '').strip().lower() if isinstance(tile, dict) else ''
+                                                            seen = bool(tile) and bool(tile.get('visited', False))
+                                                            is_current = tile_x == current_x and tile_y == current_y
+                                                            tile_classes = ['mq-lab-tile']
+                                                            tile_label = '?'
+                                                            if not seen:
+                                                                tile_classes.append('unseen')
                                                             else:
-                                                                tile_classes.append('safe')
-                                                                tile_label = '·'
-                                                            if tile_kind == 'start':
-                                                                tile_classes.append('start')
-                                                                tile_label = 'S'
-                                                        if is_current:
-                                                            tile_classes.append('current')
-                                                            tile_label = '◆'
-                                                        ui.html(f"<div class='{' '.join(tile_classes)}'>{html.escape(tile_label)}</div>")
+                                                                if tile_kind == 'encounter':
+                                                                    tile_classes.append('encounter')
+                                                                    tile_label = '*'
+                                                                else:
+                                                                    tile_classes.append('safe')
+                                                                    tile_label = '.'
+                                                                if tile_kind == 'start':
+                                                                    tile_classes.append('start')
+                                                                    tile_label = 'S'
+                                                            if is_current:
+                                                                tile_classes.append('current')
+                                                                tile_label = 'P'
+                                                            ui.html(f"<div class='{' '.join(tile_classes)}'>{html.escape(tile_label)}</div>")
                                         with ui.card().classes('mq-panel-frame mq-lab-grid-card p-4'):
                                             encounter = session_row.get('pending_encounter', {}) if isinstance(session_row.get('pending_encounter', {}), dict) else {}
                                             if session_status in {'encounter', 'boss'} and encounter:
                                                 monster_level = int(encounter.get('monster_level', max(LABYRINTH_UNLOCK_LEVEL, player.level)) or max(LABYRINTH_UNLOCK_LEVEL, player.level))
                                                 monster_name = str(encounter.get('monster_type') or 'Lantern Beast')
                                                 ui.label('Current Encounter').classes('text-slate-100 text-2xl font-semibold')
-                                                ui.label(f'{monster_name} • Level {monster_level}' + (' • Floor Boss' if bool(encounter.get('boss', False)) else '')).classes('text-slate-300 mt-2')
+                                                ui.label(f'{monster_name} â€¢ Level {monster_level}' + (' â€¢ Floor Boss' if bool(encounter.get('boss', False)) else '')).classes('text-slate-300 mt-2')
                                                 ui.label('Every active member resolves this fight on their own client using their current build. If at least one adventurer survives, the expedition keeps moving.').classes('mq-detail-text mt-3')
                                                 can_resolve = bool(self_member_row and not bool(self_member_row.get('is_downed', False)) and (int(self_member_row.get('last_resolution_sequence', 0) or 0) != int(encounter.get('sequence', 0) or 0) or str(self_member_row.get('last_resolution_status') or '').strip().lower() not in {'won', 'lost'}))
                                                 with ui.row().classes('gap-2 mt-4 flex-wrap'):
@@ -22017,8 +22410,9 @@ def main_page(request: Request) -> None:
                                                         for line in list(getattr(state, 'labyrinth_local_combat_log', []) or [])[-12:]:
                                                             ui.html(f"<div class='mq-lab-feed-entry'>{html.escape(str(line or ''))}</div>")
                                             elif session_status == 'reward':
-                                                ui.label('Vote on the Blessing').classes('text-slate-100 text-2xl font-semibold')
-                                                ui.label('Each offer pushes the expedition forward with one upside and one downside.').classes('mq-detail-text mt-2')
+                                                vote_seconds_left = _labyrinth_reward_seconds_remaining(session_row)
+                                                ui.label('Vote on the Prism Offer').classes('text-slate-100 text-2xl font-semibold')
+                                                ui.label(f'Each prism offer carries one upside and one downside. Majority wins when the prism seals in {vote_seconds_left}s.').classes('mq-detail-text mt-2')
                                                 vote_counts = _labyrinth_vote_count_map(reward_votes)
                                                 current_vote = state.labyrinth_current_vote_choice()
                                                 with ui.element('div').classes('mq-lab-reward-grid mt-4'):
@@ -22028,34 +22422,34 @@ def main_page(request: Request) -> None:
                                                         if current_vote == choice_index:
                                                             card.classes('active')
                                                         with card:
-                                                            ui.label(str(choice.get('title') or 'Unknown Blessing')).classes('text-slate-100 text-xl font-semibold')
+                                                            ui.label(str(choice.get('title') or 'Unknown Prism Offer')).classes('text-slate-100 text-xl font-semibold')
                                                             ui.label(str(choice.get('boon') or '')).classes('text-emerald-300 mt-3')
                                                             ui.label(str(choice.get('bane') or '')).classes('text-rose-300 mt-1')
                                                             ui.label(f'{vote_counts.get(choice_index, 0)} vote{"s" if vote_counts.get(choice_index, 0) != 1 else ""}').classes('mq-detail-text mt-4')
-                                                            vote_btn = ui.button('Vote for This Blessing', on_click=lambda idx=choice_index: (state.vote_labyrinth_reward(idx), request_render_refresh())).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold mt-4')
+                                                            vote_btn = ui.button('Vote for This Offer', on_click=lambda idx=choice_index: (state.vote_labyrinth_reward(idx), request_render_refresh())).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold mt-4')
                                                             if current_vote == choice_index:
                                                                 vote_btn.disable()
                                                 if state.labyrinth_is_leader():
                                                     ui.button('Seal the Vote and Advance', on_click=lambda: (state.finalize_labyrinth_reward_vote(), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold mt-4')
                                             elif session_status == 'boss_ready':
                                                 ui.label('Floor Boss Ready').classes('text-slate-100 text-2xl font-semibold')
-                                                ui.label('Every tile on this floor has been explored and resolved. The hedge core is ready to answer the party.').classes('mq-detail-text mt-2')
+                                                ui.label('Every tile on this floor has been explored and resolved. The radiant core is ready to answer the party.').classes('mq-detail-text mt-2')
                                                 if state.labyrinth_is_controller():
                                                     ui.button('Call the Floor Boss', on_click=lambda: (state.labyrinth_start_boss_encounter(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold mt-4')
                                             elif session_status == 'defeated':
                                                 ui.label('Expedition Broken').classes('text-slate-100 text-2xl font-semibold')
                                                 ui.label('Every active adventurer on the last pull fell. Reform the expedition to restart the floor.').classes('mq-detail-text mt-2')
                                                 if state.labyrinth_is_leader():
-                                                    ui.button('Reform at the Hedge Line', on_click=lambda: (state.labyrinth_reset_after_defeat(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold mt-4')
+                                                    ui.button('Reform at the Prism Gate', on_click=lambda: (state.labyrinth_reset_after_defeat(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold mt-4')
                                             else:
                                                 ui.label('Expedition Briefing').classes('text-slate-100 text-2xl font-semibold')
-                                                ui.label('Move through the hedge one square at a time. New tiles are a coin flip between silence and a fight.').classes('mq-detail-text mt-2')
+                                                ui.label('Move through the Labyrinth one square at a time. New tiles are a coin flip between silence and a fight.').classes('mq-detail-text mt-2')
                                         with ui.card().classes('mq-panel-frame mq-lab-grid-card p-4'):
                                             ui.label('Maze Echoes').classes('text-slate-100 text-2xl font-semibold')
                                             with ui.element('div').classes('mq-lab-feed mt-4'):
                                                 event_feed = [str(entry or '').strip() for entry in list(getattr(state, 'labyrinth_recent_events', []) or []) if str(entry or '').strip()]
                                                 if not event_feed:
-                                                    ui.label('The hedges have not said anything yet.').classes('mq-detail-text')
+                                                    ui.label('The Labyrinth has not whispered anything yet.').classes('mq-detail-text')
                                                 else:
                                                     for entry in event_feed[:10]:
                                                         ui.html(f"<div class='mq-lab-feed-entry'>{html.escape(entry)}</div>")
@@ -22068,7 +22462,7 @@ def main_page(request: Request) -> None:
                                 ui.label('Browse live adventurer listings or post one of your own finds for gold.').classes('text-slate-100 text-xl leading-9 mt-2')
                                 with ui.card().classes('mq-panel-frame p-4 mt-4'):
                                     ui.label('BAZAAR STATUS').classes('mq-panel-caption')
-                                    ui.html(f"<div class='mq-inv-summary-line mt-2'><span class='mq-inv-label-gold'>Gold</span> <span class='mq-inv-summary-strong'>{player.gold}</span> • <span class='mq-inv-label-tier'>Mode</span> <span class='mq-inv-summary-strong'>{html.escape(state.bazaar_view)}</span></div>")
+                                    ui.html(f"<div class='mq-inv-summary-line mt-2'><span class='mq-inv-label-gold'>Gold</span> <span class='mq-inv-summary-strong'>{player.gold}</span> â€¢ <span class='mq-inv-label-tier'>Mode</span> <span class='mq-inv-summary-strong'>{html.escape(state.bazaar_view)}</span></div>")
                                     ui.label(state.bazaar_status or 'The bazaar boards are being arranged.').classes('text-slate-300 mt-2 leading-7')
                                 with ui.row().classes('gap-2 mt-4 flex-wrap'):
                                     buy_tab = ui.button('Buy', on_click=lambda: (setattr(state, 'bazaar_view', 'Buy'), state.refresh_bazaar_listings(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
@@ -22156,7 +22550,7 @@ def main_page(request: Request) -> None:
                                                     with ui.column().classes('gap-1 flex-grow'):
                                                         ui.html(f"<span class='mq-manifest-flag {action_flag_class}'>{html.escape(action)}</span>")
                                                         ui.label(item_name).classes('mq-inv-entry-title')
-                                                        ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{item_rarity}</span> • <span class='mq-inv-label-tier'>Tier {item_tier}</span> • <span class='mq-inv-label-set'>{item_type}</span></div>")
+                                                        ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{item_rarity}</span> â€¢ <span class='mq-inv-label-tier'>Tier {item_tier}</span> â€¢ <span class='mq-inv-label-set'>{item_type}</span></div>")
                                                         if item_base_text:
                                                             ui.label(item_base_text).classes('mq-inv-entry-base')
                                                     with ui.column().classes('items-end max-[860px]:items-start gap-2 min-w-[230px]'):
@@ -22198,7 +22592,7 @@ def main_page(request: Request) -> None:
                                                                 with ui.column().classes('gap-1 flex-grow'):
                                                                     ui.html(safe_rarity_badge_html(item))
                                                                     ui.label(safe_item_name(item)).classes('mq-inv-entry-title')
-                                                                    ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{html.escape(saved_item_type_label(item))}</span> • <span class='mq-inv-label-tier'>Tier {item_required_level(item)}</span> • <span class='mq-inv-label-set'>{html.escape(listing.seller_name)}</span></div>")
+                                                                    ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{html.escape(saved_item_type_label(item))}</span> â€¢ <span class='mq-inv-label-tier'>Tier {item_required_level(item)}</span> â€¢ <span class='mq-inv-label-set'>{html.escape(listing.seller_name)}</span></div>")
                                                                     ui.label(safe_item_base_stat_text(item)).classes('mq-inv-entry-base')
                                                                     ui.html(inventory_affix_tag_html(item))
                                                                 with ui.column().classes('items-end max-[860px]:items-start gap-2 min-w-[170px]'):
@@ -22233,7 +22627,7 @@ def main_page(request: Request) -> None:
                                                                 with ui.column().classes('gap-1 flex-grow'):
                                                                     ui.html(safe_rarity_badge_html(item))
                                                                     ui.label(safe_item_name(item)).classes('mq-inv-entry-title')
-                                                                    ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{html.escape(saved_item_type_label(item))}</span> • <span class='mq-inv-label-tier'>Tier {item_required_level(item)}</span></div>")
+                                                                    ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{html.escape(saved_item_type_label(item))}</span> â€¢ <span class='mq-inv-label-tier'>Tier {item_required_level(item)}</span></div>")
                                                                     ui.label(safe_item_base_stat_text(item)).classes('mq-inv-entry-base')
                                                                     ui.html(inventory_affix_tag_html(item))
                                                                 with ui.column().classes('items-end max-[860px]:items-start gap-2 min-w-[175px]'):
@@ -22257,7 +22651,7 @@ def main_page(request: Request) -> None:
                                                                 with ui.column().classes('gap-1 flex-grow'):
                                                                     ui.html(safe_rarity_badge_html(item))
                                                                     ui.label(safe_item_name(item)).classes('mq-inv-entry-title')
-                                                                    ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{html.escape(saved_item_type_label(item))}</span> • <span class='mq-inv-label-tier'>Tier {item_required_level(item)}</span></div>")
+                                                                    ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>{html.escape(saved_item_type_label(item))}</span> â€¢ <span class='mq-inv-label-tier'>Tier {item_required_level(item)}</span></div>")
                                                                     ui.label(safe_item_base_stat_text(item)).classes('mq-inv-entry-base')
                                                                     ui.html(inventory_affix_tag_html(item))
                                                                 with ui.column().classes('items-end max-[860px]:items-start gap-2 min-w-[215px]'):
@@ -22283,7 +22677,7 @@ def main_page(request: Request) -> None:
                                     with ui.column().classes('gap-1 flex-grow'):
                                         ui.html(safe_rarity_badge_html(offer.item))
                                         ui.label(safe_item_name(offer.item)).classes('mq-inv-entry-title')
-                                        ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>Offer {index + 1}</span> • <span class='mq-inv-label-tier'>Tier {item_required_level(offer.item)}</span></div>")
+                                        ui.html(f"<div class='mq-inv-entry-sub'><span class='mq-inv-label-accent'>Offer {index + 1}</span> â€¢ <span class='mq-inv-label-tier'>Tier {item_required_level(offer.item)}</span></div>")
                                         ui.label(safe_item_base_stat_text(offer.item)).classes('mq-inv-entry-base')
                                         ui.html(inventory_affix_detail_html(offer.item))
                                     with ui.column().classes('items-end max-[860px]:items-start gap-2 min-w-[160px]'):
@@ -22302,7 +22696,7 @@ def main_page(request: Request) -> None:
                                 ui.label(state.current_marketplace_line or 'Liora and Senna lean across the counter, already discussing which relic would look best in your hands.').classes('text-slate-100 text-xl leading-9 mt-2 italic')
                                 with ui.card().classes('mq-panel-frame p-4 mt-4'):
                                     ui.label('MARKET STATUS').classes('mq-panel-caption')
-                                    ui.html(f"<div class='mq-inv-summary-line mt-2'><span class='mq-inv-label-gold'>Gold</span> <span class='mq-inv-summary-strong'>{player.gold}</span> • <span class='mq-inv-label-tier'>Shop Tier</span> <span class='mq-inv-summary-strong'>{state.marketplace_offer_refresh_level}</span></div>")
+                                    ui.html(f"<div class='mq-inv-summary-line mt-2'><span class='mq-inv-label-gold'>Gold</span> <span class='mq-inv-summary-strong'>{player.gold}</span> â€¢ <span class='mq-inv-label-tier'>Shop Tier</span> <span class='mq-inv-summary-strong'>{state.marketplace_offer_refresh_level}</span></div>")
                                     
                             with ui.row().classes('w-full items-start gap-4 max-[1250px]:flex-wrap'):
                                 with ui.column().classes('flex-[0.95] min-w-[350px] gap-4'):
@@ -22370,7 +22764,7 @@ def main_page(request: Request) -> None:
                                         cost_display = str(current_transmute_cost if current_transmute_cost is not None else '2 + affixes')
                                         ui.html(
                                             f"<div class='mq-detail-text mt-2 mq-status-line'>"
-                                            f"{gold_inline_html(player.gold)}<span class='mq-status-sep'>•</span><span>Inventory items {len(player.inventory)}</span><span class='mq-status-sep'>•</span><span>Ritual cost: {html.escape(cost_display)}</span>"
+                                            f"{gold_inline_html(player.gold)}<span class='mq-status-sep'>â€¢</span><span>Inventory items {len(player.inventory)}</span><span class='mq-status-sep'>â€¢</span><span>Ritual cost: {html.escape(cost_display)}</span>"
                                             f"</div>"
                                         )
                                     with ui.card().classes('mq-panel-frame p-4 mt-4'):
@@ -22444,7 +22838,7 @@ def main_page(request: Request) -> None:
                                                 empty_text = 'No Fine-or-better same-tier offerings match the current filters.' if filters_active else 'No Fine-or-better same-tier transmutation pair is available in your inventory right now.'
                                                 ui.label(empty_text).classes('mq-inv-empty mt-4')
                                                 if filters_active:
-                                                    ui.label(f'Active filters: {tier_filter} • {rarity_filter}').classes('mq-detail-text mt-2')
+                                                    ui.label(f'Active filters: {tier_filter} â€¢ {rarity_filter}').classes('mq-detail-text mt-2')
                                                     ui.button(
                                                         'Clear Filters',
                                                         on_click=lambda: (
@@ -22473,7 +22867,7 @@ def main_page(request: Request) -> None:
                                                 if first_item is not None and second_options:
                                                     ui.label(f'Same-tier Fine-or-better offerings available for the first choice: {len(second_options)}').classes('mq-detail-text mt-3')
                                                 if filters_active:
-                                                    ui.label(f'Active filters: {tier_filter} • {rarity_filter}').classes('mq-detail-text mt-1')
+                                                    ui.label(f'Active filters: {tier_filter} â€¢ {rarity_filter}').classes('mq-detail-text mt-1')
                                 with ui.column().classes('flex-1 min-w-[320px] gap-4'):
                                     with ui.card().classes('mq-card w-full p-4 h-full').style('min-height: 620px;'):
                                         ui.label('Offering One').classes('mq-inv-section-title mb-2')
@@ -22584,8 +22978,8 @@ def main_page(request: Request) -> None:
                                             ui.label(safe_item_name(recent_well_reward_item)).classes('mq-inv-section-title mt-2')
                                             ui.html(
                                                 "<div class='mq-inv-entry-sub mt-1'>"
-                                                f"<span class='mq-inv-label-accent'>{html.escape(saved_item_type_label(recent_well_reward_item))}</span> • "
-                                                f"<span class='mq-inv-label-tier'>Tier {item_required_level(recent_well_reward_item)}</span> • "
+                                                f"<span class='mq-inv-label-accent'>{html.escape(saved_item_type_label(recent_well_reward_item))}</span> â€¢ "
+                                                f"<span class='mq-inv-label-tier'>Tier {item_required_level(recent_well_reward_item)}</span> â€¢ "
                                                 "<span class='mq-inv-label-set'>Well of Evil</span>"
                                                 "</div>"
                                             )
@@ -22642,7 +23036,7 @@ def main_page(request: Request) -> None:
                                                 if selected_item_eligible:
                                                     ui.label(f'Selected offering: {selected_item.summary()}').classes('mq-detail-text mt-3')
                                                 else:
-                                                    ui.label(f'Selected offering: {selected_item.summary()} • Requires Level {selected_required_level}.').classes('mq-detail-text mt-3 text-amber-300')
+                                                    ui.label(f'Selected offering: {selected_item.summary()} â€¢ Requires Level {selected_required_level}.').classes('mq-detail-text mt-3 text-amber-300')
                                             elif filtered_labels:
                                                 ui.label('Choose a Common item to complete the ritual.').classes('mq-detail-text mt-3')
                                             else:
@@ -22887,7 +23281,7 @@ def main_page(request: Request) -> None:
                                                                 ui.button(icon='visibility', on_click=lambda uid=member_user_id, name=member_name: open_public_profile_dialog(uid, name, 'guild_hall')).props('flat round dense size=xs').classes('text-slate-500 !text-[10px] w-[18px] h-[18px] min-h-0 min-w-0 p-0')
                                                                 role_tone = 'text-amber-300' if member_role == 'leader' else ('text-cyan-300' if member_role == 'officer' else 'text-slate-300')
                                                                 ui.label(member_role.title()).classes(f'mq-detail-text {role_tone}')
-                                                            ui.label(f"Joined {joined_label} • PQ {int(member.get('pq_points', 0) or 0)}").classes('mq-detail-text')
+                                                            ui.label(f"Joined {joined_label} â€¢ PQ {int(member.get('pq_points', 0) or 0)}").classes('mq-detail-text')
                                                         if is_leader and member_user_id and member_user_id != str(state.auth_user_id or ''):
                                                             with ui.row().classes('items-center gap-2 flex-wrap justify-end'):
                                                                 if member_role == 'member':
@@ -22924,7 +23318,7 @@ def main_page(request: Request) -> None:
                                                             ui.html(f"<div class='mq-town-chat-body'>{body}</div>")
                                                 else:
                                                     ui.label(str(getattr(state, 'guild_message_status', '') or 'The guild hall has not heard a word yet.')).classes('mq-town-chat-empty')
-                                        guild_input = ui.input(label='Guild Message', placeholder='Speak to the hall…', value=getattr(state, 'guild_message_draft', '')).props('outlined clearable input-style=color: #e2e8f0;').classes('w-full mt-4')
+                                        guild_input = ui.input(label='Guild Message', placeholder='Speak to the hallâ€¦', value=getattr(state, 'guild_message_draft', '')).props('outlined clearable input-style=color: #e2e8f0;').classes('w-full mt-4')
                                         guild_input.on_value_change(lambda e: setattr(state, 'guild_message_draft', str(e.value or '')[:220]))
                                         def _submit_guild_hall_chat() -> None:
                                             if state.submit_town_chat_entry(guild_input.value, 'guild'):
@@ -22954,7 +23348,7 @@ def main_page(request: Request) -> None:
                                                     created_label = str(invite.get('created_at') or '').split('T')[0] if str(invite.get('created_at') or '') else 'Recent'
                                                     with ui.card().classes('mq-panel-frame p-3 mb-3'):
                                                         ui.label(invitee_name).classes('text-slate-100 font-semibold')
-                                                        ui.label(f'Pending • Sent {created_label}').classes('mq-detail-text mt-1')
+                                                        ui.label(f'Pending â€¢ Sent {created_label}').classes('mq-detail-text mt-1')
                                                         if can_manage_invites and invite_id:
                                                             with ui.row().classes('gap-2 mt-3 flex-wrap'):
                                                                 ui.button('Revoke Invite', on_click=lambda iid=invite_id: (state.revoke_guild_invite(iid), request_render_refresh())).classes('mq-btn-secondary rounded-lg px-4 py-2 font-semibold')
@@ -22986,7 +23380,7 @@ def main_page(request: Request) -> None:
                     elif state.game_tab == 'ladder':
                         state.ensure_ladder_scene_state(False, allow_cached=True)
                         state.refresh_guild_leaderboard(allow_cached=True)
-                        current_run = format_duration(state.current_run_elapsed_seconds()) if player is not None else '—'
+                        current_run = format_duration(state.current_run_elapsed_seconds()) if player is not None else 'â€”'
                         current_ladder_view = str(getattr(state, 'ladder_view', 'Players') or 'Players')
                         current_ladder_mode = normalize_ladder_mode(getattr(state, 'ladder_mode', state.current_slot_mode()))
                         current_player_view = str(getattr(state, 'ladder_player_view', 'Progression') or 'Progression')
@@ -23048,7 +23442,7 @@ def main_page(request: Request) -> None:
                                 with ui.row().classes('w-full gap-3 mt-4 max-[900px]:flex-wrap'):
                                     with ui.card().classes('mq-panel-frame flex-1 min-w-[280px] p-4'):
                                         ui.label('CURRENT CHRONICLE').classes('mq-panel-caption')
-                                        ui.label(f'{player.name}  •  {player.player_class}  •  Level {player.level}  •  Current run {current_run}').classes('mq-detail-text mt-2')
+                                        ui.label(f'{player.name}  â€¢  {player.player_class}  â€¢  Level {player.level}  â€¢  Current run {current_run}').classes('mq-detail-text mt-2')
                                         ui.label(state.ladder_totals_text()).classes('mq-detail-text mt-3 whitespace-pre-line')
                                     with ui.card().classes('mq-panel-frame flex-1 min-w-[280px] p-4'):
                                         ui.label('REGISTRAR').classes('mq-panel-caption')
@@ -23240,8 +23634,8 @@ def main_page(request: Request) -> None:
                                             item = coerce_item(slot_items.get(bucket))
                                             if item is not None:
                                                 saved_rows.append((SAVED_ITEM_SET_LABELS.get(slot_key, slot_key), int(bucket), item))
-                                    ui.label(f'{character_name}  •  {highest_class}  •  Level {level}').classes('text-slate-100 text-2xl mt-4')
-                                    ui.label(f'PQ Points {pq_points}  •  Ladder Resets {ladder_resets}  •  Season {season_id}').classes('mq-detail-text mt-2')
+                                    ui.label(f'{character_name}  â€¢  {highest_class}  â€¢  Level {level}').classes('text-slate-100 text-2xl mt-4')
+                                    ui.label(f'PQ Points {pq_points}  â€¢  Ladder Resets {ladder_resets}  â€¢  Season {season_id}').classes('mq-detail-text mt-2')
                                     if updated_at:
                                         ui.label(f'Last Public Sync {updated_at}').classes('mq-detail-text mt-1')
                                     status_text = getattr(state, 'profile_status', '')
@@ -23304,7 +23698,7 @@ def main_page(request: Request) -> None:
                                                         with divider:
                                                             ui.html(
                                                                 f"<div class='mq-saved-divider-body'>"
-                                                                f"<span class='mq-saved-divider-chevron'>{'▸' if collapsed else '▾'}</span>"
+                                                                f"<span class='mq-saved-divider-chevron'>{'â–¸' if collapsed else 'â–¾'}</span>"
                                                                 f"<span class='mq-inv-section-title'>{html.escape(slot_label)}</span>"
                                                                 f"<span class='mq-saved-divider-meta'>{html.escape(count_text)}</span>"
                                                                 f"</div>"
@@ -23358,7 +23752,7 @@ def main_page(request: Request) -> None:
                                     ui.label('Equipment Families').classes('text-xl font-semibold text-slate-100 mt-2')
                                     ui.label('Every item in the current build belongs to one slot family and one subtype family. Class restrictions only limit what can be equipped, not what can drop.').classes('mq-glossary-body leading-7 mt-2')
                                     with ui.row().classes('mq-glossary-chip-row mt-4'):
-                                        for chip in ['Weapons: Dagger • Axe • Staff', 'Armor: Light • Medium • Heavy', 'Charms: Fire • Lightning • Ice']:
+                                        for chip in ['Weapons: Dagger â€¢ Axe â€¢ Staff', 'Armor: Light â€¢ Medium â€¢ Heavy', 'Charms: Fire â€¢ Lightning â€¢ Ice']:
                                             ui.html(f"<span class='mq-glossary-chip'>{html.escape(chip)}</span>")
                                     ui.label('Class Equip Rules').classes('text-lg font-semibold text-slate-100 mt-5 mb-3')
                                     ui.html(build_glossary_table_html(['Class', 'Weapons', 'Armor', 'Charms'], glossary_equip_rule_rows()))
@@ -23397,7 +23791,7 @@ def main_page(request: Request) -> None:
                                     ui.label('Family mastery').classes('text-xl font-semibold text-slate-100 mt-2')
                                     ui.html(build_glossary_list_html([
                                         'Each successful player hit grants 1 proficiency point to the active weapon or charm family.',
-                                        'Threshold to level a family = 1000 × (current proficiency level + 1).',
+                                        'Threshold to level a family = 1000 Ã— (current proficiency level + 1).',
                                         'Every proficiency level adds +1% Enhanced Effect to that family only.',
                                         'Tracked families: Axe, Dagger, Staff, Fire Charm, Ice Charm, Lightning Charm.',
                                     ])).classes('mt-4')
@@ -23528,7 +23922,7 @@ def main_page(request: Request) -> None:
                             ]
                             for key, total, base in stats:
                                 with ui.row().classes('w-full items-center justify-between mq-panel p-3 mb-2 max-[640px]:flex-wrap gap-2'):
-                                    ui.label(f'{STAT_LABELS[key]} • Allocated {base} • Total {total}').classes('text-slate-200')
+                                    ui.label(f'{STAT_LABELS[key]} â€¢ Allocated {base} â€¢ Total {total}').classes('text-slate-200')
                                     plus = ui.button('+1', on_click=lambda k=key: (state.allocate(k), request_render_refresh()))
                                     plus.classes('mq-btn-gold rounded-lg')
                                     if state.fight_in_progress or player.unspent_stat_points <= 0:
@@ -23583,7 +23977,7 @@ def main_page(request: Request) -> None:
                                     ui.label(player.player_class).classes('mq-arena-avatar empty')
                             with ui.column().classes('gap-2 min-w-0 w-full'):
                                 ui.label(player.name).classes('text-2xl font-semibold text-slate-100')
-                                ui.label(f'{player.player_class}  •  Level {player.level}').classes('text-slate-300')
+                                ui.label(f'{player.player_class}  â€¢  Level {player.level}').classes('text-slate-300')
                                 def handle_arena_stat_click(stat_key: str, shift_all: bool = False) -> None:
                                     if state.fight_in_progress or player.unspent_stat_points <= 0:
                                         return
@@ -23619,10 +24013,10 @@ def main_page(request: Request) -> None:
                                 with ui.element('div').classes('mq-player-summary-grid mt-2'):
                                     ui.html(f"<div class='mq-stat-chip'><div class='mq-stat-chip-label'>Attack</div><div class='mq-stat-chip-value'>{player.attack_min}-{player.attack_max}</div></div>")
                                     ui.html(f"<div class='mq-stat-chip'><div class='mq-stat-chip-label'>Attack Mode</div><div class='mq-stat-chip-value'>{html.escape(attack_mode_label(player))}</div></div>")
-                                    ui.html(f"<div class='mq-stat-chip'><div class='mq-stat-chip-label'>Defense</div><div class='mq-stat-chip-value'>Armor {player.physical_armor} • M.Res {player.magic_resistance}</div></div>")
-                                    ui.html(f"<div class='mq-stat-chip'><div class='mq-stat-chip-label'>Precision</div><div class='mq-stat-chip-value'>ACC {player.accuracy:.2f} • EVA {int(round(player.evasion * 100))}%</div></div>")
+                                    ui.html(f"<div class='mq-stat-chip'><div class='mq-stat-chip-label'>Defense</div><div class='mq-stat-chip-value'>Armor {player.physical_armor} â€¢ M.Res {player.magic_resistance}</div></div>")
+                                    ui.html(f"<div class='mq-stat-chip'><div class='mq-stat-chip-label'>Precision</div><div class='mq-stat-chip-value'>ACC {player.accuracy:.2f} â€¢ EVA {int(round(player.evasion * 100))}%</div></div>")
                                     ui.html(f"<div class='mq-stat-chip'><div class='mq-stat-chip-label'>Critical</div><div class='mq-stat-chip-value'>{int(round(player.crit_chance * 100))}% @ {player.crit_damage:.2f}x</div></div>")
-                                    ui.html(f"<div class='mq-stat-chip'><div class='mq-stat-chip-label'>Run</div><div class='mq-stat-chip-value'><span class='mq-gold-inline'><span class='mq-gold-text'>Gold</span> <span class='mq-gold-value'>{player.gold}</span></span> • W {player.wins} / L {player.losses}</div></div>")
+                                    ui.html(f"<div class='mq-stat-chip'><div class='mq-stat-chip-label'>Run</div><div class='mq-stat-chip-value'><span class='mq-gold-inline'><span class='mq-gold-text'>Gold</span> <span class='mq-gold-value'>{player.gold}</span></span> â€¢ W {player.wins} / L {player.losses}</div></div>")
                         with ui.element('div').classes('mq-player-panels'):
                             with ui.card().classes('mq-panel-frame p-4 h-full'):
                                 ui.label('LOADOUT').classes('mq-panel-caption')
@@ -23897,7 +24291,7 @@ def main_page(request: Request) -> None:
                                         ui.label('No active target').classes('mq-monster-fallback')
                                     else:
                                         ui.label(stage_monster.monster_type).classes('mq-monster-fallback')
-                                quote_text = state.arena_transition_text or (f'“{stage_monster.monster_dialogue}”' if stage_monster is not None and state.current_monster is not None and stage_monster.monster_dialogue else 'The arena waits in the hush between clashes.')
+                                quote_text = state.arena_transition_text or (f'â€œ{stage_monster.monster_dialogue}â€' if stage_monster is not None and state.current_monster is not None and stage_monster.monster_dialogue else 'The arena waits in the hush between clashes.')
                                 ui.label(quote_text).classes('mq-monster-quote text-slate-200 italic whitespace-pre-line w-full text-center text-xl leading-9')
                             with ui.column().classes('mq-monster-details w-full'):
                                 if stage_monster is None:
@@ -23906,13 +24300,13 @@ def main_page(request: Request) -> None:
                                 else:
                                     ui.html(f"<span class='mq-monster-nameplate'>{html.escape(monster_state_label)}</span>")
                                     ui.label(monster_species_name(stage_monster.monster_type)).classes('text-3xl font-semibold text-slate-100')
-                                    secondary = f'{stage_monster.monster_personal_name}  •  Level {stage_monster.level}' if state.current_monster is not None else f'{stage_monster.monster_personal_name}  •  {monster_state_label}'
+                                    secondary = f'{stage_monster.monster_personal_name}  â€¢  Level {stage_monster.level}' if state.current_monster is not None else f'{stage_monster.monster_personal_name}  â€¢  {monster_state_label}'
                                     ui.label(secondary).classes('text-slate-200')
                                     with ui.card().classes('mq-panel-frame p-4'):
                                         ui.label('COMBAT').classes('mq-panel-caption')
                                         ui.label(f'ATK  {stage_monster.attack_min}-{stage_monster.attack_max}').classes('text-slate-300 text-sm mt-2')
-                                        ui.label(f'DEF  Armor {stage_monster.physical_armor}  •  M.Res {stage_monster.magic_resistance}').classes('text-slate-300 text-sm mt-1')
-                                        ui.label(f'ACC  {stage_monster.accuracy:.2f}  •  EVA {int(round(stage_monster.evasion * 100))}%  •  CRIT {int(round(stage_monster.crit_chance * 100))}% @ {stage_monster.crit_damage:.2f}x').classes('text-slate-300 text-sm mt-1')
+                                        ui.label(f'DEF  Armor {stage_monster.physical_armor}  â€¢  M.Res {stage_monster.magic_resistance}').classes('text-slate-300 text-sm mt-1')
+                                        ui.label(f'ACC  {stage_monster.accuracy:.2f}  â€¢  EVA {int(round(stage_monster.evasion * 100))}%  â€¢  CRIT {int(round(stage_monster.crit_chance * 100))}% @ {stage_monster.crit_damage:.2f}x').classes('text-slate-300 text-sm mt-1')
                                         ui.label(f'Damage Type  {"Magic" if stage_monster.damage_school == "magic" else "Physical"}').classes('text-slate-300 text-sm mt-1')
                                     with ui.element('div').classes('mq-meters'):
                                         current_hp = stage_monster.hp
@@ -24078,6 +24472,15 @@ def main_page(request: Request) -> None:
             return
         if state.refresh_labyrinth_session_state(force=False):
             request_render_refresh()
+        session_row = getattr(state, 'labyrinth_session_row', {})
+        if (
+            isinstance(session_row, dict)
+            and str(session_row.get('status') or '').strip().lower() == 'reward'
+            and _labyrinth_reward_seconds_remaining(session_row) <= 0
+            and (bool(getattr(state, 'labyrinth_is_local', False)) or state.labyrinth_is_leader())
+        ):
+            if state.finalize_labyrinth_reward_vote():
+                request_render_refresh()
 
     def maybe_retry_auth_reconnect() -> None:
         if not getattr(state, '_auth_reconnect_started_at', 0.0):
