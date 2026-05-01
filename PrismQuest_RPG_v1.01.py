@@ -1231,8 +1231,8 @@ body {
 .mq-lab-member-top {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.8rem;
-  align-items: start;
+  gap: 0.7rem;
+  align-items: stretch;
 }
 .mq-lab-member-meters {
   display: grid;
@@ -1241,29 +1241,32 @@ body {
 .mq-lab-member-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.45rem;
+  gap: 0.35rem;
   min-width: 0;
 }
 .mq-lab-member-header {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.15rem;
   min-width: 0;
 }
 .mq-lab-member-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.7rem;
+  gap: 0.45rem;
   align-items: start;
 }
 .mq-lab-member-body.mq-lab-member-body-gear {
-  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.9fr);
+  grid-template-columns: minmax(0, 1fr) minmax(182px, 0.86fr);
+  gap: 0.55rem;
 }
 .mq-lab-member-gear {
   display: grid;
-  gap: 0.28rem;
+  gap: 0.24rem;
   min-width: 0;
   align-content: start;
-  padding: 0.7rem 0.8rem;
+  align-self: start;
+  margin-top: -0.08rem;
+  padding: 0.52rem 0.68rem;
   border-radius: 16px;
   border: 1px solid rgba(255,255,255,0.06);
   background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
@@ -1280,6 +1283,10 @@ body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
+.mq-lab-member-gear-line {
+  display: block;
+  min-width: 0;
+}
 .mq-lab-member-meters .mq-meter {
   margin-top: 0;
 }
@@ -1291,19 +1298,19 @@ body {
   font-size: 0.72rem;
 }
 .mq-lab-member-portrait {
-  width: 78px;
-  min-width: 78px;
-  height: 78px;
-  border-radius: 20px;
-  padding: 6px;
+  width: 88px;
+  min-width: 88px;
+  height: 108px;
+  border-radius: 22px;
+  padding: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .mq-lab-member-portrait .mq-hero-art {
   width: 100%;
-  max-width: 62px;
-  max-height: 62px;
+  max-width: 78px;
+  max-height: 98px;
   height: auto;
   object-fit: contain;
   margin: auto;
@@ -1311,7 +1318,13 @@ body {
 .mq-lab-member-portrait .mq-hero-art-fallback {
   width: 100%;
   min-height: 100%;
-  border-radius: 14px;
+  border-radius: 16px;
+}
+.mq-lab-stage-card {
+  min-height: clamp(35rem, 72vh, 38rem);
+  height: clamp(35rem, 72vh, 38rem);
+  display: grid;
+  align-content: start;
 }
 .mq-lab-grid-shell {
   display: grid;
@@ -1319,6 +1332,8 @@ body {
   gap: 0.9rem;
   justify-items: center;
   text-align: center;
+  min-height: 100%;
+  align-content: start;
 }
 .mq-lab-pack-grid {
   display: grid;
@@ -16361,9 +16376,10 @@ def _labyrinth_pick_monster_target(party_state: Dict[str, Dict[str, object]], pa
 
 def _labyrinth_step_delay_seconds(self) -> float:
     try:
-        return max(0.65, float(getattr(self, 'log_delay_ms', 1000) or 1000) / 1000.0)
+        base_delay = float(getattr(self, 'log_delay_ms', 1000) or 1000) / 1000.0
+        return max(1.0, base_delay * 1.5)
     except Exception:
-        return 1.0
+        return 1.5
 
 
 def _labyrinth_next_step_iso(self, delay_seconds: Optional[float] = None) -> str:
@@ -16627,7 +16643,8 @@ def ensure_labyrinth_state(self) -> None:
         'labyrinth_vote_rows': [],
         'labyrinth_recent_events': [],
         'labyrinth_local_combat_log': [],
-        'labyrinth_combat_log_hidden': False,
+        'labyrinth_combat_log_hidden': True,
+        'labyrinth_echoes_hidden': True,
         'labyrinth_local_resolution_text': '',
         'labyrinth_last_snapshot_hash': '',
         'labyrinth_last_sync_at': 0.0,
@@ -23476,9 +23493,9 @@ def main_page(request: Request) -> None:
                                                                 hover_key_base = str(row.get('user_id') or f'lab-companion-{member_index}').strip() or f'lab-companion-{member_index}'
                                                                 with ui.column().classes('mq-lab-member-gear'):
                                                                     ui.label('Companion Gear').classes('mq-lab-member-gear-label')
-                                                                    ui.html(f"<div class='mq-detail-text'>Weapon {persistent_hoverable_item_name_html(weapon_item, 'Empty', persist_key=hover_key_base + '-weapon')}</div>")
-                                                                    ui.html(f"<div class='mq-detail-text'>Armor {persistent_hoverable_item_name_html(armor_item, 'Empty', persist_key=hover_key_base + '-armor')}</div>")
-                                                                    ui.html(f"<div class='mq-detail-text'>Charm {persistent_hoverable_item_name_html(charm_item, 'Empty', persist_key=hover_key_base + '-charm')}</div>")
+                                                                    ui.html(f"<div class='mq-detail-text mq-lab-member-gear-line'>{persistent_hoverable_item_name_html(weapon_item, 'Empty', persist_key=hover_key_base + '-weapon')}</div>")
+                                                                    ui.html(f"<div class='mq-detail-text mq-lab-member-gear-line'>{persistent_hoverable_item_name_html(armor_item, 'Empty', persist_key=hover_key_base + '-armor')}</div>")
+                                                                    ui.html(f"<div class='mq-detail-text mq-lab-member-gear-line'>{persistent_hoverable_item_name_html(charm_item, 'Empty', persist_key=hover_key_base + '-charm')}</div>")
                                         with ui.card().classes('mq-panel-frame mq-lab-grid-card p-4'):
                                             ui.label('Expedition Controls').classes('text-slate-100 text-2xl font-semibold')
                                             modifier_titles = [str(entry.get('title') or '').strip() for entry in modifier_stack if isinstance(entry, dict) and str(entry.get('title') or '').strip()]
@@ -23521,7 +23538,7 @@ def main_page(request: Request) -> None:
                                                 if session_status == 'reward' and state.labyrinth_is_leader():
                                                     ui.button('Finalize Vote', on_click=lambda: (state.finalize_labyrinth_reward_vote(), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
                                     with ui.column().classes('mq-lab-side-stack'):
-                                        with ui.card().classes('mq-scene-card mq-lab-grid-card w-full p-5'):
+                                        with ui.card().classes('mq-scene-card mq-lab-grid-card mq-lab-stage-card w-full p-5'):
                                             if session_status in {'encounter', 'boss'} and encounter_monster_snapshots:
                                                 ui.label('Active Encounter').classes('mq-lab-grid-title')
                                                 if len(encounter_monster_snapshots) == 1:
@@ -23643,7 +23660,7 @@ def main_page(request: Request) -> None:
                                                     if pack_names:
                                                         ui.label(f'Pack: {pack_names}').classes('mq-detail-text mt-2')
                                                 ui.label(f'Round {round_number} • {next_turn_text}').classes('mq-detail-text mt-3')
-                                                ui.label('Combat resolves automatically in fixed party order with arena-style pacing.').classes('mq-detail-text mt-2')
+                                                ui.label('Combat resolves automatically in steady side-based bursts with arena-style pacing.').classes('mq-detail-text mt-2')
                                                 with ui.row().classes('gap-2 mt-4 flex-wrap'):
                                                     ui.button('Refresh Encounter', on_click=lambda: (state.refresh_labyrinth_session_state(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
                                                     ui.button('Show Log' if bool(getattr(state, 'labyrinth_combat_log_hidden', False)) else 'Hide Log', on_click=lambda: (setattr(state, 'labyrinth_combat_log_hidden', not bool(getattr(state, 'labyrinth_combat_log_hidden', False))), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
@@ -23698,14 +23715,19 @@ def main_page(request: Request) -> None:
                                                 ui.label('Expedition Briefing').classes('text-slate-100 text-2xl font-semibold')
                                                 ui.label('Move through the Labyrinth one square at a time. New tiles are a coin flip between silence and a fight.').classes('mq-detail-text mt-2')
                                         with ui.card().classes('mq-panel-frame mq-lab-grid-card p-4'):
-                                            ui.label('Maze Echoes').classes('text-slate-100 text-2xl font-semibold')
-                                            with ui.element('div').classes('mq-lab-feed mt-4'):
-                                                event_feed = [str(entry or '').strip() for entry in list(getattr(state, 'labyrinth_recent_events', []) or []) if str(entry or '').strip()]
-                                                if not event_feed:
-                                                    ui.label('The Labyrinth has not whispered anything yet.').classes('mq-detail-text')
-                                                else:
-                                                    for entry in event_feed[:10]:
-                                                        ui.html(f"<div class='mq-lab-feed-entry'>{html.escape(entry)}</div>")
+                                            with ui.row().classes('w-full items-center justify-between gap-3'):
+                                                ui.label('Maze Echoes').classes('text-slate-100 text-2xl font-semibold')
+                                                ui.button('Show Echoes' if bool(getattr(state, 'labyrinth_echoes_hidden', True)) else 'Hide Echoes', on_click=lambda: (setattr(state, 'labyrinth_echoes_hidden', not bool(getattr(state, 'labyrinth_echoes_hidden', True))), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
+                                            event_feed = [str(entry or '').strip() for entry in list(getattr(state, 'labyrinth_recent_events', []) or []) if str(entry or '').strip()]
+                                            if bool(getattr(state, 'labyrinth_echoes_hidden', True)):
+                                                ui.label('Maze echoes hidden.').classes('mq-detail-text mt-4')
+                                            else:
+                                                with ui.element('div').classes('mq-lab-feed mt-4'):
+                                                    if not event_feed:
+                                                        ui.label('The Labyrinth has not whispered anything yet.').classes('mq-detail-text')
+                                                    else:
+                                                        for entry in event_feed[:10]:
+                                                            ui.html(f"<div class='mq-lab-feed-entry'>{html.escape(entry)}</div>")
                                 ui.run_javascript("""
 (() => {
   const manager = window.mqArenaHoverManager = window.mqArenaHoverManager || (() => {
