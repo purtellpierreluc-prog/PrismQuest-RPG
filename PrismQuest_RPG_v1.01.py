@@ -1232,7 +1232,7 @@ body {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.7rem;
-  align-items: stretch;
+  align-items: start;
 }
 .mq-lab-member-meters {
   display: grid;
@@ -1252,37 +1252,27 @@ body {
 .mq-lab-member-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.28rem;
+  gap: 0.16rem;
   align-items: start;
 }
 .mq-lab-member-body.mq-lab-member-body-gear {
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.82fr);
-  gap: 0.45rem;
-  margin-top: -0.12rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.4rem;
+  margin-top: -0.3rem;
 }
 .mq-lab-member-gear {
-  display: grid;
-  gap: 0.24rem;
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
   min-width: 0;
   align-content: start;
   align-self: start;
-  margin-top: -0.42rem;
-  padding: 0.46rem 0.62rem;
+  margin-top: -0.58rem;
+  padding: 0.4rem 0.52rem;
   border-radius: 16px;
   border: 1px solid rgba(255,255,255,0.06);
   background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
-}
-.mq-lab-member-gear .mq-detail-text {
-  font-size: 0.82rem;
-  line-height: 1.35;
-}
-.mq-lab-member-gear-label {
-  color: #8ea2b8;
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
 .mq-lab-member-gear-line {
   display: block;
@@ -1292,26 +1282,31 @@ body {
   margin-top: 0;
 }
 .mq-lab-member-card .mq-meter-track {
-  height: 22px;
+  height: 20px;
 }
-.mq-lab-member-card .mq-meter-label,
-.mq-lab-member-card .mq-meter-value {
-  font-size: 0.72rem;
+.mq-lab-member-card .mq-meter-row {
+  display: none;
 }
 .mq-lab-member-portrait {
-  width: 114px;
-  min-width: 114px;
-  height: 132px;
+  width: 122px;
+  min-width: 122px;
+  height: 146px;
   border-radius: 22px;
   padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  cursor: pointer;
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: transform 0.14s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 .mq-lab-member-portrait .mq-hero-art {
   width: 100%;
-  max-width: 104px;
-  max-height: 122px;
+  max-width: 114px;
+  max-height: 136px;
   height: auto;
   object-fit: contain;
   margin: auto;
@@ -1320,6 +1315,83 @@ body {
   width: 100%;
   min-height: 100%;
   border-radius: 16px;
+}
+.mq-lab-member-portrait:hover {
+  transform: translateY(-1px);
+}
+.mq-lab-ability-ready {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 0 1px rgba(239, 214, 152, 0.22),
+    0 0 22px rgba(255, 236, 160, 0.18),
+    0 0 34px rgba(125, 214, 255, 0.10);
+  animation: mq-lab-ready-pulse 2.1s ease-in-out infinite;
+}
+.mq-lab-ability-warlock {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 0 1px rgba(142, 246, 178, 0.24),
+    0 0 24px rgba(112, 245, 169, 0.18),
+    0 0 36px rgba(150, 255, 190, 0.10);
+  background:
+    radial-gradient(circle at 18% 14%, rgba(150, 255, 190, 0.14), rgba(0,0,0,0) 42%),
+    linear-gradient(180deg, rgba(174, 255, 198, 0.08), rgba(255,255,255,0.01)),
+    rgba(10, 24, 18, 0.88);
+}
+.mq-lab-ability-hover-card .mq-item-hover-line + .mq-item-hover-line {
+  margin-top: 0.45rem;
+}
+.mq-lab-gear-token {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 0.4rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #eaf2fb;
+}
+.mq-lab-gear-token.muted {
+  color: #7f90a3;
+  border-color: rgba(255,255,255,0.05);
+}
+.mq-lab-member-meter-wrap {
+  position: relative;
+}
+.mq-lab-tank-btn.q-btn {
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.mq-lab-tank-btn-active.q-btn {
+  border-color: rgba(214, 173, 92, 0.50);
+  background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%), rgba(22, 17, 10, 0.84);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 18px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(214, 173, 92, 0.12), 0 0 22px rgba(191, 145, 63, 0.12);
+}
+@keyframes mq-lab-ready-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 0 0 1px rgba(239, 214, 152, 0.18),
+      0 0 18px rgba(255, 236, 160, 0.12),
+      0 0 28px rgba(125, 214, 255, 0.08);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.07),
+      0 0 0 1px rgba(246, 221, 164, 0.30),
+      0 0 28px rgba(255, 238, 170, 0.22),
+      0 0 40px rgba(140, 224, 255, 0.14);
+  }
 }
 .mq-lab-stage-card {
   min-height: clamp(35rem, 70vh, 37rem);
@@ -6842,6 +6914,26 @@ LABYRINTH_DEBUFF_TEMPLATES: List[Dict[str, object]] = [
     {'id': 'first_hit_dealt_down', 'effect_key': 'first_hit_dealt_mult', 'min': 5, 'max': 12, 'kind': 'percent', 'text': 'Your first hit each fight deals {value} less damage until leaving the Labyrinth.', 'negative': True},
     {'id': 'first_hit_taken_up', 'effect_key': 'first_hit_taken_mult', 'min': 5, 'max': 12, 'kind': 'percent', 'text': 'Your first incoming hit each fight deals {value} more damage until leaving the Labyrinth.'},
 ]
+LABYRINTH_ABILITY_DEFS: Dict[str, Dict[str, object]] = {
+    'Black Guard': {'name': 'Black Guard', 'type': 'active', 'cooldown_tiles': 15, 'duration_fights': 2, 'summary': 'Take 25% less damage for the next two fights.'},
+    'Shadow Mage': {'name': 'Shadow Mage', 'type': 'active', 'cooldown_tiles': 25, 'summary': 'Heal the lowest-health ally for 15% of their maximum health.'},
+    'Jade Samurai': {'name': 'Jade Samurai', 'type': 'active', 'cooldown_tiles': 15, 'duration_fights': 3, 'summary': 'Your next three fights have guaranteed critical strikes.'},
+    'Solaris Paladin': {'name': 'Solaris Paladin', 'type': 'active', 'cooldown_tiles': 25, 'duration_fights': 5, 'summary': 'For the next five fights you take 25% less damage and all monsters target you.'},
+    'Monk of Selune': {'name': 'Monk of Selune', 'type': 'active', 'cooldown_tiles': 17, 'summary': 'Heal all allies for 15% of their maximum health.'},
+    'Night Assassin': {'name': 'Night Assassin', 'type': 'active', 'cooldown_tiles': 16, 'summary': 'Each activation grants +1% evade up to +50% for the run.'},
+    'Warlock': {'name': 'Warlock', 'type': 'toggle', 'cooldown_tiles': 5, 'summary': 'Toggle: your attacks deal no damage and instead heal the lowest-health ally for that amount.'},
+    'Chroma Reaver': {'name': 'Chroma Reaver', 'type': 'active', 'cooldown_tiles': 20, 'duration_fights': 10, 'summary': 'For the next ten fights monsters count as having no physical armor for all allies.'},
+    'Prismatic Sorceress': {'name': 'Prismatic Sorceress', 'type': 'passive', 'summary': 'Passive: removes all monster immunities.'},
+    'Shadow Warrior': {'name': 'Shadow Warrior', 'type': 'active', 'cooldown_tiles': 15, 'duration_fights': 2, 'summary': 'Deal 25% more damage for the next two fights.'},
+    'Night Angel': {'name': 'Night Angel', 'type': 'active', 'cooldown_tiles': 25, 'summary': 'Restore mana to the lowest-mana ally for 15% of their maximum mana.'},
+    'Frost Oracle': {'name': 'Frost Oracle', 'type': 'passive', 'summary': 'Passive: all allies deal 15% more damage with ice charms.'},
+    'Alecloak Thief': {'name': 'Alecloak Thief', 'type': 'active', 'cooldown_tiles': 30, 'summary': 'Each activation grants all allies +1% evade up to +10% for the run.'},
+    'Shadow Arcanist': {'name': 'Shadow Arcanist', 'type': 'active', 'cooldown_tiles': 25, 'duration_tiles': 25, 'summary': 'Reduce ability cooldown recovery for all allies by 35% for the next 25 explored tiles.'},
+    'Executioner': {'name': 'Executioner', 'type': 'active', 'cooldown_tiles': 12, 'duration_fights': 3, 'summary': 'For the next three fights all allies deal 25% more damage.'},
+    'Ember Fae': {'name': 'Ember Fae', 'type': 'passive', 'summary': 'Passive: all allies deal 15% more damage with fire charms and gain 10% magic damage resistance.'},
+    'Shadowfang Stalker': {'name': 'Shadowfang Stalker', 'type': 'active', 'cooldown_tiles': 15, 'duration_fights': 3, 'summary': 'For the next three fights your critical damage also heals the lowest-health ally for that amount.'},
+    'Prismatic Templar': {'name': 'Prismatic Templar', 'type': 'passive', 'summary': 'Passive: all allies take 25% less damage.'},
+}
 
 
 def build_vault_code(user_id: object, mode: object = '', slot_index: object = None) -> str:
@@ -8365,6 +8457,25 @@ def persistent_hoverable_item_name_html(
         f"<span class='mq-item-hover-panel'>{build_item_hover_tooltip_html(item)}</span>"
         "</span>"
     )
+def persistent_hover_panel_html(
+    trigger_html: str,
+    panel_html: str,
+    *,
+    persist_key: str,
+    hover_side: str = 'right',
+    extra_classes: str = '',
+) -> str:
+    safe_key = html.escape(str(persist_key or 'mq-hover'), quote=True)
+    safe_side = 'left' if str(hover_side).strip().lower() == 'left' else 'right'
+    safe_classes = ' '.join(
+        part for part in ['mq-item-hover-wrap', 'mq-item-hover-wrap-persist', str(extra_classes or '').strip()] if part
+    )
+    return (
+        f"<span class='{html.escape(safe_classes, quote=True)}' data-hover-key='{safe_key}' data-hover-side='{safe_side}'>"
+        f"{trigger_html}"
+        f"<span class='mq-item-hover-panel'>{panel_html}</span>"
+        "</span>"
+    )
 def equipped_item_display_name(item: Optional[Item], empty_text: str = 'Empty') -> str:
     if item is None:
         return str(empty_text)
@@ -8416,6 +8527,46 @@ def resource_inline_html(label: str, current: object, maximum: object, tone: str
         f"<span class='mq-resource-label'>{html.escape(str(label))}</span>"
         f"<span class='mq-resource-value'>{html.escape(safe_current)}<span class='mq-resource-divider'>/</span>{html.escape(safe_max)}</span>"
         "</span>"
+    )
+
+
+def labyrinth_meter_hover_panel_html(label: str, current: object, maximum: object) -> str:
+    try:
+        safe_current = f'{int(current):,}'
+    except Exception:
+        safe_current = html.escape(str(current))
+    try:
+        safe_max = f'{int(maximum):,}'
+    except Exception:
+        safe_max = html.escape(str(maximum))
+    return (
+        "<div class='mq-item-hover-card'>"
+        f"<div class='mq-item-hover-head'><span class='mq-item-hover-title'>{html.escape(str(label))}</span></div>"
+        f"<div class='mq-item-hover-lines'><div class='mq-item-hover-line'>{safe_current} / {safe_max}</div></div>"
+        "</div>"
+    )
+
+
+def labyrinth_companion_token_html(item: Optional[Item], short_label: str, *, persist_key: str) -> str:
+    if item is None:
+        return f"<span class='mq-lab-gear-token muted'>{html.escape(short_label)}</span>"
+    color = html.escape(RARITY_COLORS.get(getattr(item, 'rarity', ''), '#dce7f3'), quote=True)
+    trigger_html = f"<span class='mq-lab-gear-token' style='color:{color}; border-color:{color}55;'>{html.escape(short_label)}</span>"
+    return persistent_hover_panel_html(trigger_html, build_item_hover_tooltip_html(item), persist_key=persist_key, extra_classes='mq-lab-gear-hover')
+
+
+def labyrinth_ability_hover_panel_html(entry: Dict[str, object], session_row: object) -> str:
+    meta = _labyrinth_class_ability_meta(entry.get('player_class'))
+    if not meta:
+        return "<div class='mq-item-hover-card'><div class='mq-item-hover-lines'><div class='mq-item-hover-line'>No Labyrinth gift.</div></div></div>"
+    title = html.escape(str(meta.get('name') or entry.get('player_class') or 'Labyrinth Gift'))
+    summary = html.escape(str(meta.get('summary') or ''))
+    status = html.escape(_labyrinth_ability_status_text(entry, session_row))
+    return (
+        "<div class='mq-item-hover-card mq-lab-ability-hover-card'>"
+        f"<div class='mq-item-hover-head'><span class='mq-item-hover-title'>{title}</span></div>"
+        f"<div class='mq-item-hover-lines'><div class='mq-item-hover-line'>{summary}</div><div class='mq-item-hover-line'>{status}</div></div>"
+        "</div>"
     )
 def coerce_item(item: object) -> Optional[Item]:
     if isinstance(item, Item):
@@ -10505,8 +10656,8 @@ def resolve_turn(attacker: Fighter, defender: Fighter) -> CombatEvent:
         old_level, new_level = attacker.grant_proficiency_point(proficiency_key, 1)
         if proficiency_key and new_level > old_level:
             text += f' {proficiency_key} proficiency reaches {new_level} (+{new_level}% enhanced effect).'
-    damage_to = 'player' if isinstance(defender, Player) else 'monster'
-    return CombatEvent(text, 'danger' if crit else 'info', damage_to=damage_to, damage_amount=damage, crit=crit)
+    damage_to = '' if redirected_heal > 0 else ('player' if isinstance(defender, Player) else 'monster')
+    return CombatEvent(text, 'danger' if crit else 'info', damage_to=damage_to, damage_amount=(0 if redirected_heal > 0 else damage), crit=crit)
 def gain_xp(player: Player, amount: int, level_cap: Optional[int] = 60) -> List[str]:
     messages: List[str] = []
     if amount <= 0:
@@ -15675,6 +15826,212 @@ def _labyrinth_build_tile_states(size: object = LABYRINTH_GRID_SIZE) -> Dict[str
     }
 
 
+def _labyrinth_progress_counter(session_row: object) -> int:
+    if not isinstance(session_row, dict):
+        return 0
+    try:
+        grid_size = max(3, int(session_row.get('grid_size', LABYRINTH_GRID_SIZE) or LABYRINTH_GRID_SIZE))
+    except Exception:
+        grid_size = LABYRINTH_GRID_SIZE
+    try:
+        floor = max(1, int(session_row.get('floor', 1) or 1))
+    except Exception:
+        floor = 1
+    tile_states = session_row.get('tile_states', {})
+    visited_tiles = 0
+    if isinstance(tile_states, dict):
+        visited_tiles = sum(1 for value in tile_states.values() if isinstance(value, dict) and bool(value.get('visited', False)))
+    return max(0, ((floor - 1) * grid_size * grid_size) + visited_tiles)
+
+
+def _labyrinth_normalize_ability_state(raw_state: object) -> Dict[str, object]:
+    if not isinstance(raw_state, dict):
+        return {}
+    output: Dict[str, object] = {}
+    for key, value in raw_state.items():
+        field = str(key or '').strip().lower()
+        if not field:
+            continue
+        if field in {'ready_at', 'active_fights', 'active_until_progress', 'stacks'}:
+            try:
+                output[field] = max(0, int(value or 0))
+            except Exception:
+                output[field] = 0
+        elif field in {'toggle_on'}:
+            output[field] = bool(value)
+    return output
+
+
+def _labyrinth_extract_ability_state(raw_profile: object) -> Dict[str, object]:
+    if not isinstance(raw_profile, dict):
+        return {}
+    return _labyrinth_normalize_ability_state(raw_profile.get('labyrinth_ability_state', {}))
+
+
+def _labyrinth_entry_ability_state(entry: object) -> Dict[str, object]:
+    if not isinstance(entry, dict):
+        return {}
+    raw_state = entry.get('ability_state', {})
+    if isinstance(raw_state, dict) and raw_state:
+        return _labyrinth_normalize_ability_state(raw_state)
+    raw_snapshot = entry.get('player_snapshot', {})
+    if isinstance(raw_snapshot, dict):
+        return _labyrinth_extract_ability_state(raw_snapshot)
+    return {}
+
+
+def _labyrinth_set_entry_ability_state(entry: Dict[str, object], state: object) -> Dict[str, object]:
+    updated = dict(entry)
+    normalized_state = _labyrinth_normalize_ability_state(state)
+    updated['ability_state'] = normalized_state
+    raw_snapshot = copy.deepcopy(updated.get('player_snapshot', {})) if isinstance(updated.get('player_snapshot', {}), dict) else {}
+    raw_snapshot['labyrinth_ability_state'] = copy.deepcopy(normalized_state)
+    updated['player_snapshot'] = raw_snapshot
+    return updated
+
+
+def _labyrinth_class_ability_meta(player_class: object) -> Dict[str, object]:
+    return dict(LABYRINTH_ABILITY_DEFS.get(normalize_player_class_name(player_class, ''), {}))
+
+
+def _labyrinth_effective_cooldown_tiles(party_state: object, session_row: object, base_tiles: object) -> int:
+    try:
+        cooldown_tiles = max(1, int(base_tiles or 1))
+    except Exception:
+        cooldown_tiles = 1
+    progress = _labyrinth_progress_counter(session_row)
+    if isinstance(party_state, dict):
+        for entry in party_state.values():
+            if not isinstance(entry, dict):
+                continue
+            if normalize_player_class_name(entry.get('player_class'), '') != 'Shadow Arcanist':
+                continue
+            state = _labyrinth_entry_ability_state(entry)
+            if int(state.get('active_until_progress', 0) or 0) > progress:
+                return max(1, int(math.ceil(cooldown_tiles * 0.65)))
+    return cooldown_tiles
+
+
+def _labyrinth_ability_ready(entry: object, session_row: object) -> bool:
+    if not isinstance(entry, dict):
+        return False
+    meta = _labyrinth_class_ability_meta(entry.get('player_class'))
+    if not meta:
+        return False
+    if str(meta.get('type') or '').strip().lower() == 'passive':
+        return False
+    progress = _labyrinth_progress_counter(session_row)
+    state = _labyrinth_entry_ability_state(entry)
+    return progress >= int(state.get('ready_at', 0) or 0)
+
+
+def _labyrinth_ability_status_text(entry: object, session_row: object) -> str:
+    if not isinstance(entry, dict):
+        return 'No ability data.'
+    meta = _labyrinth_class_ability_meta(entry.get('player_class'))
+    if not meta:
+        return 'No Labyrinth ability.'
+    state = _labyrinth_entry_ability_state(entry)
+    progress = _labyrinth_progress_counter(session_row)
+    ability_type = str(meta.get('type') or 'active').strip().lower()
+    if ability_type == 'passive':
+        return 'Passive effect is always active while this ally is standing.'
+    parts: List[str] = []
+    active_fights = int(state.get('active_fights', 0) or 0)
+    if active_fights > 0:
+        parts.append(f'Active for {active_fights} more fight{"s" if active_fights != 1 else ""}.')
+    active_until_progress = int(state.get('active_until_progress', 0) or 0)
+    if active_until_progress > progress:
+        parts.append(f'Active for {active_until_progress - progress} more explored tile{"s" if (active_until_progress - progress) != 1 else ""}.')
+    if bool(state.get('toggle_on', False)):
+        parts.append('Toggle is currently ON.')
+    stacks = int(state.get('stacks', 0) or 0)
+    if stacks > 0 and normalize_player_class_name(entry.get('player_class'), '') in {'Night Assassin', 'Alecloak Thief'}:
+        parts.append(f'Current stack bonus: +{stacks}% evade.')
+    if _labyrinth_ability_ready(entry, session_row):
+        parts.append('Ability ready.')
+    else:
+        ready_at = int(state.get('ready_at', 0) or 0)
+        parts.append(f'Ready in {max(0, ready_at - progress)} explored tile{"s" if max(0, ready_at - progress) != 1 else ""}.')
+    return ' '.join(parts)
+
+
+def _labyrinth_party_lowest_hp_member_id(party_state: object, participants: object) -> str:
+    lowest_id = ''
+    lowest_ratio = 2.0
+    if not isinstance(party_state, dict):
+        return lowest_id
+    for member_id in [str(value or '').strip() for value in list(participants or []) if str(value or '').strip()]:
+        entry = party_state.get(member_id, {})
+        if not isinstance(entry, dict) or not entry:
+            continue
+        if bool(entry.get('is_downed', False)):
+            continue
+        max_hp = max(1, int(entry.get('max_hp', 1) or 1))
+        ratio = max(0.0, min(1.0, float(int(entry.get('current_hp', 0) or 0)) / float(max_hp)))
+        if ratio < lowest_ratio:
+            lowest_ratio = ratio
+            lowest_id = member_id
+    return lowest_id
+
+
+def _labyrinth_party_lowest_mana_member_id(party_state: object, participants: object) -> str:
+    lowest_id = ''
+    lowest_ratio = 2.0
+    if not isinstance(party_state, dict):
+        return lowest_id
+    for member_id in [str(value or '').strip() for value in list(participants or []) if str(value or '').strip()]:
+        entry = party_state.get(member_id, {})
+        if not isinstance(entry, dict) or not entry:
+            continue
+        if bool(entry.get('is_downed', False)):
+            continue
+        max_mana = max(1, int(entry.get('max_mana', 0) or 0))
+        ratio = max(0.0, min(1.0, float(int(entry.get('current_mana', 0) or 0)) / float(max_mana)))
+        if ratio < lowest_ratio:
+            lowest_ratio = ratio
+            lowest_id = member_id
+    return lowest_id
+
+
+def _labyrinth_heal_party_member(party_state: Dict[str, Dict[str, object]], member_id: str, amount: int, effects: Dict[str, float]) -> int:
+    target_entry = party_state.get(str(member_id or '').strip(), {})
+    if not isinstance(target_entry, dict) or not target_entry:
+        return 0
+    target_player = _labyrinth_member_player_from_entry(target_entry, effects)
+    restored = max(0, min(target_player.max_hp - target_player.hp, int(amount or 0)))
+    if restored > 0:
+        target_player.hp = min(target_player.max_hp, target_player.hp + restored)
+        party_state[str(member_id or '').strip()] = _labyrinth_store_entry_from_player(target_entry, target_player)
+    return restored
+
+
+def _labyrinth_restore_party_member_mana(party_state: Dict[str, Dict[str, object]], member_id: str, amount: int, effects: Dict[str, float]) -> int:
+    target_entry = party_state.get(str(member_id or '').strip(), {})
+    if not isinstance(target_entry, dict) or not target_entry:
+        return 0
+    target_player = _labyrinth_member_player_from_entry(target_entry, effects)
+    restored = max(0, min(target_player.max_mana - target_player.mana, int(amount or 0)))
+    if restored > 0:
+        target_player.mana = min(target_player.max_mana, target_player.mana + restored)
+        party_state[str(member_id or '').strip()] = _labyrinth_store_entry_from_player(target_entry, target_player)
+    return restored
+
+
+def _labyrinth_decrement_party_fight_buffs(party_state: Dict[str, Dict[str, object]]) -> Dict[str, Dict[str, object]]:
+    updated_state: Dict[str, Dict[str, object]] = {}
+    for member_id, raw_entry in party_state.items():
+        if not isinstance(raw_entry, dict):
+            continue
+        entry = dict(raw_entry)
+        state = _labyrinth_entry_ability_state(entry)
+        active_fights = max(0, int(state.get('active_fights', 0) or 0))
+        if active_fights > 0:
+            state['active_fights'] = max(0, active_fights - 1)
+        updated_state[str(member_id or '').strip()] = _labyrinth_set_entry_ability_state(entry, state)
+    return updated_state
+
+
 def _labyrinth_append_event(events: object, text: object) -> List[str]:
     normalized: List[str] = [str(entry or '').strip() for entry in list(events or []) if str(entry or '').strip()]
     message = ' '.join(str(text or '').split())
@@ -16136,6 +16493,103 @@ def _labyrinth_effect_totals_for_session(session_row: object) -> Dict[str, float
     return _labyrinth_reward_effect_totals(session_row.get('modifier_stack', []))
 
 
+def _labyrinth_party_entries(party_state: object) -> List[Dict[str, object]]:
+    if not isinstance(party_state, dict):
+        return []
+    return [entry for entry in party_state.values() if isinstance(entry, dict) and entry]
+
+
+def _labyrinth_alive_party_entries(party_state: object) -> List[Dict[str, object]]:
+    return [entry for entry in _labyrinth_party_entries(party_state) if not bool(entry.get('is_downed', False))]
+
+
+def _labyrinth_party_has_class(party_state: object, player_class: str) -> bool:
+    normalized_class = normalize_player_class_name(player_class, '')
+    return any(normalize_player_class_name(entry.get('player_class'), '') == normalized_class for entry in _labyrinth_alive_party_entries(party_state))
+
+
+def _labyrinth_party_active_count(party_state: object, session_row: object, player_class: str) -> int:
+    normalized_class = normalize_player_class_name(player_class, '')
+    progress = _labyrinth_progress_counter(session_row)
+    count = 0
+    for entry in _labyrinth_alive_party_entries(party_state):
+        if normalize_player_class_name(entry.get('player_class'), '') != normalized_class:
+            continue
+        state = _labyrinth_entry_ability_state(entry)
+        if int(state.get('active_fights', 0) or 0) > 0 or int(state.get('active_until_progress', 0) or 0) > progress or bool(state.get('toggle_on', False)):
+            count += 1
+    return count
+
+
+def _labyrinth_party_evasion_bonuses(party_state: object) -> float:
+    team_bonus = 0.0
+    for entry in _labyrinth_alive_party_entries(party_state):
+        state = _labyrinth_entry_ability_state(entry)
+        stacks = max(0, int(state.get('stacks', 0) or 0))
+        player_class = normalize_player_class_name(entry.get('player_class'), '')
+        if player_class == 'Alecloak Thief':
+            team_bonus += min(0.10, stacks / 100.0)
+    return min(0.10, team_bonus)
+
+
+def _labyrinth_apply_ability_bonuses_to_player(player: Player, entry: Dict[str, object], party_state: object, session_row: object) -> None:
+    player_class = normalize_player_class_name(entry.get('player_class'), player.player_class)
+    state = _labyrinth_entry_ability_state(entry)
+    team_evasion_bonus = _labyrinth_party_evasion_bonuses(party_state)
+    self_evasion_bonus = min(0.50, max(0, int(state.get('stacks', 0) or 0)) / 100.0) if player_class == 'Night Assassin' else 0.0
+    total_evasion_bonus = team_evasion_bonus + self_evasion_bonus
+    if total_evasion_bonus:
+        player.evasion = clamp(player.evasion + total_evasion_bonus, 0.0, 0.80 if player_class == 'Night Assassin' else 0.55)
+    if _labyrinth_party_has_class(party_state, 'Prismatic Templar'):
+        setattr(player, 'labyrinth_physical_taken_mult', float(getattr(player, 'labyrinth_physical_taken_mult', 1.0) or 1.0) * 0.75)
+        setattr(player, 'labyrinth_magic_taken_mult', float(getattr(player, 'labyrinth_magic_taken_mult', 1.0) or 1.0) * 0.75)
+    if _labyrinth_party_has_class(party_state, 'Ember Fae'):
+        setattr(player, 'labyrinth_magic_taken_mult', float(getattr(player, 'labyrinth_magic_taken_mult', 1.0) or 1.0) * 0.90)
+    if player_class == 'Black Guard' and int(state.get('active_fights', 0) or 0) > 0:
+        setattr(player, 'labyrinth_physical_taken_mult', float(getattr(player, 'labyrinth_physical_taken_mult', 1.0) or 1.0) * 0.75)
+        setattr(player, 'labyrinth_magic_taken_mult', float(getattr(player, 'labyrinth_magic_taken_mult', 1.0) or 1.0) * 0.75)
+    if player_class == 'Solaris Paladin' and int(state.get('active_fights', 0) or 0) > 0:
+        setattr(player, 'labyrinth_physical_taken_mult', float(getattr(player, 'labyrinth_physical_taken_mult', 1.0) or 1.0) * 0.75)
+        setattr(player, 'labyrinth_magic_taken_mult', float(getattr(player, 'labyrinth_magic_taken_mult', 1.0) or 1.0) * 0.75)
+    damage_multiplier = 1.0
+    if player_class == 'Shadow Warrior' and int(state.get('active_fights', 0) or 0) > 0:
+        damage_multiplier *= 1.25
+    if _labyrinth_party_active_count(party_state, session_row, 'Executioner') > 0:
+        damage_multiplier *= 1.25
+    if damage_multiplier != 1.0:
+        player.attack_min = max(1, int(round(player.attack_min * damage_multiplier)))
+        player.attack_max = max(player.attack_min + 1, int(round(player.attack_max * damage_multiplier)))
+        player.weapon_attack_min = max(1, int(round(player.weapon_attack_min * damage_multiplier)))
+        player.weapon_attack_max = max(player.weapon_attack_min + 1, int(round(player.weapon_attack_max * damage_multiplier)))
+        if player.spell_attack_max > 0:
+            player.spell_attack_min = max(1, int(round(player.spell_attack_min * damage_multiplier)))
+            player.spell_attack_max = max(player.spell_attack_min + 1, int(round(player.spell_attack_max * damage_multiplier)))
+    charm = coerce_item(player.equipped.get('charm'))
+    if charm is not None:
+        charm_subtype = str(charm.subtype or '').strip().title()
+        if charm_subtype == 'Ice' and _labyrinth_party_has_class(party_state, 'Frost Oracle'):
+            player.spell_attack_min = max(1, int(round(player.spell_attack_min * 1.15)))
+            player.spell_attack_max = max(player.spell_attack_min + 1, int(round(player.spell_attack_max * 1.15)))
+        if charm_subtype == 'Fire' and _labyrinth_party_has_class(party_state, 'Ember Fae'):
+            player.spell_attack_min = max(1, int(round(player.spell_attack_min * 1.15)))
+            player.spell_attack_max = max(player.spell_attack_min + 1, int(round(player.spell_attack_max * 1.15)))
+    setattr(player, 'labyrinth_force_crit', bool(player_class == 'Jade Samurai' and int(state.get('active_fights', 0) or 0) > 0))
+    setattr(player, 'labyrinth_ignore_physical_armor', bool(_labyrinth_party_active_count(party_state, session_row, 'Chroma Reaver') > 0))
+    setattr(player, 'labyrinth_warlock_toggle', bool(player_class == 'Warlock' and bool(state.get('toggle_on', False))))
+    setattr(player, 'labyrinth_shadowfang_heal', bool(player_class == 'Shadowfang Stalker' and int(state.get('active_fights', 0) or 0) > 0))
+
+
+def _labyrinth_member_is_taunting(entry: object, session_row: object) -> bool:
+    if not isinstance(entry, dict):
+        return False
+    if bool(entry.get('is_downed', False)):
+        return False
+    if normalize_player_class_name(entry.get('player_class'), '') != 'Solaris Paladin':
+        return False
+    state = _labyrinth_entry_ability_state(entry)
+    return int(state.get('active_fights', 0) or 0) > 0
+
+
 def _labyrinth_party_state_map(raw_pending: object) -> Dict[str, Dict[str, object]]:
     if not isinstance(raw_pending, dict):
         return {}
@@ -16155,6 +16609,8 @@ def _labyrinth_build_party_entry_from_snapshot(
     member_row: Dict[str, object],
     raw_snapshot: Dict[str, object],
     effects: Dict[str, float],
+    session_row: Optional[Dict[str, object]] = None,
+    party_state: Optional[Dict[str, Dict[str, object]]] = None,
     *,
     current_hp: Optional[int] = None,
     current_mana: Optional[int] = None,
@@ -16162,6 +16618,7 @@ def _labyrinth_build_party_entry_from_snapshot(
 ) -> Dict[str, object]:
     player = Player.from_dict(copy.deepcopy(raw_snapshot))
     _labyrinth_apply_effects_to_player(player, effects, boss=False)
+    _labyrinth_apply_ability_bonuses_to_player(player, member_row, party_state or {}, session_row or {})
     if full_heal:
         player.hp = player.max_hp
         player.mana = player.max_mana
@@ -16182,6 +16639,7 @@ def _labyrinth_build_party_entry_from_snapshot(
         'is_downed': bool(player.hp <= 0),
         'tank': bool(member_row.get('tank', False)),
         'player_snapshot': copy.deepcopy(raw_snapshot),
+        'ability_state': _labyrinth_entry_ability_state(member_row),
     }
 
 
@@ -16221,6 +16679,8 @@ def _labyrinth_party_state_for_session(self, session_row: Dict[str, object], mem
             row,
             raw_snapshot,
             effects,
+            session_row,
+            existing_state,
             current_hp=current_hp,
             current_mana=current_mana,
             full_heal=full_heal,
@@ -16234,7 +16694,7 @@ def _labyrinth_project_member_row(member_row: Dict[str, object], party_state: Di
     overlay = party_state.get(member_id, {})
     if not isinstance(overlay, dict) or not overlay:
         return projected
-    for key in ('level', 'current_hp', 'max_hp', 'current_mana', 'max_mana', 'current_xp', 'xp_to_next', 'is_downed', 'tank'):
+    for key in ('level', 'current_hp', 'max_hp', 'current_mana', 'max_mana', 'current_xp', 'xp_to_next', 'is_downed', 'tank', 'ability_state'):
         if key in overlay:
             projected[key] = overlay[key]
     if isinstance(overlay.get('player_snapshot'), dict):
@@ -16256,10 +16716,16 @@ def _labyrinth_member_rows_from_party_state(member_rows: List[Dict[str, object]]
     return projected_rows
 
 
-def _labyrinth_member_player_from_entry(entry: Dict[str, object], effects: Dict[str, float]) -> Player:
+def _labyrinth_member_player_from_entry(
+    entry: Dict[str, object],
+    effects: Dict[str, float],
+    party_state: Optional[Dict[str, Dict[str, object]]] = None,
+    session_row: Optional[Dict[str, object]] = None,
+) -> Player:
     raw_snapshot = copy.deepcopy(entry.get('player_snapshot')) if isinstance(entry.get('player_snapshot'), dict) else {}
     player = Player.from_dict(raw_snapshot)
     _labyrinth_apply_effects_to_player(player, effects, boss=False)
+    _labyrinth_apply_ability_bonuses_to_player(player, entry, party_state or {}, session_row or {})
     player.hp = max(0, min(player.max_hp, int(entry.get('current_hp', player.hp) or player.hp)))
     player.mana = max(0, min(player.max_mana, int(entry.get('current_mana', player.mana) or player.mana)))
     return player
@@ -16282,6 +16748,7 @@ def _labyrinth_update_raw_snapshot_from_player(raw_snapshot: Dict[str, object], 
 def _labyrinth_store_entry_from_player(entry: Dict[str, object], player: Player) -> Dict[str, object]:
     raw_snapshot = _labyrinth_update_raw_snapshot_from_player(entry.get('player_snapshot', {}), player)
     updated = dict(entry)
+    raw_snapshot['labyrinth_ability_state'] = copy.deepcopy(_labyrinth_entry_ability_state(entry))
     updated['player_snapshot'] = raw_snapshot
     updated['level'] = int(player.level)
     updated['current_hp'] = int(player.hp)
@@ -16292,6 +16759,7 @@ def _labyrinth_store_entry_from_player(entry: Dict[str, object], player: Player)
     updated['xp_to_next'] = int(max(1, player.xp_to_next))
     updated['is_downed'] = bool(player.hp <= 0)
     updated['tank'] = bool(entry.get('tank', False))
+    updated['ability_state'] = copy.deepcopy(_labyrinth_entry_ability_state(entry))
     return updated
 
 
@@ -16368,6 +16836,10 @@ def _labyrinth_pick_monster_target(party_state: Dict[str, Dict[str, object]], pa
     alive_ids = _labyrinth_alive_party_ids(party_state, participants)
     if not alive_ids:
         return ''
+    for member_id in alive_ids:
+        entry = party_state.get(member_id, {})
+        if _labyrinth_member_is_taunting(entry, {'tile_states': {}, 'floor': 1, 'grid_size': LABYRINTH_GRID_SIZE}):
+            return member_id
     weighted: List[Tuple[str, float]] = []
     total_weight = 0.0
     for member_id in alive_ids:
@@ -16719,6 +17191,7 @@ def _labyrinth_profile_payload_for_current_player(self) -> Dict[str, object]:
         return {}
     current_row = _labyrinth_self_member_row(self)
     payload['labyrinth_tank'] = bool(current_row.get('tank', slot.get('labyrinth_player_tank', False)) if isinstance(current_row, dict) and current_row else slot.get('labyrinth_player_tank', False))
+    payload['labyrinth_ability_state'] = _labyrinth_entry_ability_state(current_row) if isinstance(current_row, dict) and current_row else {}
     return payload
 
 
@@ -16772,6 +17245,7 @@ def _labyrinth_normalize_member_row(raw_row: object) -> Dict[str, object]:
     raw_profile_snapshot = raw_row.get('profile_snapshot')
     snapshot = normalize_public_profile_payload(raw_profile_snapshot)
     combat_snapshot = _labyrinth_extract_combat_snapshot(raw_profile_snapshot)
+    ability_state = _labyrinth_extract_ability_state(raw_profile_snapshot)
     player_class = normalize_player_class_name(raw_row.get('player_class'), snapshot.get('highest_class') if isinstance(snapshot, dict) else 'Black Guard')
     max_hp = max(1, int(raw_row.get('max_hp', 1) or 1))
     max_mana = max(0, int(raw_row.get('max_mana', 0) or 0))
@@ -16802,6 +17276,7 @@ def _labyrinth_normalize_member_row(raw_row: object) -> Dict[str, object]:
         'joined_at': str(raw_row.get('joined_at') or '').strip(),
         'profile_snapshot': snapshot,
         'combat_snapshot': combat_snapshot,
+        'ability_state': ability_state,
     }
 
 
@@ -16839,8 +17314,11 @@ def _labyrinth_member_payload(self, extra_updates: Optional[Dict[str, object]] =
     if self.player is None or self.active_slot_index is None:
         return {}
     profile_snapshot = _labyrinth_embed_combat_snapshot(_labyrinth_profile_payload_for_current_player(self), self.player)
-    tank_value = bool(extra_updates.get('tank')) if isinstance(extra_updates, dict) and 'tank' in extra_updates else bool(current_row.get('tank', False)) if (current_row := _labyrinth_self_member_row(self)) else False
+    current_row = _labyrinth_self_member_row(self)
+    tank_value = bool(extra_updates.get('tank')) if isinstance(extra_updates, dict) and 'tank' in extra_updates else bool(current_row.get('tank', False)) if current_row else False
+    ability_state = _labyrinth_normalize_ability_state(extra_updates.get('ability_state', {})) if isinstance(extra_updates, dict) and 'ability_state' in extra_updates else _labyrinth_entry_ability_state(current_row)
     profile_snapshot['labyrinth_tank'] = tank_value
+    profile_snapshot['labyrinth_ability_state'] = copy.deepcopy(ability_state)
     session_id = str(getattr(self, 'labyrinth_session_id', '') or '').strip()
     member_identity = _labyrinth_member_identity(self)
     payload = {
@@ -16872,7 +17350,9 @@ def _labyrinth_member_payload(self, extra_updates: Optional[Dict[str, object]] =
         payload['resolution_note'] = str(current_row.get('resolution_note') or '').strip()
     if isinstance(extra_updates, dict):
         payload.update(extra_updates)
+    payload['profile_snapshot'] = _labyrinth_embed_combat_snapshot(profile_snapshot, self.player)
     payload.pop('tank', None)
+    payload.pop('ability_state', None)
     return payload
 
 
@@ -17415,6 +17895,149 @@ def labyrinth_set_tank_role(self, raw_member_id: object, value: object) -> bool:
     return True
 
 
+def labyrinth_activate_ability(self, raw_member_id: object) -> bool:
+    ensure_labyrinth_state(self)
+    member_id = str(raw_member_id or '').strip()
+    if not member_id:
+        return False
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict) or not session_row:
+        self.labyrinth_status = 'No live expedition is open.'
+        return False
+    session_status = str(session_row.get('status') or '').strip().lower()
+    if session_status not in {'exploring', 'encounter', 'boss'}:
+        self.labyrinth_status = 'Abilities answer only while the expedition is moving or fighting.'
+        return False
+    member_rows = [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
+    target_row = next((row for row in member_rows if str(row.get('user_id') or '').strip() == member_id), None)
+    if not isinstance(target_row, dict) or not target_row:
+        return False
+    self_id = _labyrinth_member_identity(self)
+    if not (member_id == self_id or (bool(getattr(self, 'labyrinth_is_local', False)) and bool(target_row.get('is_companion', False)))):
+        self.labyrinth_status = 'You may trigger only your own Labyrinth gift or that of a hired companion.'
+        return False
+    meta = _labyrinth_class_ability_meta(target_row.get('player_class'))
+    if not meta:
+        self.labyrinth_status = 'That class has no Labyrinth gift yet.'
+        return False
+    if str(meta.get('type') or '').strip().lower() == 'passive':
+        self.labyrinth_status = f'{meta.get("name") or target_row.get("player_class")}: {meta.get("summary") or "Passive effect active."}'
+        return False
+    payload = dict(session_row)
+    pending = copy.deepcopy(payload.get('pending_encounter', {})) if isinstance(payload.get('pending_encounter', {}), dict) else {}
+    party_state = _labyrinth_party_state_map(pending)
+    if not party_state:
+        party_state = _labyrinth_party_state_for_session(self, session_row, member_rows, full_heal=False)
+    target_entry = party_state.get(member_id, {})
+    if not isinstance(target_entry, dict) or not target_entry:
+        snapshot = (
+            copy.deepcopy(target_row.get('combat_snapshot'))
+            if isinstance(target_row.get('combat_snapshot'), dict)
+            else _labyrinth_fallback_player_snapshot(target_row)
+        )
+        target_entry = _labyrinth_build_party_entry_from_snapshot(target_row, snapshot, _labyrinth_effect_totals_for_session(session_row), session_row, party_state)
+    progress = _labyrinth_progress_counter(session_row)
+    state = _labyrinth_entry_ability_state(target_entry)
+    if progress < int(state.get('ready_at', 0) or 0):
+        self.labyrinth_status = f'{meta.get("name") or target_row.get("player_class")} is still recovering.'
+        return False
+    effects = _labyrinth_effect_totals_for_session(session_row)
+    cooldown_tiles = _labyrinth_effective_cooldown_tiles(party_state, session_row, meta.get('cooldown_tiles', 1))
+    player_class = normalize_player_class_name(target_entry.get('player_class'), '')
+    actor_name = clean_character_name(str(target_entry.get('character_name') or player_class)) or player_class
+    summary = ''
+    if player_class == 'Shadow Mage':
+        heal_target_id = _labyrinth_party_lowest_hp_member_id(party_state, list(party_state.keys()))
+        heal_target_entry = party_state.get(heal_target_id, {})
+        heal_amount = int(round(max(1, int((heal_target_entry or {}).get('max_hp', 1) or 1) * 0.15)))
+        restored = _labyrinth_heal_party_member(party_state, heal_target_id, heal_amount, effects)
+        heal_target_name = clean_character_name(str((party_state.get(heal_target_id, {}) if isinstance(party_state, dict) else {}).get('character_name') or 'the party')) or 'the party'
+        state['ready_at'] = progress + cooldown_tiles
+        summary = f'{actor_name} restores {restored} health to {heal_target_name}.'
+    elif player_class == 'Night Angel':
+        mana_target_id = _labyrinth_party_lowest_mana_member_id(party_state, list(party_state.keys()))
+        mana_target_entry = party_state.get(mana_target_id, {})
+        mana_amount = int(round(max(1, int((mana_target_entry or {}).get('max_mana', 0) or 0) * 0.15)))
+        restored = _labyrinth_restore_party_member_mana(party_state, mana_target_id, mana_amount, effects)
+        mana_target_name = clean_character_name(str((party_state.get(mana_target_id, {}) if isinstance(party_state, dict) else {}).get('character_name') or 'the party')) or 'the party'
+        state['ready_at'] = progress + cooldown_tiles
+        summary = f'{actor_name} restores {restored} mana to {mana_target_name}.'
+    elif player_class == 'Monk of Selune':
+        total_restored = 0
+        for target_id, target_bits in list(party_state.items()):
+            if not isinstance(target_bits, dict) or bool(target_bits.get('is_downed', False)):
+                continue
+            heal_amount = int(round(max(1, int(target_bits.get('max_hp', 1) or 1) * 0.15)))
+            total_restored += _labyrinth_heal_party_member(party_state, target_id, heal_amount, effects)
+        state['ready_at'] = progress + cooldown_tiles
+        summary = f'{actor_name} washes the party in moonlight for {total_restored} total healing.'
+    elif player_class == 'Night Assassin':
+        state['stacks'] = min(50, max(0, int(state.get('stacks', 0) or 0)) + 1)
+        state['ready_at'] = progress + cooldown_tiles
+        summary = f'{actor_name} sharpens into the dark and rises to +{state["stacks"]}% evade for this run.'
+    elif player_class == 'Alecloak Thief':
+        state['stacks'] = min(10, max(0, int(state.get('stacks', 0) or 0)) + 1)
+        state['ready_at'] = progress + cooldown_tiles
+        summary = f'{actor_name} slips the party sideways through danger. Team evade rises to +{state["stacks"]}% for this run.'
+    elif player_class == 'Warlock':
+        toggled_on = not bool(state.get('toggle_on', False))
+        state['toggle_on'] = toggled_on
+        state['ready_at'] = progress + cooldown_tiles
+        if toggled_on:
+            state['active_fights'] = 0
+            summary = f'{actor_name} turns every strike into stolen life for the party.'
+        else:
+            state['active_fights'] = 0
+            summary = f'{actor_name} releases the siphon and returns to normal attacks.'
+    elif player_class == 'Shadow Arcanist':
+        state['active_until_progress'] = progress + int(meta.get('duration_tiles', 25) or 25)
+        state['ready_at'] = progress + cooldown_tiles
+        summary = f'{actor_name} bends the prism current. Allied cooldowns recover faster for the next {int(meta.get("duration_tiles", 25) or 25)} explored tiles.'
+    else:
+        duration_fights = max(1, int(meta.get('duration_fights', 1) or 1))
+        state['active_fights'] = duration_fights
+        state['ready_at'] = progress + cooldown_tiles
+        if player_class == 'Black Guard':
+            summary = f'{actor_name} braces for the next {duration_fights} fights.'
+        elif player_class == 'Jade Samurai':
+            summary = f'{actor_name} aligns every cut to crit for the next {duration_fights} fights.'
+        elif player_class == 'Solaris Paladin':
+            summary = f'{actor_name} takes command of the field for the next {duration_fights} fights.'
+        elif player_class == 'Chroma Reaver':
+            summary = f'{actor_name} strips the monsters of physical armor for the next {duration_fights} fights.'
+        elif player_class == 'Shadow Warrior':
+            summary = f'{actor_name} surges with +25% damage for the next {duration_fights} fights.'
+        elif player_class == 'Executioner':
+            summary = f'{actor_name} marks the next {duration_fights} fights for heavier allied damage.'
+        elif player_class == 'Shadowfang Stalker':
+            summary = f'{actor_name} ties critical strikes to healing for the next {duration_fights} fights.'
+        else:
+            summary = f'{actor_name} kindles {meta.get("name") or player_class}.'
+    target_entry = _labyrinth_set_entry_ability_state(target_entry, state)
+    party_state[member_id] = target_entry
+    pending['party_state'] = party_state
+    payload['pending_encounter'] = pending
+    payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), summary)
+    updated_rows = _labyrinth_member_rows_from_party_state(member_rows, party_state)
+    if bool(getattr(self, 'labyrinth_is_local', False)):
+        _labyrinth_store_snapshot(
+            self,
+            _labyrinth_normalize_session_row(payload),
+            updated_rows,
+            [dict(row) for row in list(getattr(self, 'labyrinth_vote_rows', []) or []) if isinstance(row, dict)],
+        )
+        labyrinth_refresh_session_state(self, force=True)
+        self.sync_active_slot()
+    else:
+        if not _labyrinth_upsert_session_row(self, payload):
+            return False
+        if member_id == self_id:
+            labyrinth_sync_member_snapshot(self, force=True, extra_updates={'ability_state': state})
+        labyrinth_refresh_session_state(self, force=True)
+    self.labyrinth_status = summary
+    return True
+
+
 def join_labyrinth_session(self, raw_code: str) -> bool:
     ensure_labyrinth_state(self)
     blocker = labyrinth_multiplayer_blocker(self)
@@ -17866,17 +18489,27 @@ def _labyrinth_apply_effects_to_monster(monster: Fighter, effects: Dict[str, flo
         monster.magic_resistance = max(0, int(round(monster.magic_resistance * max(0.30, 1.0 + magic_resistance_mult))))
 
 
-def _labyrinth_apply_damage(attacker: Fighter, defender: Fighter, low: int, high: int, school: str, context: Dict[str, object]) -> Tuple[int, bool, int, int]:
+def _labyrinth_apply_damage(attacker: Fighter, defender: Fighter, low: int, high: int, school: str, context: Dict[str, object]) -> Tuple[int, bool, int, int, int]:
     raw = random.randint(low, high)
-    crit = random.random() <= attacker.crit_chance
+    crit = bool(getattr(attacker, 'labyrinth_force_crit', False)) or (random.random() <= attacker.crit_chance)
     if crit:
         raw = int(round(raw * attacker.crit_damage))
     if school == 'magic':
         mitigation = random.randint(0, max(0, int(round(defender.magic_resistance))))
     else:
-        armor_roll = random.randint(0, max(0, int(round(defender.physical_armor))))
-        mitigation = max(0, armor_roll - attacker.armor_penetration)
+        if bool(getattr(attacker, 'labyrinth_ignore_physical_armor', False)):
+            mitigation = 0
+        else:
+            armor_roll = random.randint(0, max(0, int(round(defender.physical_armor))))
+            mitigation = max(0, armor_roll - attacker.armor_penetration)
     damage = max(1, raw - int(round(mitigation)))
+    redirected_heal = 0
+    redirect_target = context.get('warlock_heal_target_player')
+    if isinstance(attacker, Player) and isinstance(redirect_target, Player):
+        redirected_heal = max(0, min(redirect_target.max_hp - redirect_target.hp, damage))
+        if redirected_heal > 0:
+            redirect_target.hp = min(redirect_target.max_hp, redirect_target.hp + redirected_heal)
+        return damage, crit, 0, 0, redirected_heal
     if isinstance(attacker, Player):
         attacker_key = str(context.get('attacker_key') or '').strip()
         consumed_ids = {str(user_id or '').strip() for user_id in list(context.get('player_first_hit_consumed_ids', []) or []) if str(user_id or '').strip()}
@@ -17913,7 +18546,7 @@ def _labyrinth_apply_damage(attacker: Fighter, defender: Fighter, low: int, high
             healed = int(round(healed * float(getattr(attacker, 'labyrinth_healing_factor', 1.0) or 1.0)))
         if healed > 0:
             attacker.hp = min(attacker.max_hp, attacker.hp + healed)
-    return damage, crit, healed, reflected
+    return damage, crit, healed, reflected, redirected_heal
 
 
 def _labyrinth_resolve_turn(attacker: Fighter, defender: Fighter, context: Dict[str, object]) -> CombatEvent:
@@ -17923,17 +18556,51 @@ def _labyrinth_resolve_turn(attacker: Fighter, defender: Fighter, context: Dict[
     if not hit_success(attacker, defender):
         action = 'casts and misses' if used_spell else 'misses'
         return CombatEvent(f'{attacker.name} {action} {defender.name}.', 'warning')
-    damage, crit, healed, reflected = _labyrinth_apply_damage(attacker, defender, low, high, school, context)
+    if isinstance(attacker, Player) and bool(getattr(attacker, 'labyrinth_warlock_toggle', False)):
+        party_state_ref = context.get('party_state_ref', {})
+        participants = context.get('participants', [])
+        effects = context.get('effects', {})
+        heal_target_id = _labyrinth_party_lowest_hp_member_id(party_state_ref, participants)
+        heal_target_entry = party_state_ref.get(heal_target_id, {}) if isinstance(party_state_ref, dict) else {}
+        heal_target_player = _labyrinth_member_player_from_entry(heal_target_entry, effects, party_state_ref, context.get('session_row', {})) if isinstance(heal_target_entry, dict) and heal_target_entry else None
+        context['warlock_heal_target_player'] = heal_target_player
+        context['warlock_heal_target_name'] = heal_target_player.name if heal_target_player is not None else 'the party'
+    else:
+        context.pop('warlock_heal_target_player', None)
+        context.pop('warlock_heal_target_name', None)
+    damage, crit, healed, reflected, redirected_heal = _labyrinth_apply_damage(attacker, defender, low, high, school, context)
+    if redirected_heal > 0:
+        party_state_ref = context.get('party_state_ref', {})
+        participants = context.get('participants', [])
+        effects = context.get('effects', {})
+        heal_target_id = _labyrinth_party_lowest_hp_member_id(party_state_ref, participants)
+        heal_target_entry = party_state_ref.get(heal_target_id, {}) if isinstance(party_state_ref, dict) else {}
+        heal_target_player = context.get('warlock_heal_target_player')
+        if isinstance(party_state_ref, dict) and isinstance(heal_target_entry, dict) and heal_target_entry and isinstance(heal_target_player, Player):
+            party_state_ref[heal_target_id] = _labyrinth_store_entry_from_player(heal_target_entry, heal_target_player)
     school_text = 'magic' if school == 'magic' else 'physical'
-    verb = 'casts into' if used_spell else 'hits'
-    text = f'{attacker.name} {verb} {defender.name} for {damage} {school_text} damage'
-    if crit:
-        text += ' (CRIT)'
-    text += '.'
-    if healed > 0:
-        text += f' {attacker.name} steals {healed} life.'
-    if reflected > 0:
-        text += f' {defender.name} reflects {reflected} damage.'
+    if redirected_heal > 0:
+        text = f'{attacker.name} channels {damage} {school_text} power into {str(context.get("warlock_heal_target_name") or "an ally")}, restoring {redirected_heal} health.'
+    else:
+        verb = 'casts into' if used_spell else 'hits'
+        text = f'{attacker.name} {verb} {defender.name} for {damage} {school_text} damage'
+        if crit:
+            text += ' (CRIT)'
+        text += '.'
+        if healed > 0:
+            text += f' {attacker.name} steals {healed} life.'
+        if reflected > 0:
+            text += f' {defender.name} reflects {reflected} damage.'
+    if isinstance(attacker, Player) and crit and bool(getattr(attacker, 'labyrinth_shadowfang_heal', False)):
+        party_state_ref = context.get('party_state_ref', {})
+        participants = context.get('participants', [])
+        effects = context.get('effects', {})
+        shadowfang_target_id = _labyrinth_party_lowest_hp_member_id(party_state_ref, participants)
+        if shadowfang_target_id:
+            bonus_heal = _labyrinth_heal_party_member(party_state_ref, shadowfang_target_id, damage, effects)
+            if bonus_heal > 0:
+                shadowfang_target_name = clean_character_name(str((party_state_ref.get(shadowfang_target_id, {}) if isinstance(party_state_ref, dict) else {}).get('character_name') or 'an ally')) or 'an ally'
+                text += f' The critical echo restores {bonus_heal} health to {shadowfang_target_name}.'
     if isinstance(attacker, Player):
         old_level, new_level = attacker.grant_proficiency_point(proficiency_key, 1)
         if proficiency_key and new_level > old_level:
@@ -18087,6 +18754,10 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
     combat_context = {
         'player_first_hit_consumed_ids': [str(user_id or '').strip() for user_id in list(pending.get('player_first_hit_consumed_ids', []) or []) if str(user_id or '').strip()],
         'monster_first_hit_target_ids': [str(user_id or '').strip() for user_id in list(pending.get('monster_first_hit_target_ids', []) or []) if str(user_id or '').strip()],
+        'party_state_ref': party_state,
+        'participants': turn_order,
+        'effects': effects,
+        'session_row': session_row,
     }
     updated_monster_snapshots = [asdict(monster) for monster in monsters]
     victory = not _labyrinth_alive_monster_indices(updated_monster_snapshots)
@@ -18101,7 +18772,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
             if target_index < 0:
                 victory = True
                 break
-            actor = _labyrinth_member_player_from_entry(actor_entry, effects)
+            actor = _labyrinth_member_player_from_entry(actor_entry, effects, party_state, session_row)
             target_monster = monsters[target_index]
             combat_context['attacker_key'] = actor_id
             combat_context['defender_key'] = f'monster-{target_index}'
@@ -18139,7 +18810,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
             target_id = _labyrinth_pick_monster_target(party_state, turn_order)
             target_entry = party_state.get(target_id, {})
             if isinstance(target_entry, dict) and target_entry:
-                target_player = _labyrinth_member_player_from_entry(target_entry, effects)
+                target_player = _labyrinth_member_player_from_entry(target_entry, effects, party_state, session_row)
                 combat_context['attacker_key'] = f'monster-{monster_phase_index}'
                 combat_context['defender_key'] = target_id
                 monster_event = _labyrinth_resolve_turn(current_monster, target_player, combat_context)
@@ -18168,7 +18839,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
                 alive_entry = party_state.get(alive_id, {})
                 if not isinstance(alive_entry, dict) or not alive_entry:
                     continue
-                regen_player = _labyrinth_member_player_from_entry(alive_entry, effects)
+                regen_player = _labyrinth_member_player_from_entry(alive_entry, effects, party_state, session_row)
                 healing_factor = float(getattr(regen_player, 'labyrinth_healing_factor', 1.0) or 1.0)
                 hp_gain = 0
                 mana_gain = 0
@@ -18200,6 +18871,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
     pending_tile_key = str(pending.get('tile_key') or '').strip()
     reward_reference_monster = max(monsters, key=lambda entry: (int(entry.level), int(entry.max_hp))) if monsters else None
     if victory:
+        party_state = _labyrinth_decrement_party_fight_buffs(party_state)
         alive_ids = _labyrinth_alive_party_ids(party_state, participants)
         gold_gain_amount = 0
         if boss and reward_reference_monster is not None:
@@ -18212,7 +18884,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
             alive_entry = party_state.get(alive_id, {})
             if not isinstance(alive_entry, dict) or not alive_entry:
                 continue
-            reward_player = _labyrinth_member_player_from_entry(alive_entry, effects)
+            reward_player = _labyrinth_member_player_from_entry(alive_entry, effects, party_state, session_row)
             member_summary: List[str] = []
             if gold_gain_amount > 0:
                 reward_player.gold += gold_gain_amount
@@ -18249,6 +18921,15 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
                 tile_entry['kind'] = 'boss' if boss else 'encounter'
                 payload['tile_states'][pending_tile_key] = tile_entry
         if boss:
+            refreshed_progress = _labyrinth_progress_counter(payload)
+            for alive_id in alive_ids:
+                alive_entry = party_state.get(alive_id, {})
+                if normalize_player_class_name((alive_entry or {}).get('player_class'), '') != 'Shadow Arcanist':
+                    continue
+                state_bits = _labyrinth_entry_ability_state(alive_entry)
+                state_bits['ready_at'] = refreshed_progress
+                state_bits['active_until_progress'] = 0
+                party_state[alive_id] = _labyrinth_set_entry_ability_state(alive_entry, state_bits)
             payload['status'] = 'reward'
             payload['pending_encounter'] = {
                 'party_state': party_state,
@@ -18280,6 +18961,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
                 payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The encounter breaks. The party can push deeper into the Labyrinth.')
             self.labyrinth_local_resolution_text = 'Victory. ' + ' '.join(summary_bits) if summary_bits else 'Victory.'
     elif defeat:
+        party_state = _labyrinth_decrement_party_fight_buffs(party_state)
         payload['status'] = 'defeated'
         payload['reward_options'] = []
         payload['pending_encounter'] = {'party_state': party_state, 'log': action_log[:18], 'reward_gold_gain': 0}
@@ -20979,6 +21661,7 @@ SessionState.create_labyrinth_session = create_labyrinth_session
 SessionState.create_labyrinth_solo_session = create_labyrinth_solo_session
 SessionState.labyrinth_hire_companion = labyrinth_hire_companion
 SessionState.labyrinth_set_tank_role = labyrinth_set_tank_role
+SessionState.labyrinth_activate_ability = labyrinth_activate_ability
 SessionState.join_labyrinth_session = join_labyrinth_session
 SessionState.leave_labyrinth_session = leave_labyrinth_session
 SessionState.labyrinth_assign_controller = labyrinth_assign_controller
@@ -23465,20 +24148,37 @@ def main_page(request: Request) -> None:
                                             member_popup_html = _labyrinth_damage_popup_html(pending_encounter, member_id)
                                             is_companion = bool(row.get('is_companion', False))
                                             can_toggle_tank = member_id == _labyrinth_member_identity(state) or (bool(getattr(state, 'labyrinth_is_local', False)) and is_companion)
+                                            ability_meta = _labyrinth_class_ability_meta(hero_class)
+                                            ability_state = _labyrinth_entry_ability_state(row)
+                                            ability_ready = _labyrinth_ability_ready(row, session_row)
+                                            ability_clickable = bool(ability_meta and str(ability_meta.get('type') or '').strip().lower() != 'passive' and can_toggle_tank)
+                                            portrait_classes = 'mq-hero-art-frame mq-lab-member-portrait mq-item-hover-wrap-persist'
+                                            if ability_clickable and ability_ready:
+                                                portrait_classes += ' mq-lab-ability-ready'
+                                            if hero_class == 'Warlock' and bool(ability_state.get('toggle_on', False)):
+                                                portrait_classes += ' mq-lab-ability-warlock'
                                             with ui.card().classes('mq-panel-frame mq-lab-member-card p-3'):
                                                 with ui.element('div').classes('mq-lab-member-top'):
-                                                    with ui.element('div').classes('mq-hero-art-frame mq-lab-member-portrait'):
+                                                    with ui.element('button').classes(portrait_classes) as portrait_button:
+                                                        portrait_button._props['type'] = 'button'
+                                                        portrait_button._props['data-hover-key'] = f'lab-ability-{member_id or member_index}'
+                                                        portrait_button._props['data-hover-side'] = 'right'
+                                                        if ability_clickable:
+                                                            portrait_button.on('click', lambda target_id=member_id: (state.labyrinth_activate_ability(target_id), request_render_refresh()))
+                                                        else:
+                                                            portrait_button.style('cursor: default;')
                                                         if hero_uri:
                                                             ui.html(f"<img src='{html.escape(hero_uri, quote=True)}' alt='{html.escape(hero_class)} portrait' class='mq-hero-art' loading='lazy' decoding='async' draggable='false'>")
                                                         else:
                                                             with ui.element('div').classes('mq-hero-art-fallback'):
                                                                 ui.label(hero_class[:2].upper()).classes('text-slate-100 text-xl font-semibold w-full h-full flex items-center justify-center')
+                                                        ui.html(f"<span class='mq-item-hover-panel'>{labyrinth_ability_hover_panel_html(row, session_row)}</span>")
                                                     with ui.element('div').classes('mq-lab-member-main'):
                                                         with ui.element('div').classes('mq-lab-member-header'):
                                                             if not is_companion:
                                                                 ui.label(str(row.get('character_name') or 'Unknown Adventurer')).classes('text-slate-100 text-lg font-semibold')
-                                                            ui.label(f'{hero_class} • Level {int(row.get("level", 1) or 1)}').classes(('text-slate-300 text-sm' if not is_companion else 'text-slate-100 text-base font-semibold'))
-                                                            with ui.row().classes('gap-2 flex-wrap'):
+                                                            with ui.row().classes('gap-2 items-center flex-wrap'):
+                                                                ui.label(f'{hero_class} • Level {int(row.get("level", 1) or 1)}').classes(('text-slate-300 text-sm' if not is_companion else 'text-slate-100 text-base font-semibold'))
                                                                 if str(row.get('user_id') or '').strip() == str(session_row.get('leader_user_id') or '').strip():
                                                                     ui.label('Leader').classes('mq-lab-pill')
                                                                 if str(row.get('user_id') or '').strip() == str(session_row.get('controller_user_id') or '').strip():
@@ -23487,19 +24187,30 @@ def main_page(request: Request) -> None:
                                                                     ui.label('Companion').classes('mq-lab-pill')
                                                                 if bool(row.get('is_downed', False)):
                                                                     ui.label('Downed').classes('mq-lab-pill')
-                                                                tank_box = ui.checkbox('Tank', value=bool(row.get('tank', False)))
-                                                                tank_box.classes('text-slate-200 text-xs')
-                                                                if can_toggle_tank:
-                                                                    tank_box.on_value_change(lambda e, target_id=member_id: (state.labyrinth_set_tank_role(target_id, bool(e.value)), request_render_refresh()))
-                                                                else:
-                                                                    tank_box.disable()
+                                                                tank_btn = ui.button('T', on_click=lambda target_id=member_id, current_value=bool(row.get('tank', False)): (state.labyrinth_set_tank_role(target_id, not current_value), request_render_refresh())).classes('mq-btn-secondary mq-lab-tank-btn')
+                                                                if bool(row.get('tank', False)):
+                                                                    tank_btn.classes('mq-lab-tank-btn-active')
+                                                                if not can_toggle_tank:
+                                                                    tank_btn.disable()
+                                                            if ability_clickable and ability_ready:
+                                                                ui.label('Ready').classes('mq-detail-text')
+                                                            elif ability_clickable:
+                                                                ready_at_progress = int(ability_state.get('ready_at', 0) or 0)
+                                                                ui.label(f'Ready in {max(0, ready_at_progress - _labyrinth_progress_counter(session_row))}').classes('mq-detail-text')
                                                         with ui.element('div').classes('mq-lab-member-body mq-lab-member-body-gear' if bool(row.get('is_companion', False)) else 'mq-lab-member-body'):
                                                             with ui.column().classes('mq-lab-member-meters'):
-                                                                with ui.element('div').classes('mq-meter-shell'):
+                                                                with ui.element('div').classes('mq-meter-shell mq-lab-member-meter-wrap mq-item-hover-wrap-persist') as hp_wrap:
+                                                                    hp_wrap._props['data-hover-key'] = f'lab-party-hp-hover-{member_id or member_index}'
+                                                                    hp_wrap._props['data-hover-side'] = 'right'
                                                                     ui.html(animated_meter_html(f'lab-party-hp-{member_index}', 'HP', int(row.get('current_hp', 0) or 0), max(1, int(row.get('max_hp', 1) or 1)), 'hp', 900, cycle=f'{row.get("updated_at","")}-hp'))
+                                                                    ui.html(f"<span class='mq-item-hover-panel'>{labyrinth_meter_hover_panel_html('Health', row.get('current_hp', 0), row.get('max_hp', 1))}</span>")
                                                                     if member_popup_html:
                                                                         ui.html(member_popup_html)
-                                                                ui.html(animated_meter_html(f'lab-party-mana-{member_index}', 'Mana', int(row.get('current_mana', 0) or 0), max(1, int(row.get('max_mana', 1) or 1)), 'mana', 1200, cycle=f'{row.get("updated_at","")}-mana'))
+                                                                with ui.element('div').classes('mq-meter-shell mq-lab-member-meter-wrap mq-item-hover-wrap-persist') as mana_wrap:
+                                                                    mana_wrap._props['data-hover-key'] = f'lab-party-mana-hover-{member_id or member_index}'
+                                                                    mana_wrap._props['data-hover-side'] = 'right'
+                                                                    ui.html(animated_meter_html(f'lab-party-mana-{member_index}', 'Mana', int(row.get('current_mana', 0) or 0), max(1, int(row.get('max_mana', 1) or 1)), 'mana', 1200, cycle=f'{row.get("updated_at","")}-mana'))
+                                                                    ui.html(f"<span class='mq-item-hover-panel'>{labyrinth_meter_hover_panel_html('Mana', row.get('current_mana', 0), row.get('max_mana', 1))}</span>")
                                                             if is_companion:
                                                                 combat_snapshot = row.get('combat_snapshot', {}) if isinstance(row.get('combat_snapshot', {}), dict) else {}
                                                                 equipped_snapshot = combat_snapshot.get('equipped', {}) if isinstance(combat_snapshot.get('equipped', {}), dict) else {}
@@ -23507,11 +24218,10 @@ def main_page(request: Request) -> None:
                                                                 armor_item = coerce_item(equipped_snapshot.get('armor'))
                                                                 charm_item = coerce_item(equipped_snapshot.get('charm'))
                                                                 hover_key_base = str(row.get('user_id') or f'lab-companion-{member_index}').strip() or f'lab-companion-{member_index}'
-                                                                with ui.column().classes('mq-lab-member-gear'):
-                                                                    ui.label('Companion Gear').classes('mq-lab-member-gear-label')
-                                                                    ui.html(f"<div class='mq-detail-text mq-lab-member-gear-line'>{persistent_hoverable_item_name_html(weapon_item, 'Empty', persist_key=hover_key_base + '-weapon')}</div>")
-                                                                    ui.html(f"<div class='mq-detail-text mq-lab-member-gear-line'>{persistent_hoverable_item_name_html(armor_item, 'Empty', persist_key=hover_key_base + '-armor')}</div>")
-                                                                    ui.html(f"<div class='mq-detail-text mq-lab-member-gear-line'>{persistent_hoverable_item_name_html(charm_item, 'Empty', persist_key=hover_key_base + '-charm')}</div>")
+                                                                with ui.element('div').classes('mq-lab-member-gear'):
+                                                                    ui.html(labyrinth_companion_token_html(weapon_item, 'W', persist_key=hover_key_base + '-weapon'))
+                                                                    ui.html(labyrinth_companion_token_html(armor_item, 'A', persist_key=hover_key_base + '-armor'))
+                                                                    ui.html(labyrinth_companion_token_html(charm_item, 'C', persist_key=hover_key_base + '-charm'))
                                         with ui.card().classes('mq-panel-frame mq-lab-grid-card p-4'):
                                             ui.label('Expedition Controls').classes('text-slate-100 text-2xl font-semibold')
                                             modifier_titles = [str(entry.get('title') or '').strip() for entry in modifier_stack if isinstance(entry, dict) and str(entry.get('title') or '').strip()]
