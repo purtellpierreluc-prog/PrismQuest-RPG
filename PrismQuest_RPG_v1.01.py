@@ -1376,27 +1376,38 @@ body {
   border-radius: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
+  border: 1px solid rgba(255, 104, 104, 0.88);
+  color: #ffd8d8;
+  background:
+    linear-gradient(180deg, rgba(255, 182, 182, 0.14) 0%, rgba(158, 44, 44, 0.14) 46%, rgba(38, 10, 10, 0.96) 100%),
+    rgba(26, 10, 10, 0.96);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.03),
+    0 0 0 1px rgba(255, 92, 92, 0.18),
+    0 0 16px rgba(255, 74, 74, 0.14);
   transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease, background 0.14s ease;
 }
 .mq-lab-tank-btn.q-btn .q-btn__content {
   font-weight: 900;
   letter-spacing: 0.10em;
+  color: #ffd6d6;
+  text-shadow: 0 0 8px rgba(255, 118, 118, 0.22);
 }
 .mq-lab-tank-btn-active.q-btn {
   transform: translateY(2px) scale(0.96);
-  border-color: rgba(255, 215, 128, 0.92);
+  border-color: rgba(124, 255, 170, 0.96);
   background:
-    linear-gradient(180deg, rgba(255, 234, 182, 0.28) 0%, rgba(255, 214, 109, 0.16) 46%, rgba(116, 79, 24, 0.94) 100%),
-    rgba(38, 24, 8, 0.96);
+    linear-gradient(180deg, rgba(199, 255, 214, 0.28) 0%, rgba(118, 255, 167, 0.18) 46%, rgba(16, 72, 42, 0.94) 100%),
+    rgba(9, 30, 20, 0.96);
   box-shadow:
-    inset 0 2px 14px rgba(255, 240, 192, 0.16),
-    inset 0 -4px 10px rgba(72, 41, 8, 0.42),
-    0 0 0 1px rgba(255, 221, 144, 0.26),
-    0 0 26px rgba(255, 197, 77, 0.24);
+    inset 0 2px 14px rgba(223, 255, 232, 0.18),
+    inset 0 -4px 10px rgba(7, 46, 25, 0.40),
+    0 0 0 1px rgba(134, 255, 181, 0.28),
+    0 0 28px rgba(110, 255, 164, 0.26);
 }
 .mq-lab-tank-btn-active.q-btn .q-btn__content {
-  color: #fff0c7;
-  text-shadow: 0 0 10px rgba(255, 221, 144, 0.48);
+  color: #e4ffe9;
+  text-shadow: 0 0 12px rgba(152, 255, 186, 0.52);
 }
 @keyframes mq-lab-ready-pulse {
   0%, 100% {
@@ -6877,7 +6888,7 @@ LABYRINTH_SESSION_TABLE = 'labyrinth_sessions'
 LABYRINTH_SESSION_MEMBER_TABLE = 'labyrinth_session_members'
 LABYRINTH_SESSION_VOTE_TABLE = 'labyrinth_session_votes'
 LABYRINTH_JOIN_CODE_PREFIX = 'LUX'
-LABYRINTH_REWARD_VOTE_SECONDS = 15
+LABYRINTH_REWARD_VOTE_SECONDS = 25
 LABYRINTH_COMPANION_COST = 100
 LABYRINTH_COMPANION_ITEM_LEVEL = 45
 LABYRINTH_CONTROLLER_DIRECTIONS: Dict[str, Tuple[int, int]] = {
@@ -8616,10 +8627,16 @@ def labyrinth_ability_hover_panel_html(entry: Dict[str, object], session_row: ob
     )
 
 
-def labyrinth_active_prism_hover_panel_html(modifier_stack: object) -> str:
+def labyrinth_active_prism_hover_panel_html(modifier_stack: object, run_gold_earned: object = 0) -> str:
     rewards = [dict(entry) for entry in list(modifier_stack or []) if isinstance(entry, dict)]
+    total_gold = max(0, int(run_gold_earned or 0))
     if not rewards:
-        return "<div class='mq-item-hover-card'><div class='mq-item-hover-lines'><div class='mq-item-hover-line'>No active prism effects.</div></div></div>"
+        return (
+            "<div class='mq-item-hover-card'>"
+            "<div class='mq-item-hover-head'><span class='mq-item-hover-title'>Labyrinth Run</span></div>"
+            f"<div class='mq-item-hover-lines'><div class='mq-item-hover-line'>Gold earned so far: <strong>{total_gold}</strong></div><div class='mq-item-hover-line'>No active prism effects.</div></div>"
+            "</div>"
+        )
     lines: List[str] = []
     for reward in rewards[-12:]:
         title = html.escape(str(reward.get('title') or 'Prism Offer'))
@@ -8635,7 +8652,7 @@ def labyrinth_active_prism_hover_panel_html(modifier_stack: object) -> str:
         )
     return (
         "<div class='mq-item-hover-card mq-lab-ability-hover-card'>"
-        "<div class='mq-item-hover-head'><span class='mq-item-hover-title'>Active Prism Effects</span></div>"
+        f"<div class='mq-item-hover-head'><span class='mq-item-hover-title'>Active Prism Effects</span><span class='mq-item-hover-tag'>Gold {total_gold}</span></div>"
         f"<div class='mq-item-hover-lines'>{''.join(lines)}</div>"
         "</div>"
     )
@@ -16970,6 +16987,7 @@ def _labyrinth_build_shared_encounter(self, session_row: Dict[str, object], memb
         encounter_log = [f"{str(primary_monster.get('monster_type') or monster_type or 'Lantern Beast')} emerges on floor {floor}."]
     return {
         'party_state': party_state,
+        'run_gold_earned': _labyrinth_pending_run_gold(session_row),
         'sequence': max(0, int((session_row.get('pending_encounter', {}) if isinstance(session_row.get('pending_encounter', {}), dict) else {}).get('sequence', 0) or 0)) + 1,
         'tile_key': tile_key,
         'boss': bool(boss),
@@ -17082,7 +17100,7 @@ def _labyrinth_repair_session_row(self, session_row: Dict[str, object], member_r
                 LABYRINTH_UNLOCK_LEVEL,
                 int(round(sum(int(row.get('level', LABYRINTH_UNLOCK_LEVEL) or LABYRINTH_UNLOCK_LEVEL) for row in active_members) / max(1, len(active_members)))),
             )
-            target_level = avg_level + floor + 1
+            target_level = avg_level
             payload['status'] = 'boss'
             payload['pending_encounter'] = _labyrinth_build_shared_encounter(
                 self,
@@ -17096,28 +17114,28 @@ def _labyrinth_repair_session_row(self, session_row: Dict[str, object], member_r
             payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'A legacy boss gate was repaired and the radiant floor boss descends immediately.')
         elif active_members:
             payload['status'] = 'exploring'
-            payload['pending_encounter'] = {'party_state': party_state}
+            payload['pending_encounter'] = _labyrinth_pending_payload(payload, {'party_state': party_state})
             payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'A stale labyrinth state was cleared. The party can explore again.')
         else:
             payload['status'] = 'defeated'
-            payload['pending_encounter'] = {'party_state': party_state}
+            payload['pending_encounter'] = _labyrinth_pending_payload(payload, {'party_state': party_state})
             payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The Labyrinth repairs a stale state, but no adventurer remains standing.')
         return payload, True
     if status in {'encounter', 'boss'} and not monster_snapshots:
         payload['status'] = 'exploring'
-        payload['pending_encounter'] = {'party_state': party_state}
+        payload['pending_encounter'] = _labyrinth_pending_payload(payload, {'party_state': party_state})
         payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'A broken encounter dissolved before it could trap the expedition.')
         return payload, True
     if status == 'reward' and not [dict(option) for option in list(payload.get('reward_options', []) or []) if isinstance(option, dict)]:
         repaired_pending = dict(payload.get('pending_encounter', {}) if isinstance(payload.get('pending_encounter', {}), dict) else {})
         repaired_pending.setdefault('party_state', party_state)
         repaired_pending.setdefault('reward_vote_started_at', _labyrinth_now_iso())
-        payload['pending_encounter'] = repaired_pending
+        payload['pending_encounter'] = _labyrinth_pending_payload(payload, repaired_pending)
         payload['reward_options'] = _labyrinth_build_reward_choices(int(payload.get('floor', 1) or 1))
         payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The prism offers re-form after a broken reward state.')
         return payload, True
     if member_rows and status in {'exploring', 'defeated'}:
-        normalized_pending = {'party_state': party_state}
+        normalized_pending = _labyrinth_pending_payload(payload, {'party_state': party_state})
         if normalized_pending != payload.get('pending_encounter'):
             payload['pending_encounter'] = normalized_pending
             changed = True
@@ -17380,6 +17398,8 @@ def _labyrinth_normalize_session_row(raw_row: object) -> Dict[str, object]:
     pending_encounter = row.get('pending_encounter', {})
     if not isinstance(pending_encounter, dict):
         pending_encounter = {}
+    pending_encounter = dict(pending_encounter)
+    pending_encounter['run_gold_earned'] = max(0, int(pending_encounter.get('run_gold_earned', 0) or 0))
     reward_options = [dict(option) for option in list(row.get('reward_options', []) or []) if isinstance(option, dict)]
     modifier_stack = [dict(option) for option in list(row.get('modifier_stack', []) or []) if isinstance(option, dict)]
     recent_events = [str(entry or '').strip() for entry in list(row.get('recent_events', []) or []) if str(entry or '').strip()]
@@ -17403,6 +17423,21 @@ def _labyrinth_normalize_session_row(raw_row: object) -> Dict[str, object]:
         'updated_at': str(row.get('updated_at') or '').strip(),
         'created_at': str(row.get('created_at') or '').strip(),
     }
+
+
+def _labyrinth_pending_run_gold(session_row: object) -> int:
+    if not isinstance(session_row, dict):
+        return 0
+    pending = session_row.get('pending_encounter', {})
+    if not isinstance(pending, dict):
+        return 0
+    return max(0, int(pending.get('run_gold_earned', 0) or 0))
+
+
+def _labyrinth_pending_payload(session_row: object, payload: Optional[Dict[str, object]] = None) -> Dict[str, object]:
+    data = dict(payload) if isinstance(payload, dict) else {}
+    data['run_gold_earned'] = max(0, int(data.get('run_gold_earned', _labyrinth_pending_run_gold(session_row)) or 0))
+    return data
 
 
 def _labyrinth_normalize_member_row(raw_row: object) -> Dict[str, object]:
@@ -17861,7 +17896,7 @@ def create_labyrinth_session(self) -> bool:
             'current_x': center_x,
             'current_y': center_y,
             'tile_states': _labyrinth_build_tile_states(LABYRINTH_GRID_SIZE),
-            'pending_encounter': {},
+            'pending_encounter': {'run_gold_earned': 0},
             'reward_options': [],
             'modifier_stack': [],
             'recent_events': [f'{clean_character_name(self.player.name) or "The leader"} kindled a new Labyrinth expedition.'],
@@ -17919,7 +17954,7 @@ def create_labyrinth_solo_session(self) -> bool:
         'current_x': center_x,
         'current_y': center_y,
         'tile_states': _labyrinth_build_tile_states(LABYRINTH_GRID_SIZE),
-        'pending_encounter': {},
+        'pending_encounter': {'run_gold_earned': 0},
         'reward_options': [],
         'modifier_stack': [],
         'recent_events': [f'{clean_character_name(self.player.name) or "The leader"} entered the Labyrinth alone.'],
@@ -18071,8 +18106,8 @@ def labyrinth_activate_ability(self, raw_member_id: object) -> bool:
         self.labyrinth_status = 'No live expedition is open.'
         return False
     session_status = str(session_row.get('status') or '').strip().lower()
-    if session_status not in {'exploring', 'encounter', 'boss'}:
-        self.labyrinth_status = 'Abilities answer only while the expedition is moving or fighting.'
+    if session_status != 'exploring':
+        self.labyrinth_status = 'Abilities can only be activated while exploring the Labyrinth.'
         return False
     member_rows = [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
     target_row = next((row for row in member_rows if str(row.get('user_id') or '').strip() == member_id), None)
@@ -18375,7 +18410,7 @@ def labyrinth_start_floor(self) -> bool:
     payload['current_x'] = center_x
     payload['current_y'] = center_y
     payload['tile_states'] = _labyrinth_build_tile_states(session_row.get('grid_size', LABYRINTH_GRID_SIZE))
-    payload['pending_encounter'] = {'party_state': full_heal_state}
+    payload['pending_encounter'] = _labyrinth_pending_payload(payload, {'party_state': full_heal_state})
     payload['reward_options'] = []
     payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), f'Floor {int(payload.get("floor", 1) or 1)} begins.')
     if not _labyrinth_upsert_session_row(self, payload):
@@ -18404,7 +18439,7 @@ def labyrinth_reset_after_defeat(self) -> bool:
     payload['current_x'] = center_x
     payload['current_y'] = center_y
     payload['tile_states'] = _labyrinth_build_tile_states(session_row.get('grid_size', LABYRINTH_GRID_SIZE))
-    payload['pending_encounter'] = {'party_state': full_heal_state}
+    payload['pending_encounter'] = _labyrinth_pending_payload(payload, {'party_state': full_heal_state})
     payload['reward_options'] = []
     payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The shattered party regathers at the prism gate.')
     if not _labyrinth_upsert_session_row(self, payload):
@@ -18458,19 +18493,19 @@ def labyrinth_move_party(self, direction: str) -> bool:
             active_members = [row for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict) and not bool(_labyrinth_project_member_row(row, party_state).get('is_downed', False))]
             floor = int(payload.get('floor', 1) or 1)
             avg_level = max(LABYRINTH_UNLOCK_LEVEL, int(round(sum(int(row.get('level', LABYRINTH_UNLOCK_LEVEL) or LABYRINTH_UNLOCK_LEVEL) for row in active_members) / max(1, len(active_members)))))
-            target_level = avg_level + max(0, floor - 1)
+            target_level = avg_level
             monster_type = _labyrinth_choose_template(False)
             payload['pending_encounter'] = _labyrinth_build_shared_encounter(self, payload, active_members, monster_type, target_level, boss=False, tile_key=tile_key)
             payload['status'] = 'encounter'
             event_text = f'Tile {tile_key} flares. A {monster_type} surges from the light.'
         else:
-            payload['pending_encounter'] = {'party_state': party_state}
+            payload['pending_encounter'] = _labyrinth_pending_payload(payload, {'party_state': party_state})
             if _labyrinth_floor_fully_cleared(tile_states, grid_size):
                 active_members = [row for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict) and not bool(_labyrinth_project_member_row(row, party_state).get('is_downed', False))]
                 if active_members:
                     floor = int(payload.get('floor', 1) or 1)
                     avg_level = max(LABYRINTH_UNLOCK_LEVEL, int(round(sum(int(row.get('level', LABYRINTH_UNLOCK_LEVEL) or LABYRINTH_UNLOCK_LEVEL) for row in active_members) / max(1, len(active_members)))))
-                    target_level = avg_level + floor + 1
+                    target_level = avg_level
                     payload['pending_encounter'] = _labyrinth_build_shared_encounter(self, payload, active_members, _labyrinth_choose_template(True), target_level, boss=True, tile_key=tile_key)
                     payload['status'] = 'boss'
                     event_text = 'The final tile gleams open. The radiant floor boss answers at once.'
@@ -18485,13 +18520,13 @@ def labyrinth_move_party(self, direction: str) -> bool:
         if isinstance(tile_entry, dict):
             tile_entry['visited'] = True
             tile_states[tile_key] = tile_entry
-        payload['pending_encounter'] = {'party_state': party_state}
+        payload['pending_encounter'] = _labyrinth_pending_payload(payload, {'party_state': party_state})
         if _labyrinth_floor_fully_cleared(tile_states, grid_size):
             active_members = [row for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict) and not bool(_labyrinth_project_member_row(row, party_state).get('is_downed', False))]
             if active_members:
                 floor = int(payload.get('floor', 1) or 1)
                 avg_level = max(LABYRINTH_UNLOCK_LEVEL, int(round(sum(int(row.get('level', LABYRINTH_UNLOCK_LEVEL) or LABYRINTH_UNLOCK_LEVEL) for row in active_members) / max(1, len(active_members)))))
-                target_level = avg_level + floor + 1
+                target_level = avg_level
                 payload['pending_encounter'] = _labyrinth_build_shared_encounter(self, payload, active_members, _labyrinth_choose_template(True), target_level, boss=True, tile_key=tile_key)
                 payload['status'] = 'boss'
                 event_text = 'The prism walls close behind you. The radiant floor boss arrives.'
@@ -19115,13 +19150,14 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
                 state_bits['active_until_progress'] = 0
                 party_state[alive_id] = _labyrinth_set_entry_ability_state(alive_entry, state_bits)
             payload['status'] = 'reward'
-            payload['pending_encounter'] = {
+            payload['pending_encounter'] = _labyrinth_pending_payload(payload, {
                 'party_state': party_state,
                 'reward_vote_started_at': _labyrinth_now_iso(),
                 'reward_gold_gain': gold_gain_amount,
+                'run_gold_earned': _labyrinth_pending_run_gold(payload) + max(0, gold_gain_amount),
                 'log': action_log[:18],
                 'damage_popups': damage_popups,
-            }
+            })
             payload['reward_options'] = _labyrinth_build_reward_choices(int(payload.get('floor', 1) or 1))
             payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The floor boss falls. Three unstable prism offers descend into view.')
             self.labyrinth_local_resolution_text = 'Victory. ' + ' '.join(summary_bits) if summary_bits else 'Victory.'
@@ -19131,31 +19167,31 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
                 active_rows = [row for row in party_rows if not bool(row.get('is_downed', False))]
                 if active_rows:
                     avg_level = max(LABYRINTH_UNLOCK_LEVEL, int(round(sum(int(row.get('level', LABYRINTH_UNLOCK_LEVEL) or LABYRINTH_UNLOCK_LEVEL) for row in active_rows) / max(1, len(active_rows)))))
-                    target_level = avg_level + int(payload.get('floor', 1) or 1) + 1
+                    target_level = avg_level
                     payload['status'] = 'boss'
                     payload['pending_encounter'] = _labyrinth_build_shared_encounter(self, payload, active_rows, _labyrinth_choose_template(True), target_level, boss=True, tile_key=pending_tile_key or _labyrinth_tile_key(payload.get('current_x', 0), payload.get('current_y', 0)))
                     payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The final tile yields. The radiant floor boss descends immediately.')
                 else:
                     payload['status'] = 'defeated'
-                    payload['pending_encounter'] = {'party_state': party_state, 'log': action_log[:18]}
+                    payload['pending_encounter'] = _labyrinth_pending_payload(payload, {'party_state': party_state, 'log': action_log[:18]})
                     payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The floor clears, but no adventurer remains standing.')
             else:
                 payload['status'] = 'exploring'
-                payload['pending_encounter'] = {'party_state': party_state, 'log': action_log[:18], 'reward_gold_gain': 0}
+                payload['pending_encounter'] = _labyrinth_pending_payload(payload, {'party_state': party_state, 'log': action_log[:18], 'reward_gold_gain': 0})
                 payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The encounter breaks. The party can push deeper into the Labyrinth.')
             self.labyrinth_local_resolution_text = 'Victory. ' + ' '.join(summary_bits) if summary_bits else 'Victory.'
     elif defeat:
         party_state = _labyrinth_decrement_party_fight_buffs(party_state)
         payload['status'] = 'defeated'
         payload['reward_options'] = []
-        payload['pending_encounter'] = {'party_state': party_state, 'log': action_log[:18], 'reward_gold_gain': 0}
+        payload['pending_encounter'] = _labyrinth_pending_payload(payload, {'party_state': party_state, 'log': action_log[:18], 'reward_gold_gain': 0})
         payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), f'Floor {int(payload.get("floor", 1) or 1)} overwhelms the party. No active adventurer remains standing.')
         self.labyrinth_local_resolution_text = 'Defeat. The expedition is broken until the leader reforms it.'
     else:
         active_monster_index = _labyrinth_first_alive_monster_index(updated_monster_snapshots)
         primary_snapshot = copy.deepcopy(updated_monster_snapshots[active_monster_index] if active_monster_index >= 0 else updated_monster_snapshots[0])
         payload['status'] = session_status
-        payload['pending_encounter'] = {
+        payload['pending_encounter'] = _labyrinth_pending_payload(payload, {
             'party_state': party_state,
             'sequence': next_sequence,
             'tile_key': str(pending.get('tile_key') or '').strip(),
@@ -19175,7 +19211,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
             'damage_popups': damage_popups,
             'next_step_at': _labyrinth_next_step_iso(self),
             'started_at': str(pending.get('started_at') or _labyrinth_now_iso()),
-        }
+        })
         payload['reward_options'] = []
         self.labyrinth_local_resolution_text = active_text or 'The encounter keeps moving through the party order.'
     self.labyrinth_local_combat_log = action_log[:18]
@@ -19281,7 +19317,14 @@ def finalize_labyrinth_reward_vote(self) -> bool:
     payload['current_x'] = center_x
     payload['current_y'] = center_y
     payload['tile_states'] = _labyrinth_build_tile_states(session_row.get('grid_size', LABYRINTH_GRID_SIZE))
-    payload['pending_encounter'] = {'party_state': refreshed_party_state}
+    instant_reward_gold = 0
+    selected_effects = selected_reward.get('effects', {}) if isinstance(selected_reward.get('effects', {}), dict) else {}
+    if isinstance(selected_effects, dict):
+        instant_reward_gold = max(0, int(round(float(selected_effects.get('instant_gold_flat', 0.0) or 0.0))))
+    payload['pending_encounter'] = _labyrinth_pending_payload(session_row, {
+        'party_state': refreshed_party_state,
+        'run_gold_earned': _labyrinth_pending_run_gold(session_row) + instant_reward_gold,
+    })
     payload['reward_options'] = []
     chosen_reward = dict(selected_reward)
     chosen_reward['granted_floor'] = next_floor
@@ -24207,6 +24250,7 @@ def main_page(request: Request) -> None:
                         display_member_rows = [_labyrinth_project_member_row(row, party_state) for row in member_rows]
                         session_status = str(session_row.get('status') or '').strip().lower() if session_row else ''
                         current_floor = int(session_row.get('floor', 1) or 1) if session_row else 0
+                        run_gold_earned = _labyrinth_pending_run_gold(session_row)
                         join_code = str(session_row.get('join_code') or getattr(state, 'labyrinth_join_code', '') or '').strip().upper()
                         scene_blocker = state.labyrinth_route_blocker()
                         multiplayer_blocker = state.labyrinth_multiplayer_blocker()
@@ -24281,11 +24325,12 @@ def main_page(request: Request) -> None:
                                         ui.label(f'Leader: {session_row.get("leader_character_name") or "Unknown"}').classes('mq-lab-pill')
                                         ui.label(f'Controller: {next((row.get("character_name") for row in member_rows if str(row.get("user_id") or "").strip() == str(session_row.get("controller_user_id") or "").strip()), session_row.get("leader_character_name") or "Unknown")}').classes('mq-lab-pill')
                                         ui.label(f'{len(member_rows)}/{LABYRINTH_MAX_PARTY_SIZE} Members').classes('mq-lab-pill')
+                                        ui.html(f"<span class='mq-lab-pill'><span style='color:#f5d67a;'>Gold</span> {run_gold_earned}</span>")
                                         if modifier_stack:
                                                 ui.html(
                                                     persistent_hover_panel_html(
                                                         f"<span class='mq-lab-pill'>{len(modifier_stack)} Active Prism Effect{'s' if len(modifier_stack) != 1 else ''}</span>",
-                                                        labyrinth_active_prism_hover_panel_html(modifier_stack),
+                                                        labyrinth_active_prism_hover_panel_html(modifier_stack, run_gold_earned),
                                                         persist_key='labyrinth-active-prisms',
                                                     )
                                                 )
@@ -24341,7 +24386,7 @@ def main_page(request: Request) -> None:
                                             ability_meta = _labyrinth_class_ability_meta(hero_class)
                                             ability_state = _labyrinth_entry_ability_state(row)
                                             ability_ready = _labyrinth_ability_ready(row, session_row)
-                                            ability_clickable = bool(ability_meta and str(ability_meta.get('type') or '').strip().lower() != 'passive' and can_toggle_tank)
+                                            ability_clickable = bool(ability_meta and str(ability_meta.get('type') or '').strip().lower() != 'passive' and can_toggle_tank and session_status == 'exploring')
                                             portrait_classes = 'mq-hero-art-frame mq-lab-member-portrait mq-item-hover-wrap-persist'
                                             if ability_clickable and ability_ready:
                                                 portrait_classes += ' mq-lab-ability-ready'
@@ -24577,7 +24622,6 @@ def main_page(request: Request) -> None:
                                                 ui.label('Combat resolves automatically in steady side-based bursts with arena-style pacing.').classes('mq-detail-text mt-2')
                                                 with ui.row().classes('gap-2 mt-4 flex-wrap'):
                                                     ui.button('Refresh Encounter', on_click=lambda: (state.refresh_labyrinth_session_state(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
-                                                    ui.button('Show Log' if bool(getattr(state, 'labyrinth_combat_log_hidden', False)) else 'Hide Log', on_click=lambda: (setattr(state, 'labyrinth_combat_log_hidden', not bool(getattr(state, 'labyrinth_combat_log_hidden', False))), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
                                                 if bool(self_member_row) and bool(self_member_row.get('is_downed', False)):
                                                     ui.label('You are downed for this fight and can only watch until the floor changes.').classes('mq-detail-text mt-3')
                                                 elif not bool(getattr(state, 'labyrinth_is_local', False)) and not state.labyrinth_is_controller():
@@ -24588,13 +24632,6 @@ def main_page(request: Request) -> None:
                                                     ui.label(f'{current_actor_name} is taking the current turn.').classes('mq-detail-text mt-3')
                                                 elif getattr(state, 'labyrinth_local_resolution_text', ''):
                                                     ui.label(str(state.labyrinth_local_resolution_text)).classes('mq-detail-text mt-3')
-                                                shared_log = [str(line or '').strip() for line in list(encounter.get('log', []) or []) if str(line or '').strip()]
-                                                if bool(getattr(state, 'labyrinth_combat_log_hidden', False)):
-                                                    ui.label('Combat log hidden.').classes('mq-detail-text mt-4')
-                                                elif shared_log:
-                                                    with ui.element('div').classes('mq-lab-feed mt-4'):
-                                                        for line in shared_log[:12]:
-                                                            ui.html(f"<div class='mq-lab-feed-entry'>{html.escape(str(line or ''))}</div>")
                                             elif session_status == 'reward':
                                                 vote_seconds_left = _labyrinth_reward_seconds_remaining(session_row)
                                                 ui.label('Vote on the Prism Offer').classes('text-slate-100 text-2xl font-semibold')
