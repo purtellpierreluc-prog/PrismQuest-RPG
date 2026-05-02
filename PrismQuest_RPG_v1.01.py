@@ -1321,22 +1321,27 @@ body {
 }
 .mq-lab-ability-ready {
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.06),
-    0 0 0 1px rgba(239, 214, 152, 0.22),
-    0 0 22px rgba(255, 236, 160, 0.18),
-    0 0 34px rgba(125, 214, 255, 0.10);
-  animation: mq-lab-ready-pulse 2.1s ease-in-out infinite;
+    inset 0 0 0 1px rgba(255,255,255,0.04),
+    0 0 0 1px rgba(255,255,255,0.07),
+    0 0 0 2px rgba(246, 221, 164, 0.30),
+    0 0 30px rgba(255, 238, 170, 0.24),
+    0 0 48px rgba(140, 224, 255, 0.18);
+  filter: saturate(1.08) brightness(1.05);
+  animation: mq-lab-ready-pulse 1.7s ease-in-out infinite;
 }
 .mq-lab-ability-warlock {
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.06),
-    0 0 0 1px rgba(142, 246, 178, 0.24),
-    0 0 24px rgba(112, 245, 169, 0.18),
-    0 0 36px rgba(150, 255, 190, 0.10);
+    inset 0 0 0 1px rgba(203, 255, 220, 0.12),
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 0 2px rgba(142, 246, 178, 0.40),
+    0 0 30px rgba(112, 245, 169, 0.26),
+    0 0 52px rgba(150, 255, 190, 0.18);
   background:
-    radial-gradient(circle at 18% 14%, rgba(150, 255, 190, 0.14), rgba(0,0,0,0) 42%),
-    linear-gradient(180deg, rgba(174, 255, 198, 0.08), rgba(255,255,255,0.01)),
-    rgba(10, 24, 18, 0.88);
+    radial-gradient(circle at 18% 14%, rgba(150, 255, 190, 0.24), rgba(0,0,0,0) 44%),
+    radial-gradient(circle at 82% 22%, rgba(210, 255, 224, 0.12), rgba(0,0,0,0) 28%),
+    linear-gradient(180deg, rgba(174, 255, 198, 0.14), rgba(255,255,255,0.02)),
+    rgba(10, 24, 18, 0.94);
+  animation: mq-lab-warlock-pulse 1.55s ease-in-out infinite;
 }
 .mq-lab-ability-hover-card .mq-item-hover-line + .mq-item-hover-line {
   margin-top: 0.45rem;
@@ -1371,26 +1376,62 @@ body {
   border-radius: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+}
+.mq-lab-tank-btn.q-btn .q-btn__content {
+  font-weight: 900;
+  letter-spacing: 0.10em;
 }
 .mq-lab-tank-btn-active.q-btn {
-  border-color: rgba(214, 173, 92, 0.50);
-  background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%), rgba(22, 17, 10, 0.84);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 18px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(214, 173, 92, 0.12), 0 0 22px rgba(191, 145, 63, 0.12);
+  transform: translateY(2px) scale(0.96);
+  border-color: rgba(255, 215, 128, 0.92);
+  background:
+    linear-gradient(180deg, rgba(255, 234, 182, 0.28) 0%, rgba(255, 214, 109, 0.16) 46%, rgba(116, 79, 24, 0.94) 100%),
+    rgba(38, 24, 8, 0.96);
+  box-shadow:
+    inset 0 2px 14px rgba(255, 240, 192, 0.16),
+    inset 0 -4px 10px rgba(72, 41, 8, 0.42),
+    0 0 0 1px rgba(255, 221, 144, 0.26),
+    0 0 26px rgba(255, 197, 77, 0.24);
+}
+.mq-lab-tank-btn-active.q-btn .q-btn__content {
+  color: #fff0c7;
+  text-shadow: 0 0 10px rgba(255, 221, 144, 0.48);
 }
 @keyframes mq-lab-ready-pulse {
   0%, 100% {
     box-shadow:
-      0 0 0 1px rgba(255,255,255,0.06),
-      0 0 0 1px rgba(239, 214, 152, 0.18),
-      0 0 18px rgba(255, 236, 160, 0.12),
-      0 0 28px rgba(125, 214, 255, 0.08);
+      inset 0 0 0 1px rgba(255,255,255,0.04),
+      0 0 0 1px rgba(255,255,255,0.07),
+      0 0 0 2px rgba(239, 214, 152, 0.22),
+      0 0 20px rgba(255, 236, 160, 0.16),
+      0 0 30px rgba(125, 214, 255, 0.12);
   }
   50% {
     box-shadow:
-      0 0 0 1px rgba(255,255,255,0.07),
-      0 0 0 1px rgba(246, 221, 164, 0.30),
-      0 0 28px rgba(255, 238, 170, 0.22),
-      0 0 40px rgba(140, 224, 255, 0.14);
+      inset 0 0 0 1px rgba(255,255,255,0.05),
+      0 0 0 1px rgba(255,255,255,0.09),
+      0 0 0 2px rgba(246, 221, 164, 0.42),
+      0 0 34px rgba(255, 238, 170, 0.28),
+      0 0 54px rgba(140, 224, 255, 0.22);
+  }
+}
+@keyframes mq-lab-warlock-pulse {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(203, 255, 220, 0.11),
+      0 0 0 1px rgba(255,255,255,0.08),
+      0 0 0 2px rgba(142, 246, 178, 0.34),
+      0 0 26px rgba(112, 245, 169, 0.22),
+      0 0 42px rgba(150, 255, 190, 0.14);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px rgba(226, 255, 236, 0.16),
+      0 0 0 1px rgba(255,255,255,0.10),
+      0 0 0 2px rgba(165, 255, 198, 0.48),
+      0 0 38px rgba(135, 255, 188, 0.30),
+      0 0 62px rgba(170, 255, 208, 0.22);
   }
 }
 .mq-lab-stage-card {
@@ -6851,16 +6892,15 @@ LABYRINTH_REWARD_CARD_TITLES = [
     'Prism Offer III',
 ]
 LABYRINTH_BUFF_TEMPLATES: List[Dict[str, object]] = [
-    {'id': 'gold_now_small', 'effect_key': 'instant_gold_flat', 'min': 10, 'max': 50, 'kind': 'flat', 'text': 'Gain {value} gold immediately.'},
-    {'id': 'gold_now_large', 'effect_key': 'instant_gold_flat', 'min': 25, 'max': 100, 'kind': 'flat', 'text': 'Gain {value} gold immediately.'},
-    {'id': 'gold_mult', 'effect_key': 'gold_mult', 'min': 10, 'max': 25, 'kind': 'percent', 'text': 'Gain +{value} more flat gold rewards until leaving the Labyrinth.'},
-    {'id': 'elite_gold_mult', 'effect_key': 'elite_gold_mult', 'min': 20, 'max': 40, 'kind': 'percent', 'text': 'Gain +{value} more flat gold rewards from elite fights until leaving the Labyrinth.'},
-    {'id': 'victory_gold_flat', 'effect_key': 'victory_gold_flat', 'min': 5, 'max': 20, 'kind': 'flat', 'text': 'Gain {value} bonus gold after each victory until leaving the Labyrinth.'},
-    {'id': 'elite_victory_gold_flat', 'effect_key': 'elite_gold_flat', 'min': 10, 'max': 35, 'kind': 'flat', 'text': 'Gain {value} bonus gold after each elite victory until leaving the Labyrinth.'},
-    {'id': 'treasure_gold_mult', 'effect_key': 'treasure_gold_mult', 'min': 25, 'max': 60, 'kind': 'percent', 'text': 'Gain +{value} more gold from treasure rooms until leaving the Labyrinth.'},
-    {'id': 'magic_find', 'effect_key': 'magic_find', 'min': 4, 'max': 10, 'kind': 'percent', 'text': 'Gain +{value} Magic Find until leaving the Labyrinth.'},
-    {'id': 'affix_quality', 'effect_key': 'affix_quality', 'min': 3, 'max': 8, 'kind': 'percent', 'text': 'Gain +{value} affix quality weighting until leaving the Labyrinth.'},
-    {'id': 'affix_value', 'effect_key': 'affix_value', 'min': 4, 'max': 10, 'kind': 'percent', 'text': 'Gain +{value} chance for higher affix values until leaving the Labyrinth.'},
+    {'id': 'gold_now_small', 'effect_key': 'instant_gold_flat', 'min': 10, 'max': 50, 'kind': 'flat', 'weight': 4.0, 'text': 'Gain {value} gold immediately.'},
+    {'id': 'gold_now_large', 'effect_key': 'instant_gold_flat', 'min': 25, 'max': 100, 'kind': 'flat', 'weight': 4.0, 'text': 'Gain {value} gold immediately.'},
+    {'id': 'gold_mult', 'effect_key': 'gold_mult', 'min': 10, 'max': 25, 'kind': 'percent', 'weight': 4.0, 'text': 'Gain +{value} more flat gold rewards until leaving the Labyrinth.'},
+    {'id': 'elite_gold_mult', 'effect_key': 'elite_gold_mult', 'min': 20, 'max': 40, 'kind': 'percent', 'weight': 4.0, 'text': 'Gain +{value} more flat gold rewards from elite fights until leaving the Labyrinth.'},
+    {'id': 'victory_gold_flat', 'effect_key': 'victory_gold_flat', 'min': 5, 'max': 20, 'kind': 'flat', 'weight': 4.0, 'text': 'Gain {value} bonus gold after each victory until leaving the Labyrinth.'},
+    {'id': 'elite_victory_gold_flat', 'effect_key': 'elite_gold_flat', 'min': 10, 'max': 35, 'kind': 'flat', 'weight': 4.0, 'text': 'Gain {value} bonus gold after each elite victory until leaving the Labyrinth.'},
+    {'id': 'magic_find', 'effect_key': 'magic_find', 'min': 4, 'max': 10, 'kind': 'percent', 'weight': 3.0, 'text': 'Gain +{value} Magic Find until leaving the Labyrinth.'},
+    {'id': 'affix_quality', 'effect_key': 'affix_quality', 'min': 3, 'max': 8, 'kind': 'percent', 'weight': 3.0, 'text': 'Gain +{value} affix quality weighting until leaving the Labyrinth.'},
+    {'id': 'affix_value', 'effect_key': 'affix_value', 'min': 4, 'max': 10, 'kind': 'percent', 'weight': 3.0, 'text': 'Gain +{value} chance for higher affix values until leaving the Labyrinth.'},
     {'id': 'attack_damage', 'effect_key': 'attack_damage_mult', 'min': 3, 'max': 7, 'kind': 'percent', 'text': 'Gain +{value} attack damage until leaving the Labyrinth.'},
     {'id': 'crit_chance', 'effect_key': 'crit_chance', 'min': 2, 'max': 5, 'kind': 'percent', 'text': 'Gain +{value} crit chance until leaving the Labyrinth.'},
     {'id': 'crit_damage', 'effect_key': 'crit_damage_mult', 'min': 5, 'max': 12, 'kind': 'percent', 'text': 'Gain +{value} crit damage until leaving the Labyrinth.'},
@@ -6913,6 +6953,12 @@ LABYRINTH_DEBUFF_TEMPLATES: List[Dict[str, object]] = [
     {'id': 'healing_reduction', 'effect_key': 'healing_taken_mult', 'min': 4, 'max': 10, 'kind': 'percent', 'text': 'Healing effects on you are reduced by {value} until leaving the Labyrinth.', 'negative': True},
     {'id': 'first_hit_dealt_down', 'effect_key': 'first_hit_dealt_mult', 'min': 5, 'max': 12, 'kind': 'percent', 'text': 'Your first hit each fight deals {value} less damage until leaving the Labyrinth.', 'negative': True},
     {'id': 'first_hit_taken_up', 'effect_key': 'first_hit_taken_mult', 'min': 5, 'max': 12, 'kind': 'percent', 'text': 'Your first incoming hit each fight deals {value} more damage until leaving the Labyrinth.'},
+    {'id': 'monster_immune_axe', 'effect_key': 'monster_immune_axe', 'kind': 'flag', 'text': 'Monsters are immune to axes until leaving the Labyrinth.'},
+    {'id': 'monster_immune_dagger', 'effect_key': 'monster_immune_dagger', 'kind': 'flag', 'text': 'Monsters are immune to daggers until leaving the Labyrinth.'},
+    {'id': 'monster_immune_staff', 'effect_key': 'monster_immune_staff', 'kind': 'flag', 'text': 'Monsters are immune to staves until leaving the Labyrinth.'},
+    {'id': 'monster_immune_light_charm', 'effect_key': 'monster_immune_light_charm', 'kind': 'flag', 'text': 'Monsters are immune to light charms until leaving the Labyrinth.'},
+    {'id': 'monster_immune_fire_charm', 'effect_key': 'monster_immune_fire_charm', 'kind': 'flag', 'text': 'Monsters are immune to fire charms until leaving the Labyrinth.'},
+    {'id': 'monster_immune_lightning_charm', 'effect_key': 'monster_immune_lightning_charm', 'kind': 'flag', 'text': 'Monsters are immune to lightning charms until leaving the Labyrinth.'},
 ]
 LABYRINTH_ABILITY_DEFS: Dict[str, Dict[str, object]] = {
     'Black Guard': {'name': 'Black Guard', 'type': 'active', 'cooldown_tiles': 15, 'duration_fights': 2, 'summary': 'Take 25% less damage for the next two fights.'},
@@ -8566,6 +8612,31 @@ def labyrinth_ability_hover_panel_html(entry: Dict[str, object], session_row: ob
         "<div class='mq-item-hover-card mq-lab-ability-hover-card'>"
         f"<div class='mq-item-hover-head'><span class='mq-item-hover-title'>{title}</span></div>"
         f"<div class='mq-item-hover-lines'><div class='mq-item-hover-line'>{summary}</div><div class='mq-item-hover-line'>{status}</div></div>"
+        "</div>"
+    )
+
+
+def labyrinth_active_prism_hover_panel_html(modifier_stack: object) -> str:
+    rewards = [dict(entry) for entry in list(modifier_stack or []) if isinstance(entry, dict)]
+    if not rewards:
+        return "<div class='mq-item-hover-card'><div class='mq-item-hover-lines'><div class='mq-item-hover-line'>No active prism effects.</div></div></div>"
+    lines: List[str] = []
+    for reward in rewards[-12:]:
+        title = html.escape(str(reward.get('title') or 'Prism Offer'))
+        boon = html.escape(str(reward.get('boon') or '').strip() or 'No boon recorded.')
+        bane = html.escape(str(reward.get('bane') or '').strip() or 'No bane recorded.')
+        granted_floor = max(1, int(reward.get('granted_floor', reward.get('offered_floor', 1)) or 1))
+        lines.append(
+            "<div class='mq-item-hover-line'>"
+            f"<strong>{title}</strong> <span style='opacity:0.72;'>Floor {granted_floor}</span><br>"
+            f"<span style='color:#b7ffd0;'>Boon:</span> {boon}<br>"
+            f"<span style='color:#ffbec7;'>Bane:</span> {bane}"
+            "</div>"
+        )
+    return (
+        "<div class='mq-item-hover-card mq-lab-ability-hover-card'>"
+        "<div class='mq-item-hover-head'><span class='mq-item-hover-title'>Active Prism Effects</span></div>"
+        f"<div class='mq-item-hover-lines'>{''.join(lines)}</div>"
         "</div>"
     )
 def coerce_item(item: object) -> Optional[Item]:
@@ -15978,6 +16049,45 @@ def _labyrinth_party_lowest_hp_member_id(party_state: object, participants: obje
     return lowest_id
 
 
+def _labyrinth_party_best_heal_target_id(party_state: object, participants: object, exclude_member_id: object = '') -> str:
+    excluded = str(exclude_member_id or '').strip()
+    if not isinstance(party_state, dict):
+        return ''
+    ordered_ids = [str(value or '').strip() for value in list(participants or []) if str(value or '').strip()]
+    best_other = ''
+    best_other_ratio = 2.0
+    best_self = ''
+    best_self_ratio = 2.0
+    fallback = ''
+    fallback_ratio = 2.0
+    for member_id in ordered_ids:
+        entry = party_state.get(member_id, {})
+        if not isinstance(entry, dict) or not entry or bool(entry.get('is_downed', False)):
+            continue
+        max_hp = max(1, int(entry.get('max_hp', 1) or 1))
+        current_hp = max(0, int(entry.get('current_hp', 0) or 0))
+        missing_hp = max(0, max_hp - current_hp)
+        ratio = max(0.0, min(1.0, float(current_hp) / float(max_hp)))
+        if ratio < fallback_ratio:
+            fallback = member_id
+            fallback_ratio = ratio
+        if missing_hp <= 0:
+            continue
+        if excluded and member_id == excluded:
+            if ratio < best_self_ratio:
+                best_self = member_id
+                best_self_ratio = ratio
+            continue
+        if ratio < best_other_ratio:
+            best_other = member_id
+            best_other_ratio = ratio
+    if best_other:
+        return best_other
+    if best_self:
+        return best_self
+    return fallback
+
+
 def _labyrinth_party_lowest_mana_member_id(party_state: object, participants: object) -> str:
     lowest_id = ''
     lowest_ratio = 2.0
@@ -16070,13 +16180,31 @@ def _labyrinth_reward_display_value(template: Dict[str, object], roll: int) -> s
 
 def _labyrinth_reward_effect_value(template: Dict[str, object], roll: int) -> float:
     kind = str(template.get('kind') or 'flat').strip().lower()
-    if kind in {'percent', 'thorns'}:
+    if kind == 'flag':
+        value = 1.0
+    elif kind in {'percent', 'thorns'}:
         value = float(roll) / 100.0
     else:
         value = float(roll)
     if bool(template.get('negative', False)):
         value *= -1.0
     return value
+
+
+def _labyrinth_weighted_reward_templates(templates: List[Dict[str, object]], count: int) -> List[Dict[str, object]]:
+    pool = [dict(template) for template in list(templates or []) if isinstance(template, dict)]
+    picked: List[Dict[str, object]] = []
+    target_count = max(0, min(int(count or 0), len(pool)))
+    while pool and len(picked) < target_count:
+        weights: List[float] = []
+        for template in pool:
+            try:
+                weights.append(max(0.05, float(template.get('weight', 1.0) or 1.0)))
+            except Exception:
+                weights.append(1.0)
+        chosen_index = random.choices(range(len(pool)), weights=weights, k=1)[0]
+        picked.append(pool.pop(chosen_index))
+    return picked
 
 
 def _labyrinth_build_reward_offer(template: Dict[str, object], index: int, floor: int, title: str, tone: str) -> Dict[str, object]:
@@ -16106,7 +16234,7 @@ def _labyrinth_build_reward_choices(floor: object) -> List[Dict[str, object]]:
     titles = list(LABYRINTH_REWARD_CARD_TITLES)
     if len(titles) < 3:
         titles = ['Prism Offer I', 'Prism Offer II', 'Prism Offer III']
-    buff_choices = random.sample(LABYRINTH_BUFF_TEMPLATES, k=min(3, len(LABYRINTH_BUFF_TEMPLATES)))
+    buff_choices = _labyrinth_weighted_reward_templates(LABYRINTH_BUFF_TEMPLATES, 3)
     debuff_choices = random.sample(LABYRINTH_DEBUFF_TEMPLATES, k=min(3, len(LABYRINTH_DEBUFF_TEMPLATES)))
     output: List[Dict[str, object]] = []
     for index in range(min(3, len(buff_choices), len(debuff_choices))):
@@ -16580,6 +16708,41 @@ def _labyrinth_apply_ability_bonuses_to_player(player: Player, entry: Dict[str, 
     setattr(player, 'labyrinth_ignore_physical_armor', bool(_labyrinth_party_active_count(party_state, session_row, 'Chroma Reaver') > 0))
     setattr(player, 'labyrinth_warlock_toggle', bool(player_class == 'Warlock' and bool(state.get('toggle_on', False))))
     setattr(player, 'labyrinth_shadowfang_heal', bool(player_class == 'Shadowfang Stalker' and int(state.get('active_fights', 0) or 0) > 0))
+
+
+def _labyrinth_attack_immunity_label(attacker: Fighter, used_spell: bool, context: Dict[str, object]) -> str:
+    if not isinstance(attacker, Player):
+        return ''
+    party_state = context.get('party_state_ref', {})
+    if _labyrinth_party_has_class(party_state, 'Prismatic Sorceress'):
+        return ''
+    effects = context.get('effects', {})
+    if not isinstance(effects, dict):
+        return ''
+    if used_spell:
+        charm = coerce_item(getattr(attacker, 'equipped', {}).get('charm') if isinstance(getattr(attacker, 'equipped', {}), dict) else None)
+        subtype = str(getattr(charm, 'subtype', '') or '').strip().title()
+        mapping = {
+            'Light': ('monster_immune_light_charm', 'light charms'),
+            'Fire': ('monster_immune_fire_charm', 'fire charms'),
+            'Lightning': ('monster_immune_lightning_charm', 'lightning charms'),
+        }
+    else:
+        weapon = coerce_item(getattr(attacker, 'equipped', {}).get('weapon') if isinstance(getattr(attacker, 'equipped', {}), dict) else None)
+        subtype = str(getattr(weapon, 'subtype', '') or '').strip().title()
+        mapping = {
+            'Axe': ('monster_immune_axe', 'axes'),
+            'Dagger': ('monster_immune_dagger', 'daggers'),
+            'Staff': ('monster_immune_staff', 'staves'),
+        }
+    effect_key, label = mapping.get(subtype, ('', ''))
+    if not effect_key:
+        return ''
+    try:
+        active = float(effects.get(effect_key, 0.0) or 0.0) > 0.0
+    except Exception:
+        active = False
+    return label if active else ''
 
 
 def _labyrinth_member_is_taunting(entry: object, session_row: object) -> bool:
@@ -18507,11 +18670,13 @@ def _labyrinth_apply_damage(attacker: Fighter, defender: Fighter, low: int, high
             mitigation = max(0, armor_roll - attacker.armor_penetration)
     damage = max(1, raw - int(round(mitigation)))
     redirected_heal = 0
+    redirect_mode = bool(context.get('warlock_redirect_mode', False))
     redirect_target = context.get('warlock_heal_target_player')
-    if isinstance(attacker, Player) and isinstance(redirect_target, Player):
-        redirected_heal = max(0, min(redirect_target.max_hp - redirect_target.hp, damage))
-        if redirected_heal > 0:
-            redirect_target.hp = min(redirect_target.max_hp, redirect_target.hp + redirected_heal)
+    if isinstance(attacker, Player) and redirect_mode:
+        if isinstance(redirect_target, Player):
+            redirected_heal = max(0, min(redirect_target.max_hp - redirect_target.hp, damage))
+            if redirected_heal > 0:
+                redirect_target.hp = min(redirect_target.max_hp, redirect_target.hp + redirected_heal)
         return damage, crit, 0, 0, redirected_heal
     if isinstance(attacker, Player):
         attacker_key = str(context.get('attacker_key') or '').strip()
@@ -18556,34 +18721,49 @@ def _labyrinth_resolve_turn(attacker: Fighter, defender: Fighter, context: Dict[
     low, high, school, used_spell, proficiency_key = get_attack_context(attacker)
     if used_spell and isinstance(attacker, Player):
         attacker.mana = max(0, attacker.mana - attacker.cast_mana_cost)
-    if not hit_success(attacker, defender):
-        action = 'casts and misses' if used_spell else 'misses'
-        return CombatEvent(f'{attacker.name} {action} {defender.name}.', 'warning')
     if isinstance(attacker, Player) and bool(getattr(attacker, 'labyrinth_warlock_toggle', False)):
         party_state_ref = context.get('party_state_ref', {})
         participants = context.get('participants', [])
         effects = context.get('effects', {})
-        heal_target_id = _labyrinth_party_lowest_hp_member_id(party_state_ref, participants)
+        attacker_id = str(context.get('attacker_key') or '').strip()
+        heal_target_id = _labyrinth_party_best_heal_target_id(party_state_ref, participants, attacker_id)
         heal_target_entry = party_state_ref.get(heal_target_id, {}) if isinstance(party_state_ref, dict) else {}
-        heal_target_player = _labyrinth_member_player_from_entry(heal_target_entry, effects, party_state_ref, context.get('session_row', {})) if isinstance(heal_target_entry, dict) and heal_target_entry else None
+        if heal_target_id and heal_target_id == attacker_id:
+            heal_target_player = attacker
+        else:
+            heal_target_player = _labyrinth_member_player_from_entry(heal_target_entry, effects, party_state_ref, context.get('session_row', {})) if isinstance(heal_target_entry, dict) and heal_target_entry else None
+        context['warlock_redirect_mode'] = True
+        context['warlock_heal_target_id'] = heal_target_id
         context['warlock_heal_target_player'] = heal_target_player
         context['warlock_heal_target_name'] = heal_target_player.name if heal_target_player is not None else 'the party'
     else:
+        context.pop('warlock_redirect_mode', None)
+        context.pop('warlock_heal_target_id', None)
         context.pop('warlock_heal_target_player', None)
         context.pop('warlock_heal_target_name', None)
+    if not isinstance(defender, Player) and not bool(context.get('warlock_redirect_mode', False)):
+        immunity_label = _labyrinth_attack_immunity_label(attacker, used_spell, context)
+        if immunity_label:
+            action = 'casts into' if used_spell else 'strikes'
+            return CombatEvent(f'{attacker.name} {action} {defender.name}, but the monster is immune to {immunity_label}.', 'warning')
+    if not hit_success(attacker, defender):
+        action = 'casts and misses' if used_spell else 'misses'
+        return CombatEvent(f'{attacker.name} {action} {defender.name}.', 'warning')
     damage, crit, healed, reflected, redirected_heal = _labyrinth_apply_damage(attacker, defender, low, high, school, context)
     if redirected_heal > 0:
         party_state_ref = context.get('party_state_ref', {})
         participants = context.get('participants', [])
         effects = context.get('effects', {})
-        heal_target_id = _labyrinth_party_lowest_hp_member_id(party_state_ref, participants)
+        heal_target_id = str(context.get('warlock_heal_target_id') or '').strip() or _labyrinth_party_best_heal_target_id(party_state_ref, participants, str(context.get('attacker_key') or '').strip())
         heal_target_entry = party_state_ref.get(heal_target_id, {}) if isinstance(party_state_ref, dict) else {}
         heal_target_player = context.get('warlock_heal_target_player')
-        if isinstance(party_state_ref, dict) and isinstance(heal_target_entry, dict) and heal_target_entry and isinstance(heal_target_player, Player):
+        if isinstance(party_state_ref, dict) and isinstance(heal_target_entry, dict) and heal_target_entry and isinstance(heal_target_player, Player) and heal_target_id != str(context.get('attacker_key') or '').strip():
             party_state_ref[heal_target_id] = _labyrinth_store_entry_from_player(heal_target_entry, heal_target_player)
     school_text = 'magic' if school == 'magic' else 'physical'
     if redirected_heal > 0:
         text = f'{attacker.name} channels {damage} {school_text} power into {str(context.get("warlock_heal_target_name") or "an ally")}, restoring {redirected_heal} health.'
+    elif bool(context.get('warlock_redirect_mode', False)):
+        text = f'{attacker.name} channels {damage} {school_text} power into the veil, but no ally needs healing.'
     else:
         verb = 'casts into' if used_spell else 'hits'
         text = f'{attacker.name} {verb} {defender.name} for {damage} {school_text} damage'
@@ -18608,8 +18788,9 @@ def _labyrinth_resolve_turn(attacker: Fighter, defender: Fighter, context: Dict[
         old_level, new_level = attacker.grant_proficiency_point(proficiency_key, 1)
         if proficiency_key and new_level > old_level:
             text += f' {proficiency_key} proficiency reaches {new_level} (+{new_level}% enhanced effect).'
-    damage_to = 'player' if isinstance(defender, Player) else 'monster'
-    return CombatEvent(text, 'danger' if crit else 'info', damage_to=damage_to, damage_amount=damage, crit=crit)
+    redirected_mode = bool(context.get('warlock_redirect_mode', False))
+    damage_to = '' if redirected_mode else ('player' if isinstance(defender, Player) else 'monster')
+    return CombatEvent(text, 'danger' if crit and not redirected_mode else 'info' if redirected_mode else ('danger' if crit else 'info'), damage_to=damage_to, damage_amount=(0 if redirected_mode else damage), crit=crit and not redirected_mode)
 
 
 def _build_labyrinth_combat_timeline(player: Player, monster: Fighter) -> List[Tuple[CombatEvent, int, int, int, int, int]]:
@@ -24101,7 +24282,13 @@ def main_page(request: Request) -> None:
                                         ui.label(f'Controller: {next((row.get("character_name") for row in member_rows if str(row.get("user_id") or "").strip() == str(session_row.get("controller_user_id") or "").strip()), session_row.get("leader_character_name") or "Unknown")}').classes('mq-lab-pill')
                                         ui.label(f'{len(member_rows)}/{LABYRINTH_MAX_PARTY_SIZE} Members').classes('mq-lab-pill')
                                         if modifier_stack:
-                                                ui.label(f'{len(modifier_stack)} Active Prism Effect{"s" if len(modifier_stack) != 1 else ""}').classes('mq-lab-pill')
+                                                ui.html(
+                                                    persistent_hover_panel_html(
+                                                        f"<span class='mq-lab-pill'>{len(modifier_stack)} Active Prism Effect{'s' if len(modifier_stack) != 1 else ''}</span>",
+                                                        labyrinth_active_prism_hover_panel_html(modifier_stack),
+                                                        persist_key='labyrinth-active-prisms',
+                                                    )
+                                                )
                                     with ui.row().classes('gap-2 flex-wrap'):
                                         ui.button('Refresh Expedition', on_click=lambda: (state.refresh_labyrinth_session_state(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-4 py-2 font-semibold')
                                         ui.button('Leave Expedition', on_click=lambda: ((state.enter_town('You leave the Labyrinth of Light behind.') if state.leave_labyrinth_session() else None), request_render_refresh())).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold')
