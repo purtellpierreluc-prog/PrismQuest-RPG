@@ -9992,6 +9992,9 @@ class Player(Fighter):
         payload['equipped'] = {slot: Item.from_dict(item) if item else None for slot, item in payload.get('equipped', {}).items()}
         payload['proficiency_levels'] = dict(payload.get('proficiency_levels', empty_proficiency_levels()))
         payload['proficiency_progress'] = dict(payload.get('proficiency_progress', empty_proficiency_progress()))
+        allowed_fields = set(getattr(cls, '__dataclass_fields__', {}).keys())
+        if allowed_fields:
+            payload = {key: value for key, value in payload.items() if key in allowed_fields}
         player = cls(**payload)
         player.recalculate_stats()
         player.hp = min(player.max_hp, player.hp)
@@ -10656,8 +10659,8 @@ def resolve_turn(attacker: Fighter, defender: Fighter) -> CombatEvent:
         old_level, new_level = attacker.grant_proficiency_point(proficiency_key, 1)
         if proficiency_key and new_level > old_level:
             text += f' {proficiency_key} proficiency reaches {new_level} (+{new_level}% enhanced effect).'
-    damage_to = '' if redirected_heal > 0 else ('player' if isinstance(defender, Player) else 'monster')
-    return CombatEvent(text, 'danger' if crit else 'info', damage_to=damage_to, damage_amount=(0 if redirected_heal > 0 else damage), crit=crit)
+    damage_to = 'player' if isinstance(defender, Player) else 'monster'
+    return CombatEvent(text, 'danger' if crit else 'info', damage_to=damage_to, damage_amount=damage, crit=crit)
 def gain_xp(player: Player, amount: int, level_cap: Optional[int] = 60) -> List[str]:
     messages: List[str] = []
     if amount <= 0:
