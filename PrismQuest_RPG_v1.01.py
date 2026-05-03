@@ -1523,7 +1523,72 @@ body {
   max-height: 220px;
 }
 .mq-lab-single-monster-shell {
-  width: min(100%, 22rem);
+  width: 100%;
+}
+.mq-lab-single-monster-card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(15rem, 0.85fr);
+  gap: 0.9rem;
+  align-items: stretch;
+}
+.mq-lab-single-monster-card-solo {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 27rem;
+  margin-inline: auto;
+}
+.mq-lab-single-monster-main {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+.mq-lab-single-monster-stage-wrap {
+  width: 100%;
+}
+.mq-lab-boss-stats {
+  width: 100%;
+  display: grid;
+  gap: 0.7rem;
+  align-content: start;
+}
+.mq-lab-boss-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.mq-lab-boss-stat {
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
+    linear-gradient(180deg, rgba(13, 20, 34, 0.98), rgba(8, 10, 16, 1));
+  padding: 0.65rem 0.75rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.03),
+    inset 0 -16px 24px rgba(0,0,0,0.18);
+}
+.mq-lab-boss-stat-label {
+  display: block;
+  font-size: 0.68rem;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(192, 205, 223, 0.72);
+  margin-bottom: 0.32rem;
+}
+.mq-lab-boss-stat-value {
+  display: block;
+  font-size: 0.98rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #f8fafc;
+}
+@media (max-width: 980px) {
+  .mq-lab-single-monster-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .mq-lab-grid-title {
   font-size: 2rem;
@@ -16387,6 +16452,30 @@ def _labyrinth_damage_popup_html(raw_pending: object, target_key: object) -> str
     return f"<div class='mq-damage-float {tone}'>{html.escape(text)}</div>"
 
 
+def _labyrinth_monster_stat_rows(monster_snapshot: object) -> List[Tuple[str, str]]:
+    if not isinstance(monster_snapshot, dict):
+        return []
+    attack_min = max(1, int(monster_snapshot.get('attack_min', 1) or 1))
+    attack_max = max(attack_min, int(monster_snapshot.get('attack_max', attack_min) or attack_min))
+    physical_armor = max(0, int(monster_snapshot.get('physical_armor', 0) or 0))
+    magic_resistance = max(0, int(monster_snapshot.get('magic_resistance', 0) or 0))
+    speed = max(0, int(monster_snapshot.get('speed', 0) or 0))
+    accuracy = max(0.0, float(monster_snapshot.get('accuracy', 0.0) or 0.0))
+    crit_chance = max(0.0, float(monster_snapshot.get('crit_chance', 0.0) or 0.0))
+    evasion = max(0.0, float(monster_snapshot.get('evasion', 0.0) or 0.0))
+    damage_school = str(monster_snapshot.get('damage_school') or 'physical').strip().title()
+    return [
+        ('Attack', f'{attack_min}-{attack_max}'),
+        ('Armor', str(physical_armor)),
+        ('M.Res', str(magic_resistance)),
+        ('Speed', str(speed)),
+        ('Accuracy', f'{int(round(accuracy * 100.0))}%'),
+        ('Crit', f'{int(round(crit_chance * 100.0))}%'),
+        ('Evasion', f'{int(round(evasion * 100.0))}%'),
+        ('School', damage_school),
+    ]
+
+
 def _labyrinth_encounter_monster_count(party_size: object, boss: bool = False) -> int:
     if boss:
         return 1
@@ -17235,7 +17324,8 @@ def _labyrinth_choose_template(boss: bool = False) -> str:
     boss_pool = ['Lamia']
     if boss:
         return random.choice(boss_pool)
-    return str(random.choice(MONSTER_ARCHETYPES).get('type') or 'Templar')
+    normal_pool = [archetype for archetype in MONSTER_ARCHETYPES if str(archetype.get('type') or '').strip() != 'Lamia']
+    return str(random.choice(normal_pool or MONSTER_ARCHETYPES).get('type') or 'Templar')
 
 
 def _labyrinth_archetype_for_type(monster_type: object) -> Dict[str, object]:
@@ -24597,18 +24687,48 @@ def main_page(request: Request) -> None:
                                                     monster_level = int(monster_snapshot.get('level', pending_encounter.get('monster_level', max(LABYRINTH_UNLOCK_LEVEL, player.level))) or max(LABYRINTH_UNLOCK_LEVEL, player.level))
                                                     monster_uri = _arena_monster_data_uri(monster_type)
                                                     monster_popup_html = _labyrinth_damage_popup_html(pending_encounter, 'monster-0')
-                                                    with ui.column().classes('mq-lab-single-monster-shell items-center mt-4 gap-3'):
-                                                        with ui.element('div').classes(f"mq-scene-stage mq-monster-stage-themed mq-lab-monster-stage mq-lab-monster-stage-large w-full{' mq-lab-boss-stage' if bool(pending_encounter.get('boss', False)) else ''}").style(monster_theme_style(monster_type)):
-                                                            if monster_uri:
-                                                                with ui.element('div').classes('mq-monster-image-wrap'):
-                                                                    ui.html(f"<img src='{html.escape(monster_uri, quote=True)}' alt='{html.escape(monster_type)}' class='mq-monster-image-static' loading='lazy' decoding='async' draggable='false'>")
-                                                            else:
-                                                                ui.label(monster_species_name(monster_type)).classes('text-3xl font-semibold text-slate-100')
-                                                        ui.label(f'{monster_type} • Level {monster_level}' + (' • Floor Boss' if bool(pending_encounter.get('boss', False)) else '')).classes('text-slate-200 text-2xl font-semibold text-center')
-                                                        with ui.element('div').classes('mq-meter-shell w-full'):
-                                                            ui.html(animated_meter_html('labyrinth-monster-hp', 'HP', int(monster_snapshot.get('hp', 1) or 1), max(1, int(monster_snapshot.get('max_hp', 1) or 1)), 'hp', 950, cycle=f'{pending_encounter.get("sequence",0)}-{monster_snapshot.get("hp",0)}'))
-                                                            if monster_popup_html:
-                                                                ui.html(monster_popup_html)
+                                                    monster_hp = int(monster_snapshot.get('hp', 1) or 1)
+                                                    monster_max_hp = max(1, int(monster_snapshot.get('max_hp', 1) or 1))
+                                                    is_boss_monster = bool(pending_encounter.get('boss', False))
+                                                    monster_heading = f'{monster_type} • Level {monster_level}' + (' • Floor Boss' if is_boss_monster else '')
+                                                    monster_stat_rows = _labyrinth_monster_stat_rows(monster_snapshot) if is_boss_monster else []
+                                                    card_classes = 'mq-lab-single-monster-card'
+                                                    if not monster_stat_rows:
+                                                        card_classes += ' mq-lab-single-monster-card-solo'
+                                                    with ui.element('div').classes('mq-lab-single-monster-shell mt-4'):
+                                                        with ui.element('div').classes(card_classes):
+                                                            with ui.card().classes('mq-panel-frame mq-lab-monster-card w-full p-3'):
+                                                                with ui.column().classes('mq-lab-single-monster-main'):
+                                                                    with ui.element('div').classes('mq-lab-single-monster-stage-wrap'):
+                                                                        with ui.element('div').classes(f"mq-scene-stage mq-monster-stage-themed mq-lab-monster-stage mq-lab-monster-stage-large w-full{' mq-lab-boss-stage' if is_boss_monster else ''}").style(monster_theme_style(monster_type)):
+                                                                            if monster_uri:
+                                                                                with ui.element('div').classes('mq-monster-image-wrap'):
+                                                                                    ui.html(f"<img src='{html.escape(monster_uri, quote=True)}' alt='{html.escape(monster_type)}' class='mq-monster-image-static' loading='lazy' decoding='async' draggable='false'>")
+                                                                            else:
+                                                                                ui.label(monster_species_name(monster_type)).classes('text-3xl font-semibold text-slate-100')
+                                                                    if not monster_stat_rows:
+                                                                        ui.label(monster_heading).classes('text-slate-200 text-2xl font-semibold text-center')
+                                                                        with ui.element('div').classes('mq-meter-shell w-full'):
+                                                                            ui.html(animated_meter_html('labyrinth-monster-hp', 'HP', monster_hp, monster_max_hp, 'hp', 950, cycle=f'{pending_encounter.get("sequence",0)}-{monster_hp}'))
+                                                                            if monster_popup_html:
+                                                                                ui.html(monster_popup_html)
+                                                            if monster_stat_rows:
+                                                                with ui.card().classes('mq-panel-frame w-full p-4'):
+                                                                    with ui.column().classes('mq-lab-boss-stats'):
+                                                                        ui.label(monster_heading).classes('text-slate-100 text-2xl font-semibold')
+                                                                        ui.label('Boss Readings').classes('mq-detail-text')
+                                                                        with ui.element('div').classes('mq-lab-boss-stats-grid mt-1'):
+                                                                            for stat_label, stat_value in monster_stat_rows:
+                                                                                ui.html(
+                                                                                    "<div class='mq-lab-boss-stat'>"
+                                                                                    f"<span class='mq-lab-boss-stat-label'>{html.escape(stat_label)}</span>"
+                                                                                    f"<span class='mq-lab-boss-stat-value'>{html.escape(stat_value)}</span>"
+                                                                                    "</div>"
+                                                                                )
+                                                                        with ui.element('div').classes('mq-meter-shell w-full mt-2'):
+                                                                            ui.html(animated_meter_html('labyrinth-monster-hp', 'HP', monster_hp, monster_max_hp, 'hp', 950, cycle=f'{pending_encounter.get("sequence",0)}-{monster_hp}'))
+                                                                            if monster_popup_html:
+                                                                                ui.html(monster_popup_html)
                                                 else:
                                                     with ui.element('div').classes('mq-lab-pack-grid mt-4'):
                                                         for monster_index, monster_snapshot in enumerate(encounter_monster_snapshots):
