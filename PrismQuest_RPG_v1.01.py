@@ -866,6 +866,7 @@ MONSTER_ARCHETYPES = [
     {"type": "Ravager", "school": "physical", "kit": "Heavy furs + war axe", "visual": "ravager", "profile": "Berserker: brutal average hits, rotten magic guard", "hp_mult": 0.94, "damage_mult": 1.18, "variance_mult": 1.60, "phys_mult": 0.85, "mres_mult": 0.35, "speed_bonus": 2, "accuracy_bonus": 0.00, "crit_bonus": 0.06, "evasion_bonus": 0.03},
     {"type": "Shade Archer", "school": "magic", "kit": "Light armor + frost bow", "visual": "shade_archer", "profile": "Sniper: huge range spread, deadly aim, frail body", "hp_mult": 0.66, "damage_mult": 1.04, "variance_mult": 2.10, "phys_mult": 0.25, "mres_mult": 1.05, "speed_bonus": 6, "accuracy_bonus": 0.08, "crit_bonus": 0.04, "evasion_bonus": 0.14},
     {"type": "Succubus", "school": "magic", "kit": "Silken leathers + shadow charm", "visual": "succubus", "profile": "Temptress: quick hexes, evasive frame, wicked spikes", "hp_mult": 0.78, "damage_mult": 1.06, "variance_mult": 1.90, "phys_mult": 0.30, "mres_mult": 1.45, "speed_bonus": 4, "accuracy_bonus": 0.05, "crit_bonus": 0.05, "evasion_bonus": 0.11},
+    {"type": "Lamia", "school": "magic", "kit": "Prismatic coils + jeweled curse", "visual": "radiant_lamia", "profile": "Prism sovereign: crushing ward, heavy curses, impossible poise", "hp_mult": 1.08, "damage_mult": 1.10, "variance_mult": 1.60, "phys_mult": 0.75, "mres_mult": 2.15, "speed_bonus": 2, "accuracy_bonus": 0.04, "crit_bonus": 0.04, "evasion_bonus": 0.05, "power_mult": 1.24},
     {"type": "Ashen Revenant", "school": "magic", "kit": "Burnt shroud + grave knife", "visual": "ashen_revenant", "profile": "Soulflame reaper: spectral ward, sharp spikes, fading body", "hp_mult": 0.84, "damage_mult": 1.08, "variance_mult": 1.95, "phys_mult": 0.40, "mres_mult": 1.70, "speed_bonus": 2, "accuracy_bonus": 0.02, "crit_bonus": 0.05, "evasion_bonus": 0.08},
     {"type": "Blood Hound", "school": "physical", "kit": "Chain collar + butcher fangs", "visual": "blood_hound", "profile": "Tracker brute: relentless pace, precise bites, lean guard", "hp_mult": 0.92, "damage_mult": 1.05, "variance_mult": 1.55, "phys_mult": 0.80, "mres_mult": 0.55, "speed_bonus": 5, "accuracy_bonus": 0.07, "crit_bonus": 0.03, "evasion_bonus": 0.09},
     {"type": "Iron Penitent", "school": "physical", "kit": "Spiked iron plate + penitence flail", "visual": "iron_penitent", "profile": "Martyr knight: crushing guard, heavy shell, little haste", "hp_mult": 1.28, "damage_mult": 0.92, "variance_mult": 0.65, "phys_mult": 1.95, "mres_mult": 0.90, "speed_bonus": -2, "accuracy_bonus": 0.01, "crit_bonus": 0.00, "evasion_bonus": 0.01},
@@ -908,6 +909,7 @@ MONSTER_DIALOGUE = {
     'Ravager': ['I learned follow-through.', 'Big hits solve small doubts.'],
     'Shade Archer': ['Distance is mercy for the shooter, not the shot.', 'Hold still and let the dark aim.'],
     'Succubus': ['She wears temptation like armor.', 'Come closer. Bad decisions like good company.'],
+    'Lamia': ['The maze learned how to wear a crown.', 'Kneel if you like. The coils close either way.'],
     'Ashen Revenant': ['I burned once already. All that remains is the part that learned your name.', 'Strike hard if you like. Ash remembers the shape of every fire.'],
     'Blood Hound': ['I found your trail three heartbeats ago.', 'Run if it comforts you. I only bite harder when prey pretends it has options.'],
     'Iron Penitent': ['Every spike is a confession hammered shut.', 'Come then. I have suffered worse things than your courage.'],
@@ -934,6 +936,8 @@ MONSTER_THEME_MAP = {
     'Wraith': {'rgb': '125, 154, 255', 'shell': 'rgba(17, 24, 48, 0.94)', 'deep': 'rgba(8, 11, 24, 0.99)'},
     'Mire Witch': {'rgb': '132, 108, 255', 'shell': 'rgba(25, 18, 52, 0.94)', 'deep': 'rgba(10, 8, 23, 0.99)'},
     'Succubus': {'rgb': '236, 72, 153', 'shell': 'rgba(45, 16, 34, 0.94)', 'deep': 'rgba(18, 8, 15, 0.99)'},
+    'Lamia': {'rgb': '222, 200, 124', 'shell': 'rgba(33, 22, 36, 0.95)', 'deep': 'rgba(12, 10, 22, 0.99)'},
+    'Radiant Lamia': {'rgb': '222, 200, 124', 'shell': 'rgba(33, 22, 36, 0.95)', 'deep': 'rgba(12, 10, 22, 0.99)'},
     'Harpy': {'rgb': '94, 234, 212', 'shell': 'rgba(14, 35, 39, 0.94)', 'deep': 'rgba(8, 16, 18, 0.99)'},
     'Dark Wolf': {'rgb': '99, 102, 241', 'shell': 'rgba(18, 20, 46, 0.94)', 'deep': 'rgba(9, 10, 22, 0.99)'},
     'Cave Spider': {'rgb': '132, 204, 22', 'shell': 'rgba(24, 35, 12, 0.94)', 'deep': 'rgba(11, 17, 8, 0.99)'},
@@ -1370,9 +1374,9 @@ body {
   position: relative;
 }
 .mq-lab-tank-btn.q-btn {
-  min-width: 34px;
+  min-width: 62px;
   min-height: 34px;
-  padding: 0;
+  padding: 0 0.55rem;
   border-radius: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -1393,6 +1397,9 @@ body {
   color: #ffd6d6;
   text-shadow: 0 0 8px rgba(255, 118, 118, 0.22);
 }
+.mq-lab-tank-btn.q-btn[aria-pressed="true"] {
+  transform: translateY(2px) scale(0.96);
+}
 .mq-lab-tank-btn-active.q-btn {
   transform: translateY(2px) scale(0.96);
   border-color: rgba(124, 255, 170, 0.96);
@@ -1408,6 +1415,23 @@ body {
 .mq-lab-tank-btn-active.q-btn .q-btn__content {
   color: #e4ffe9;
   text-shadow: 0 0 12px rgba(152, 255, 186, 0.52);
+}
+.mq-lab-pill-gold {
+  font-size: 0.94rem;
+  padding: 0.42rem 0.92rem;
+  letter-spacing: 0.06em;
+}
+.mq-lab-boss-stage {
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.05),
+    0 0 0 1px rgba(255,255,255,0.07),
+    0 0 32px rgba(238, 202, 120, 0.18),
+    0 0 56px rgba(123, 208, 255, 0.12);
+}
+.mq-lab-boss-stage .mq-monster-image-static {
+  max-width: min(96%, 272px);
+  max-height: 242px;
+  filter: drop-shadow(0 0 18px rgba(255, 234, 176, 0.18));
 }
 @keyframes mq-lab-ready-pulse {
   0%, 100% {
@@ -16611,8 +16635,42 @@ def _labyrinth_extract_combat_snapshot(raw_profile: object) -> Dict[str, object]
 
 def _labyrinth_embed_combat_snapshot(profile_snapshot: object, player: Player) -> Dict[str, object]:
     payload = copy.deepcopy(profile_snapshot) if isinstance(profile_snapshot, dict) else {}
-    payload['combat_snapshot'] = player.to_dict()
+    combat_snapshot = player.to_dict()
+    combat_snapshot['labyrinth_resume_signature'] = _labyrinth_resume_signature_for_player(player)
+    payload['combat_snapshot'] = combat_snapshot
     return payload
+
+
+def _labyrinth_resume_signature_for_player(player: Optional[Player]) -> str:
+    if player is None:
+        return ''
+    equipped_payload: Dict[str, Optional[Dict[str, object]]] = {}
+    for slot_name in ('weapon', 'armor', 'charm'):
+        item = coerce_item(player.equipped.get(slot_name))
+        equipped_payload[slot_name] = item.to_dict() if item is not None else None
+    payload = {
+        'player_class': normalize_player_class_name(getattr(player, 'player_class', ''), ''),
+        'level': int(getattr(player, 'level', 1) or 1),
+        'base_strength': int(getattr(player, 'base_strength', 0) or 0),
+        'base_dexterity': int(getattr(player, 'base_dexterity', 0) or 0),
+        'base_intelligence': int(getattr(player, 'base_intelligence', 0) or 0),
+        'base_vitality': int(getattr(player, 'base_vitality', 0) or 0),
+        'unspent_stat_points': int(getattr(player, 'unspent_stat_points', 0) or 0),
+        'equipped': equipped_payload,
+    }
+    return _stable_payload_hash(payload)
+
+
+def _labyrinth_resume_signature_from_snapshot(raw_snapshot: object) -> str:
+    if not isinstance(raw_snapshot, dict) or not raw_snapshot:
+        return ''
+    explicit = str(raw_snapshot.get('labyrinth_resume_signature') or '').strip()
+    if explicit:
+        return explicit
+    try:
+        return _labyrinth_resume_signature_for_player(Player.from_dict(copy.deepcopy(raw_snapshot)))
+    except Exception:
+        return ''
 
 
 def _labyrinth_fallback_player_snapshot(member_row: Dict[str, object]) -> Dict[str, object]:
@@ -17174,7 +17232,7 @@ def _labyrinth_floor_fully_cleared(tile_states: object, size: object = LABYRINTH
 
 
 def _labyrinth_choose_template(boss: bool = False) -> str:
-    boss_pool = ['Runebound Sentinel', 'Spell Eater', 'Blackscale Drakekin', 'Void Carapace', 'Blackiron Templar', 'Dread Marionette']
+    boss_pool = ['Lamia']
     if boss:
         return random.choice(boss_pool)
     return str(random.choice(MONSTER_ARCHETYPES).get('type') or 'Templar')
@@ -17200,7 +17258,7 @@ def _generate_labyrinth_monster(monster_type: object, target_level: object, floo
     except Exception:
         safe_floor = 1
     base_level = max(1, requested_level)
-    difficulty_multiplier = 1.08 + ((safe_floor - 1) * 0.06) + (0.38 if boss else 0.0)
+    difficulty_multiplier = 1.08 + ((safe_floor - 1) * 0.03) + (0.38 if boss else 0.0)
     max_hp = random.randint(28, 40) + (base_level - 1) * random.randint(8, 11)
     attack_min = 4 + (base_level - 1) * 2
     attack_max = 8 + (base_level - 1) * 3
@@ -17257,7 +17315,7 @@ def _generate_labyrinth_monster(monster_type: object, target_level: object, floo
     physical_armor = max(0, int(round(physical_armor * late_game_scale)))
     magic_resistance = max(0, int(round(magic_resistance * late_game_scale)))
     max_hp = max(10, int(round(max_hp * monster_bonus_health_scale(base_level))))
-    overcap_scale = 1.0 + (max(0, requested_level - 60) * 0.07) + (max(0, safe_floor - 1) * 0.08) + (0.30 if boss else 0.0)
+    overcap_scale = 1.0 + (max(0, requested_level - 60) * 0.07) + (max(0, safe_floor - 1) * 0.04) + (0.30 if boss else 0.0)
     max_hp = max(18, int(round(max_hp * overcap_scale)))
     attack_min = max(1, int(round(attack_min * (1.0 + (overcap_scale - 1.0) * 0.62))))
     attack_max = max(attack_min + 1, int(round(attack_max * (1.0 + (overcap_scale - 1.0) * 0.70))))
@@ -17265,6 +17323,8 @@ def _generate_labyrinth_monster(monster_type: object, target_level: object, floo
     magic_resistance = max(0, int(round(magic_resistance * (1.0 + (overcap_scale - 1.0) * 0.42))))
     progressive_health_scale = 1.0 + masterquest_enemy_health_buff_fraction(player_class)
     max_hp = max(18, int(round(max_hp * progressive_health_scale)))
+    if boss:
+        max_hp = max(18, int(round(max_hp * 2.5)))
     species = str(archetype.get('type') or 'Lantern Beast')
     if boss:
         species = f'Radiant {species}'
@@ -17514,9 +17574,14 @@ def _labyrinth_member_payload(self, extra_updates: Optional[Dict[str, object]] =
     ensure_labyrinth_state(self)
     if self.player is None or self.active_slot_index is None:
         return {}
+    slot = normalize_slot_payload(self.slots[self.active_slot_index])
     profile_snapshot = _labyrinth_embed_combat_snapshot(_labyrinth_profile_payload_for_current_player(self), self.player)
     current_row = _labyrinth_self_member_row(self)
-    tank_value = bool(extra_updates.get('tank')) if isinstance(extra_updates, dict) and 'tank' in extra_updates else bool(current_row.get('tank', False)) if current_row else False
+    tank_value = (
+        bool(extra_updates.get('tank'))
+        if isinstance(extra_updates, dict) and 'tank' in extra_updates
+        else bool(current_row.get('tank', slot.get('labyrinth_player_tank', False)) if current_row else slot.get('labyrinth_player_tank', False))
+    )
     ability_state = _labyrinth_normalize_ability_state(extra_updates.get('ability_state', {})) if isinstance(extra_updates, dict) and 'ability_state' in extra_updates else _labyrinth_entry_ability_state(current_row)
     profile_snapshot['labyrinth_tank'] = tank_value
     profile_snapshot['labyrinth_ability_state'] = copy.deepcopy(ability_state)
@@ -18267,14 +18332,19 @@ def join_labyrinth_session(self, raw_code: str) -> bool:
         if normalize_ladder_mode(session_row.get('mode') or '', '') != self.current_slot_mode():
             self.labyrinth_status = f'That expedition is bound to {session_row.get("mode") or "another"} mode.'
             return False
-        if str(session_row.get('status') or '').strip().lower() == 'encounter':
-            self.labyrinth_status = 'That party is already inside a live encounter. Join between pulls.'
-            return False
         member_rows_raw = _supabase_response_data(
             self.supabase.table(LABYRINTH_SESSION_MEMBER_TABLE).select('*').eq('session_id', session_row['id']).limit(16).execute()
         )
         member_rows = [_labyrinth_normalize_member_row(raw_member) for raw_member in (member_rows_raw if isinstance(member_rows_raw, list) else [])]
         existing_member = next((row for row in member_rows if str(row.get('user_id') or '').strip() == str(self.auth_user_id or '').strip() and int(row.get('slot_index', 0) or 0) == int(self.active_slot_index + 1)), {})
+        current_signature = _labyrinth_resume_signature_for_player(self.player)
+        existing_signature = _labyrinth_resume_signature_from_snapshot(existing_member.get('combat_snapshot', {})) if existing_member else ''
+        if existing_member and current_signature and existing_signature and existing_signature != current_signature:
+            self.labyrinth_status = 'This expedition can only be continued if your level, stats, and equipped gear are unchanged since the disconnect.'
+            return False
+        if str(session_row.get('status') or '').strip().lower() in {'encounter', 'boss'} and not existing_member:
+            self.labyrinth_status = 'That party is already inside a live encounter. Join between pulls.'
+            return False
         if not existing_member and len([row for row in member_rows if row]) >= LABYRINTH_MAX_PARTY_SIZE:
             self.labyrinth_status = 'That expedition is already full.'
             return False
@@ -18290,12 +18360,21 @@ def join_labyrinth_session(self, raw_code: str) -> bool:
             })
         self.labyrinth_is_local = False
         changed = labyrinth_refresh_session_state(self, force=True)
-        self.labyrinth_status = f'Joined Labyrinth expedition {join_code}.'
+        self.labyrinth_status = (f'Continued Labyrinth expedition {join_code}.' if existing_member else f'Joined Labyrinth expedition {join_code}.')
         self.sync_active_slot()
         return changed or True
     except Exception as exc:
         self.labyrinth_status = f'Labyrinth join failed: {exc}'
         return False
+
+
+def continue_labyrinth_session(self) -> bool:
+    ensure_labyrinth_state(self)
+    saved_code = str(getattr(self, 'labyrinth_join_code', '') or '').strip().upper()
+    if not saved_code:
+        self.labyrinth_status = 'No saved Labyrinth expedition is available to continue.'
+        return False
+    return join_labyrinth_session(self, saved_code)
 
 
 def leave_labyrinth_session(self) -> bool:
@@ -21890,6 +21969,7 @@ SessionState.labyrinth_hire_companion = labyrinth_hire_companion
 SessionState.labyrinth_set_tank_role = labyrinth_set_tank_role
 SessionState.labyrinth_activate_ability = labyrinth_activate_ability
 SessionState.join_labyrinth_session = join_labyrinth_session
+SessionState.continue_labyrinth_session = continue_labyrinth_session
 SessionState.leave_labyrinth_session = leave_labyrinth_session
 SessionState.labyrinth_assign_controller = labyrinth_assign_controller
 SessionState.labyrinth_start_floor = labyrinth_start_floor
@@ -24252,6 +24332,8 @@ def main_page(request: Request) -> None:
                         current_floor = int(session_row.get('floor', 1) or 1) if session_row else 0
                         run_gold_earned = _labyrinth_pending_run_gold(session_row)
                         join_code = str(session_row.get('join_code') or getattr(state, 'labyrinth_join_code', '') or '').strip().upper()
+                        saved_continue_code = str(getattr(state, 'labyrinth_join_code', '') or '').strip().upper()
+                        saved_continue_floor = max(0, int(getattr(state, 'labyrinth_floor', 0) or 0))
                         scene_blocker = state.labyrinth_route_blocker()
                         multiplayer_blocker = state.labyrinth_multiplayer_blocker()
                         is_local_labyrinth = bool(getattr(state, 'labyrinth_is_local', False))
@@ -24289,6 +24371,11 @@ def main_page(request: Request) -> None:
                                     ui.label(str(getattr(state, 'labyrinth_status', '') or 'The Labyrinth of Light is still and silent.')).classes('text-slate-300 mt-2 leading-7')
                                 if not session_row:
                                     with ui.row().classes('w-full gap-4 mt-4 max-[1100px]:flex-col'):
+                                        if saved_continue_code and not multiplayer_blocker:
+                                            with ui.card().classes('mq-panel-frame flex-1 p-4'):
+                                                ui.label('Continue Expedition').classes('text-slate-100 text-2xl font-semibold')
+                                                ui.label(f'Rejoin your saved Labyrinth run at floor {saved_continue_floor or "?"} so long as your level, stats, and equipped gear are unchanged.').classes('mq-detail-text mt-2')
+                                                ui.button('Continue Saved Expedition', on_click=lambda: (state.continue_labyrinth_session(), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold mt-4')
                                         with ui.card().classes('mq-panel-frame flex-1 p-4'):
                                             ui.label('Solo Expedition').classes('text-slate-100 text-2xl font-semibold')
                                             ui.label('Run the Labyrinth of Light alone with the same maze, encounters, bosses, and prism votes, but without party setup or sign-in requirements.').classes('mq-detail-text mt-2')
@@ -24325,7 +24412,7 @@ def main_page(request: Request) -> None:
                                         ui.label(f'Leader: {session_row.get("leader_character_name") or "Unknown"}').classes('mq-lab-pill')
                                         ui.label(f'Controller: {next((row.get("character_name") for row in member_rows if str(row.get("user_id") or "").strip() == str(session_row.get("controller_user_id") or "").strip()), session_row.get("leader_character_name") or "Unknown")}').classes('mq-lab-pill')
                                         ui.label(f'{len(member_rows)}/{LABYRINTH_MAX_PARTY_SIZE} Members').classes('mq-lab-pill')
-                                        ui.html(f"<span class='mq-lab-pill'><span style='color:#f5d67a;'>Gold</span> {run_gold_earned}</span>")
+                                        ui.html(f"<span class='mq-lab-pill mq-lab-pill-gold'><span style='color:#f5d67a;'>Gold</span> {run_gold_earned}</span>")
                                         if modifier_stack:
                                                 ui.html(
                                                     persistent_hover_panel_html(
@@ -24422,7 +24509,9 @@ def main_page(request: Request) -> None:
                                                                     ui.label('Companion').classes('mq-lab-pill')
                                                                 if bool(row.get('is_downed', False)):
                                                                     ui.label('Downed').classes('mq-lab-pill')
-                                                                tank_btn = ui.button('T', on_click=lambda target_id=member_id, current_value=bool(row.get('tank', False)): (state.labyrinth_set_tank_role(target_id, not current_value), request_render_refresh())).classes('mq-btn-secondary mq-lab-tank-btn')
+                                                                tank_active = bool(row.get('tank', False))
+                                                                tank_btn = ui.button('T ON' if tank_active else 'T OFF', on_click=lambda target_id=member_id, current_value=tank_active: (state.labyrinth_set_tank_role(target_id, not current_value), request_render_refresh())).classes('mq-btn-secondary mq-lab-tank-btn')
+                                                                tank_btn._props['aria-pressed'] = 'true' if tank_active else 'false'
                                                                 if bool(row.get('tank', False)):
                                                                     tank_btn.classes('mq-lab-tank-btn-active')
                                                                 if not can_toggle_tank:
@@ -24509,7 +24598,7 @@ def main_page(request: Request) -> None:
                                                     monster_uri = _arena_monster_data_uri(monster_type)
                                                     monster_popup_html = _labyrinth_damage_popup_html(pending_encounter, 'monster-0')
                                                     with ui.column().classes('mq-lab-single-monster-shell items-center mt-4 gap-3'):
-                                                        with ui.element('div').classes('mq-scene-stage mq-monster-stage-themed mq-lab-monster-stage mq-lab-monster-stage-large w-full').style(monster_theme_style(monster_type)):
+                                                        with ui.element('div').classes(f"mq-scene-stage mq-monster-stage-themed mq-lab-monster-stage mq-lab-monster-stage-large w-full{' mq-lab-boss-stage' if bool(pending_encounter.get('boss', False)) else ''}").style(monster_theme_style(monster_type)):
                                                             if monster_uri:
                                                                 with ui.element('div').classes('mq-monster-image-wrap'):
                                                                     ui.html(f"<img src='{html.escape(monster_uri, quote=True)}' alt='{html.escape(monster_type)}' class='mq-monster-image-static' loading='lazy' decoding='async' draggable='false'>")
