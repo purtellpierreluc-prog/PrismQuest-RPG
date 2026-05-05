@@ -13094,6 +13094,7 @@ class SessionState:
             self.persist_to_disk()
             return
         slot = self.slots[self.active_slot_index]
+        _labyrinth_sync_local_self_row(self)
         if hasattr(self, 'labyrinth_roster_companions'):
             _labyrinth_sync_roster_companions_from_state(self)
         slot_mode = slot_mode_for_index(self.active_slot_index)
@@ -16892,6 +16893,23 @@ def _labyrinth_create_roster_companion_entry(self, player_class: object) -> Dict
     normalized_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
     companion_player = _labyrinth_build_companion_player(normalized_class, _labyrinth_roster_target_level(self))
     companion_player.name = normalized_class
+    for slot_name in ('weapon', 'armor', 'charm'):
+        subtype = _labyrinth_companion_slot_subtype(normalized_class, slot_name)
+        if not subtype:
+            companion_player.equipped[slot_name] = None
+            continue
+        companion_player.equipped[slot_name] = Item(
+            name=build_item_name('Common', slot_name, subtype),
+            slot=slot_name,
+            level=LABYRINTH_COMPANION_ITEM_LEVEL,
+            rarity='Common',
+            subtype=subtype,
+            base_stats=build_item_base_stats(slot_name, subtype, LABYRINTH_COMPANION_ITEM_LEVEL),
+            affix_stats={},
+        )
+    companion_player.recalculate_stats()
+    companion_player.hp = companion_player.max_hp
+    companion_player.mana = companion_player.max_mana
     return normalize_labyrinth_roster_companion({
         'id': _labyrinth_roster_companion_id(normalized_class),
         'player_class': normalized_class,
@@ -17044,6 +17062,78 @@ def _labyrinth_sync_roster_companions_from_state(self) -> None:
 def _labyrinth_refresh_roster_member_rows(self, updated_rows: List[Dict[str, object]]) -> None:
     session_row = dict(getattr(self, 'labyrinth_session_row', {}) or {})
     if not session_row:
+        return
+    pending = dict(session_row.get('pending_encounter', {}) if isinstance(session_row.get('pending_encounter', {}), dict) else {})
+    session_row['pending_encounter'] = pending
+    pending['party_state'] = _labyrinth_party_state_for_session(self, session_row, updated_rows, full_heal=False)
+    _labyrinth_store_snapshot(
+        self,
+        _labyrinth_normalize_session_row(session_row),
+        updated_rows,
+        [dict(row) for row in list(getattr(self, 'labyrinth_vote_rows', []) or []) if isinstance(row, dict)],
+    )
+
+
+def _labyrinth_remove_matching_saved_set_item(self, item: Optional[Item]) -> None:
+    normalized_item = coerce_item(item)
+    if normalized_item is None:
+        return
+    target_payload = normalized_item.to_dict()
+    changed = False
+    for category, slot_items in list((self.saved_item_sets or {}).items()):
+        if not isinstance(slot_items, dict):
+            continue
+        buckets_to_remove: List[int] = []
+        for bucket, saved_item in list(slot_items.items()):
+            existing_item = coerce_item(saved_item)
+            if existing_item is None:
+                continue
+            if existing_item.to_dict() == target_payload:
+                buckets_to_remove.append(bucket)
+                break
+        for bucket in buckets_to_remove:
+            slot_items.pop(bucket, None)
+            changed = True
+    if changed:
+        self.saved_item_sets = saved_item_sets_from_payload(saved_item_sets_to_payload(self.saved_item_sets))
+
+
+def _labyrinth_sync_local_self_row(self) -> None:
+    ensure_labyrinth_state(self)
+    if not bool(getattr(self, 'labyrinth_is_local', False)):
+        return
+    if self.player is None or self.active_slot_index is None:
+        return
+    session_row = dict(getattr(self, 'labyrinth_session_row', {}) or {})
+    if not session_row:
+        return
+    member_rows = [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
+    if not member_rows:
+        return
+    self_identity = _labyrinth_member_identity(self)
+    refreshed_self_row = _labyrinth_normalize_member_row(_labyrinth_member_payload(self))
+    updated_rows: List[Dict[str, object]] = []
+    replaced = False
+    for row in member_rows:
+        if str(row.get('user_id') or '').strip() == self_identity and not bool(row.get('is_companion', False)):
+            refreshed_self_row['tank'] = bool(row.get('tank', refreshed_self_row.get('tank', False)))
+            refreshed_self_row['last_resolution_sequence'] = int(row.get('last_resolution_sequence', 0) or 0)
+            refreshed_self_row['last_resolution_status'] = str(row.get('last_resolution_status') or '').strip().lower()
+            refreshed_self_row['resolution_note'] = str(row.get('resolution_note') or '').strip()
+            refreshed_self_row['joined_at'] = str(row.get('joined_at') or refreshed_self_row.get('joined_at') or _labyrinth_now_iso()).strip()
+            refreshed_self_row['updated_at'] = _labyrinth_now_iso()
+            refreshed_self_row['ability_state'] = copy.deepcopy(_labyrinth_entry_ability_state(row))
+            profile_snapshot = dict(refreshed_self_row.get('profile_snapshot', {}) if isinstance(refreshed_self_row.get('profile_snapshot', {}), dict) else {})
+            profile_snapshot['labyrinth_tank'] = bool(refreshed_self_row.get('tank', False))
+            profile_snapshot['labyrinth_ability_state'] = copy.deepcopy(refreshed_self_row.get('ability_state', {}))
+            if isinstance(refreshed_self_row.get('combat_snapshot', {}), dict):
+                profile_snapshot['combat_snapshot'] = copy.deepcopy(refreshed_self_row.get('combat_snapshot', {}))
+            refreshed_self_row['profile_snapshot'] = profile_snapshot
+            updated_rows.append(_labyrinth_normalize_member_row(refreshed_self_row))
+            replaced = True
+        else:
+            updated_rows.append(dict(row))
+    if not replaced:
         return
     pending = dict(session_row.get('pending_encounter', {}) if isinstance(session_row.get('pending_encounter', {}), dict) else {})
     session_row['pending_encounter'] = pending
@@ -18773,6 +18863,7 @@ def labyrinth_set_roster_companion_item(self, companion_id: object, slot_name: o
         self.labyrinth_status = reason_text
         return False
     removed_item = self.player.inventory.pop(inventory_index)
+    _labyrinth_remove_matching_saved_set_item(self, removed_item)
     current_item = coerce_item((target_entry.get('equipped', {}) if isinstance(target_entry.get('equipped', {}), dict) else {}).get(normalized_slot))
     current_source = str((target_entry.get('equipped_item_sources', {}) if isinstance(target_entry.get('equipped_item_sources', {}), dict) else {}).get(normalized_slot) or 'companion').strip().lower()
     if current_item is not None and current_source == 'player':
@@ -25454,9 +25545,10 @@ def main_page(request: Request) -> None:
                                                                     rename_input = ui.input(
                                                                         label='Companion Name',
                                                                         value=roster_name,
-                                                                        on_change=lambda e, companion_id=roster_id: (state.labyrinth_rename_roster_companion(companion_id, e.value), request_render_refresh()),
                                                                     ).props('outlined dense').classes('w-full')
                                                                     rename_input.props('input-style=color: #e2e8f0;')
+                                                                    rename_input.on('blur', lambda _e, companion_id=roster_id, field=rename_input: state.labyrinth_rename_roster_companion(companion_id, field.value))
+                                                                    rename_input.on('keydown.enter', lambda _e, companion_id=roster_id, field=rename_input: state.labyrinth_rename_roster_companion(companion_id, field.value))
                                                                     ui.label(f'Expedition Level {max(LABYRINTH_UNLOCK_LEVEL, int(player.level or LABYRINTH_UNLOCK_LEVEL))}').classes('mq-detail-text')
                                                                 with ui.row().classes('gap-2 items-center flex-wrap'):
                                                                     add_btn = ui.button(
