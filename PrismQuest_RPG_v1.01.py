@@ -6952,6 +6952,7 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
         'labyrinth_join_code': '',
         'labyrinth_floor': 0,
         'labyrinth_player_tank': False,
+        'labyrinth_roster_companions': [],
         'season_id': normalized_season,
         'ladder_reset_count': 0,
         'run_started_wall_time': 0.0,
@@ -6979,6 +6980,7 @@ LABYRINTH_SESSION_VOTE_TABLE = 'labyrinth_session_votes'
 LABYRINTH_JOIN_CODE_PREFIX = 'LUX'
 LABYRINTH_REWARD_VOTE_SECONDS = 25
 LABYRINTH_COMPANION_COST = 100
+LABYRINTH_ROSTER_COMPANION_COST = 1000
 LABYRINTH_COMPANION_ITEM_LEVEL = 45
 LABYRINTH_CONTROLLER_DIRECTIONS: Dict[str, Tuple[int, int]] = {
     'up': (0, -1),
@@ -7396,6 +7398,71 @@ def local_pq_ledger_rows_for_slots(slots: object, current_global_season_id: obje
     return output
 
 
+def _labyrinth_roster_companion_id(player_class: object) -> str:
+    normalized_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
+    safe_slug = ''.join(ch.lower() if ch.isalnum() else '-' for ch in normalized_class)
+    while '--' in safe_slug:
+        safe_slug = safe_slug.replace('--', '-')
+    return safe_slug.strip('-') or 'black-guard'
+
+
+def _labyrinth_default_roster_item_sources() -> Dict[str, str]:
+    return {
+        'weapon': 'companion',
+        'armor': 'companion',
+        'charm': 'companion',
+    }
+
+
+def normalize_labyrinth_roster_companion(raw_entry: object) -> Optional[Dict[str, object]]:
+    if not isinstance(raw_entry, dict):
+        return None
+    player_class = normalize_player_class_name(raw_entry.get('player_class'), '')
+    if player_class not in KNOWN_CLASS_NAMES:
+        return None
+    companion_id = str(raw_entry.get('id') or '').strip() or _labyrinth_roster_companion_id(player_class)
+    custom_name = clean_character_name(str(raw_entry.get('custom_name') or raw_entry.get('character_name') or player_class)) or player_class
+    raw_equipped = raw_entry.get('equipped', {})
+    equipped_payload: Dict[str, Optional[Dict[str, object]]] = {}
+    for slot_name in ('weapon', 'armor', 'charm'):
+        item = coerce_item(raw_equipped.get(slot_name) if isinstance(raw_equipped, dict) else None)
+        equipped_payload[slot_name] = copy.deepcopy(item.to_dict()) if item is not None else None
+    raw_sources = raw_entry.get('equipped_item_sources', {})
+    equipped_item_sources = _labyrinth_default_roster_item_sources()
+    if isinstance(raw_sources, dict):
+        for slot_name in ('weapon', 'armor', 'charm'):
+            source_value = str(raw_sources.get(slot_name) or equipped_item_sources[slot_name]).strip().lower()
+            equipped_item_sources[slot_name] = source_value if source_value in {'player', 'companion'} else equipped_item_sources[slot_name]
+    prof_levels = raw_entry.get('proficiency_levels', {})
+    prof_progress = raw_entry.get('proficiency_progress', {})
+    return {
+        'id': companion_id,
+        'player_class': player_class,
+        'custom_name': custom_name,
+        'equipped': equipped_payload,
+        'equipped_item_sources': equipped_item_sources,
+        'proficiency_levels': {**empty_proficiency_levels(), **(prof_levels if isinstance(prof_levels, dict) else {})},
+        'proficiency_progress': {**empty_proficiency_progress(), **(prof_progress if isinstance(prof_progress, dict) else {})},
+    }
+
+
+def normalize_labyrinth_roster_companions(raw_entries: object) -> List[Dict[str, object]]:
+    rows: List[Dict[str, object]] = []
+    seen_ids: Set[str] = set()
+    if isinstance(raw_entries, list):
+        for raw_entry in raw_entries:
+            normalized = normalize_labyrinth_roster_companion(raw_entry)
+            if normalized is None:
+                continue
+            companion_id = str(normalized.get('id') or '').strip()
+            if not companion_id or companion_id in seen_ids:
+                continue
+            seen_ids.add(companion_id)
+            rows.append(normalized)
+    rows.sort(key=lambda entry: ALL_CLASS_ORDER.index(entry.get('player_class')) if entry.get('player_class') in ALL_CLASS_ORDER else 999)
+    return rows
+
+
 def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
     slot = build_default_slot_payload()
     if not isinstance(raw_slot, dict):
@@ -7461,6 +7528,7 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
         slot['labyrinth_floor'] = max(0, int(raw_slot.get('labyrinth_floor', 0) or 0))
     except Exception:
         slot['labyrinth_floor'] = 0
+    slot['labyrinth_roster_companions'] = normalize_labyrinth_roster_companions(raw_slot.get('labyrinth_roster_companions', []))
     slot['ladder_reset_count'] = sanitize_ladder_reset_count(raw_slot.get('ladder_reset_count', 0))
     raw_run_started = raw_slot.get('run_started_wall_time', 0.0)
     try:
@@ -12447,11 +12515,13 @@ class SessionState:
         self.global_ladder_reset_count = max(int(self.global_ladder_reset_count), self.current_global_season_id - 1)
         return False
 
-    def ladder_reset_slot_payload(self, season_id: int, reset_count: int) -> Dict[str, object]:
+    def ladder_reset_slot_payload(self, season_id: int, reset_count: int, previous_slot: Optional[Dict[str, object]] = None) -> Dict[str, object]:
         season = sanitize_ladder_season_id(season_id)
         slot = build_default_slot_payload(season)
         slot['season_id'] = season
         slot['ladder_reset_count'] = sanitize_ladder_reset_count(reset_count)
+        if isinstance(previous_slot, dict):
+            slot['labyrinth_roster_companions'] = normalize_labyrinth_roster_companions(previous_slot.get('labyrinth_roster_companions', []))
         return slot
 
     def _apply_runtime_ladder_reset_state(self, notice: str, tone: str = 'warning') -> None:
@@ -12554,7 +12624,10 @@ class SessionState:
             for slot in self.slots if isinstance(slot, dict)
         ):
             return False
-        self.slots = [self.ladder_reset_slot_payload(target_season, target_resets) for _ in range(3)]
+        self.slots = [
+            self.ladder_reset_slot_payload(target_season, target_resets, normalize_slot_payload(slot) if isinstance(slot, dict) else None)
+            for slot in self.slots
+        ]
         notice = f'New ladder season live. The seasonal apex has shattered the old climb. All chronicles return to feeder-class selection. Ladder Resets {target_resets}.'
         self._apply_runtime_ladder_reset_state(notice, 'warning' if announce else 'success')
         self.persist_to_disk()
@@ -13021,6 +13094,8 @@ class SessionState:
             self.persist_to_disk()
             return
         slot = self.slots[self.active_slot_index]
+        if hasattr(self, 'labyrinth_roster_companions'):
+            _labyrinth_sync_roster_companions_from_state(self)
         slot_mode = slot_mode_for_index(self.active_slot_index)
         slot_season_id = int(
             self.current_global_season_id
@@ -13071,6 +13146,7 @@ class SessionState:
             slot['labyrinth_session_id'] = str(getattr(self, 'labyrinth_session_id', '') or '').strip()
             slot['labyrinth_join_code'] = str(getattr(self, 'labyrinth_join_code', '') or '').strip().upper()
             slot['labyrinth_floor'] = max(0, int(getattr(self, 'labyrinth_floor', 0) or 0))
+        slot['labyrinth_roster_companions'] = [copy.deepcopy(entry) for entry in normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', []))]
         slot['ladder_reset_count'] = int(self.current_account_ladder_resets())
         slot['run_started_wall_time'] = float(self.current_run_start_wall_time if self.player is not None else 0.0)
         slot['player'] = None if self.player is None else copy.deepcopy(self.player.to_dict())
@@ -13181,6 +13257,10 @@ class SessionState:
         self.labyrinth_session_id = str(slot.get('labyrinth_session_id', '') or '').strip()
         self.labyrinth_join_code = str(slot.get('labyrinth_join_code', '') or '').strip().upper()
         self.labyrinth_floor = max(0, int(slot.get('labyrinth_floor', 0) or 0))
+        self.labyrinth_roster_companions = normalize_labyrinth_roster_companions(slot.get('labyrinth_roster_companions', []))
+        self.labyrinth_panel_view = 'expedition'
+        self.labyrinth_roster_purchase_class_draft = next(iter({class_name: class_name for class_name in ALL_CLASS_ORDER}.keys()), 'Black Guard')
+        self.labyrinth_roster_item_drafts = {}
         self.labyrinth_session_row = {}
         self.labyrinth_member_rows = []
         self.labyrinth_vote_rows = []
@@ -13766,6 +13846,7 @@ def finish_masterquest_attempt(self, passed: bool) -> None:
             reset_slot = build_default_slot_payload(reset_season_id)
             reset_slot['season_id'] = reset_season_id
             reset_slot['ladder_reset_count'] = new_reset_count
+            reset_slot['labyrinth_roster_companions'] = normalize_labyrinth_roster_companions(base_slot.get('labyrinth_roster_companions', []))
             self.slots[slot_index] = reset_slot
             self.player = None
             self.current_run_started_at = 0.0
@@ -15108,6 +15189,7 @@ def export_save(self) -> None:
         'hotkey_bindings': dict(normalize_hotkey_bindings(self.hotkey_bindings)),
         'disable_last_drop_animation': bool(self.disable_last_drop_animation),
         'arena_combat_log_default_open': bool(self.arena_combat_log_default_open),
+        'labyrinth_roster_companions': [copy.deepcopy(entry) for entry in normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', []))],
     }
     raw = json.dumps(payload, separators=(',', ':')).encode('utf-8')
     self.export_code = base64.urlsafe_b64encode(raw).decode('utf-8')
@@ -15160,6 +15242,7 @@ def import_save(self) -> None:
         self.hotkey_bindings = normalize_hotkey_bindings(payload.get('hotkey_bindings'))
         self.disable_last_drop_animation = bool(payload.get('disable_last_drop_animation', False))
         self.arena_combat_log_default_open = bool(payload.get('arena_combat_log_default_open', False))
+        self.labyrinth_roster_companions = normalize_labyrinth_roster_companions(payload.get('labyrinth_roster_companions', []))
         self.scene_tutorial_open_key = ''
         self.trigger_town_tutorial_if_needed()
         self.log = [CombatEvent(f'Save imported. Welcome back, level {self.player.level} {self.player.player_class}.', 'success')]
@@ -16782,6 +16865,226 @@ def _labyrinth_build_companion_member_row(self, player_class: str, member_rows: 
     })
 
 
+def _labyrinth_roster_target_level(self) -> int:
+    return max(LABYRINTH_UNLOCK_LEVEL, int(self.player.level if self.player is not None else LABYRINTH_UNLOCK_LEVEL))
+
+
+def _labyrinth_class_can_equip_item(player_class: object, item: Optional[Item]) -> bool:
+    if item is None:
+        return False
+    normalized_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
+    rules = CLASS_EQUIP_RULES.get(normalized_class, {})
+    slot = str(getattr(item, 'slot', '') or '')
+    subtype = str(getattr(item, 'subtype', '') or '')
+    if slot == 'weapon':
+        allowed = rules.get('weapon')
+        return allowed is None or subtype in allowed
+    if slot == 'armor':
+        allowed = rules.get('armor')
+        return allowed is None or subtype in allowed
+    if slot == 'charm':
+        allowed = rules.get('charm')
+        return allowed is None or subtype in allowed
+    return False
+
+
+def _labyrinth_create_roster_companion_entry(self, player_class: object) -> Dict[str, object]:
+    normalized_class = normalize_player_class_name(player_class, str(player_class or 'Black Guard'))
+    companion_player = _labyrinth_build_companion_player(normalized_class, _labyrinth_roster_target_level(self))
+    companion_player.name = normalized_class
+    return normalize_labyrinth_roster_companion({
+        'id': _labyrinth_roster_companion_id(normalized_class),
+        'player_class': normalized_class,
+        'custom_name': companion_player.name,
+        'equipped': {
+            slot_name: (
+                companion_player.equipped.get(slot_name).to_dict()
+                if coerce_item(companion_player.equipped.get(slot_name)) is not None
+                else None
+            )
+            for slot_name in ('weapon', 'armor', 'charm')
+        },
+        'equipped_item_sources': _labyrinth_default_roster_item_sources(),
+        'proficiency_levels': dict(getattr(companion_player, 'proficiency_levels', empty_proficiency_levels())),
+        'proficiency_progress': dict(getattr(companion_player, 'proficiency_progress', empty_proficiency_progress())),
+    }) or {}
+
+
+def _labyrinth_build_roster_companion_player(roster_entry: Dict[str, object], target_level: object) -> Player:
+    normalized_entry = normalize_labyrinth_roster_companion(roster_entry)
+    if normalized_entry is None:
+        normalized_entry = {
+            'id': _labyrinth_roster_companion_id('Black Guard'),
+            'player_class': 'Black Guard',
+            'custom_name': 'Black Guard',
+            'equipped': {},
+            'equipped_item_sources': _labyrinth_default_roster_item_sources(),
+            'proficiency_levels': empty_proficiency_levels(),
+            'proficiency_progress': empty_proficiency_progress(),
+        }
+    player_class = normalize_player_class_name(normalized_entry.get('player_class'), 'Black Guard')
+    player = _labyrinth_build_companion_player(player_class, target_level)
+    player.name = clean_character_name(str(normalized_entry.get('custom_name') or player_class)) or player_class
+    player.proficiency_levels = {**empty_proficiency_levels(), **dict(normalized_entry.get('proficiency_levels', {}))}
+    player.proficiency_progress = {**empty_proficiency_progress(), **dict(normalized_entry.get('proficiency_progress', {}))}
+    equipped_payload = normalized_entry.get('equipped', {}) if isinstance(normalized_entry.get('equipped', {}), dict) else {}
+    for slot_name in ('weapon', 'armor', 'charm'):
+        if slot_name not in equipped_payload:
+            continue
+        saved_item = coerce_item(equipped_payload.get(slot_name))
+        if saved_item is None:
+            player.equipped[slot_name] = None
+            continue
+        player.equipped[slot_name] = copy.deepcopy(saved_item) if _labyrinth_class_can_equip_item(player_class, saved_item) else None
+    player.inventory = []
+    player.gold = 0
+    player.recalculate_stats()
+    player.hp = player.max_hp
+    player.mana = player.max_mana
+    return player
+
+
+def _labyrinth_roster_companion_slot_index(self, companion_id: str) -> int:
+    roster_entries = normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', []))
+    for index, entry in enumerate(roster_entries, start=1):
+        if str(entry.get('id') or '').strip() == str(companion_id or '').strip():
+            return 200 + index
+    return 299
+
+
+def _labyrinth_build_roster_companion_member_row(self, roster_entry: Dict[str, object]) -> Dict[str, object]:
+    normalized_entry = normalize_labyrinth_roster_companion(roster_entry)
+    if normalized_entry is None:
+        return {}
+    companion_player = _labyrinth_build_roster_companion_player(normalized_entry, _labyrinth_roster_target_level(self))
+    companion_id = str(normalized_entry.get('id') or '').strip()
+    companion_name = clean_character_name(str(normalized_entry.get('custom_name') or normalized_entry.get('player_class') or 'Companion')) or 'Companion'
+    companion_player.name = companion_name
+    profile_snapshot = _labyrinth_embed_combat_snapshot({
+        'character_name': companion_name,
+        'highest_class': normalized_entry.get('player_class'),
+        'player_class': normalized_entry.get('player_class'),
+        'level': companion_player.level,
+        'labyrinth_tank': False,
+        'equipped_items': {
+            slot_name: (
+                companion_player.equipped.get(slot_name).to_dict()
+                if coerce_item(companion_player.equipped.get(slot_name)) is not None
+                else None
+            )
+            for slot_name in ('weapon', 'armor', 'charm')
+        },
+    }, companion_player)
+    return _labyrinth_normalize_member_row({
+        'id': '',
+        'session_id': str(getattr(self, 'labyrinth_session_id', '') or '').strip(),
+        'user_id': f'local-roster-companion::{companion_id}',
+        'is_companion': True,
+        'roster_companion_id': companion_id,
+        'tank': False,
+        'character_name': companion_name,
+        'mode': self.current_slot_mode(),
+        'slot_index': _labyrinth_roster_companion_slot_index(self, companion_id),
+        'player_class': normalized_entry.get('player_class'),
+        'level': int(companion_player.level),
+        'current_hp': int(companion_player.hp),
+        'max_hp': int(companion_player.max_hp),
+        'current_mana': int(companion_player.mana),
+        'max_mana': int(companion_player.max_mana),
+        'current_xp': int(companion_player.xp),
+        'xp_to_next': int(max(1, companion_player.xp_to_next)),
+        'is_downed': False,
+        'last_resolution_sequence': 0,
+        'last_resolution_status': '',
+        'resolution_note': 'Added from your roster.',
+        'joined_at': _labyrinth_now_iso(),
+        'updated_at': _labyrinth_now_iso(),
+        'profile_snapshot': profile_snapshot,
+    })
+
+
+def _labyrinth_sync_roster_companions_from_state(self) -> None:
+    roster_entries = normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', []))
+    if not roster_entries:
+        self.labyrinth_roster_companions = []
+        return
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    pending = session_row.get('pending_encounter', {}) if isinstance(session_row, dict) and isinstance(session_row.get('pending_encounter', {}), dict) else {}
+    party_state = _labyrinth_party_state_map(pending)
+    projected_rows = _labyrinth_member_rows_from_party_state(
+        [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)],
+        party_state,
+    )
+    row_lookup = {
+        str(row.get('roster_companion_id') or '').strip(): row
+        for row in projected_rows
+        if isinstance(row, dict) and str(row.get('roster_companion_id') or '').strip()
+    }
+    normalized_rows: List[Dict[str, object]] = []
+    for entry in roster_entries:
+        updated_entry = normalize_labyrinth_roster_companion(entry) or {}
+        roster_id = str(updated_entry.get('id') or '').strip()
+        active_row = row_lookup.get(roster_id)
+        combat_snapshot = active_row.get('combat_snapshot', {}) if isinstance(active_row, dict) and isinstance(active_row.get('combat_snapshot', {}), dict) else {}
+        if isinstance(active_row, dict) and active_row:
+            updated_entry['custom_name'] = clean_character_name(str(active_row.get('character_name') or updated_entry.get('custom_name') or updated_entry.get('player_class') or 'Companion')) or str(updated_entry.get('player_class') or 'Companion')
+        if isinstance(combat_snapshot, dict) and combat_snapshot:
+            equipped_payload = combat_snapshot.get('equipped', {}) if isinstance(combat_snapshot.get('equipped', {}), dict) else {}
+            for slot_name in ('weapon', 'armor', 'charm'):
+                saved_item = coerce_item(equipped_payload.get(slot_name))
+                if saved_item is not None or slot_name in equipped_payload:
+                    updated_entry.setdefault('equipped', {})
+                    updated_entry['equipped'][slot_name] = copy.deepcopy(saved_item.to_dict()) if saved_item is not None else None
+            updated_entry['proficiency_levels'] = {**empty_proficiency_levels(), **dict(combat_snapshot.get('proficiency_levels', updated_entry.get('proficiency_levels', {})))}
+            updated_entry['proficiency_progress'] = {**empty_proficiency_progress(), **dict(combat_snapshot.get('proficiency_progress', updated_entry.get('proficiency_progress', {})))}
+        normalized_rows.append(normalize_labyrinth_roster_companion(updated_entry) or updated_entry)
+    self.labyrinth_roster_companions = normalize_labyrinth_roster_companions(normalized_rows)
+
+
+def _labyrinth_refresh_roster_member_rows(self, updated_rows: List[Dict[str, object]]) -> None:
+    session_row = dict(getattr(self, 'labyrinth_session_row', {}) or {})
+    if not session_row:
+        return
+    pending = dict(session_row.get('pending_encounter', {}) if isinstance(session_row.get('pending_encounter', {}), dict) else {})
+    session_row['pending_encounter'] = pending
+    pending['party_state'] = _labyrinth_party_state_for_session(self, session_row, updated_rows, full_heal=False)
+    _labyrinth_store_snapshot(
+        self,
+        _labyrinth_normalize_session_row(session_row),
+        updated_rows,
+        [dict(row) for row in list(getattr(self, 'labyrinth_vote_rows', []) or []) if isinstance(row, dict)],
+    )
+
+
+def _labyrinth_rebuild_active_roster_member_row(self, existing_row: Dict[str, object], roster_entry: Dict[str, object]) -> Dict[str, object]:
+    rebuilt_row = _labyrinth_build_roster_companion_member_row(self, roster_entry)
+    if not rebuilt_row:
+        return dict(existing_row)
+    ability_state = copy.deepcopy(_labyrinth_entry_ability_state(existing_row))
+    current_hp = int(existing_row.get('current_hp', rebuilt_row.get('max_hp', 1)) or rebuilt_row.get('max_hp', 1))
+    current_mana = int(existing_row.get('current_mana', rebuilt_row.get('max_mana', 0)) or rebuilt_row.get('max_mana', 0))
+    rebuilt_row['current_hp'] = max(0, min(int(rebuilt_row.get('max_hp', 1) or 1), current_hp))
+    rebuilt_row['current_mana'] = max(0, min(int(rebuilt_row.get('max_mana', 0) or 0), current_mana))
+    rebuilt_row['tank'] = bool(existing_row.get('tank', False))
+    rebuilt_row['last_resolution_sequence'] = int(existing_row.get('last_resolution_sequence', 0) or 0)
+    rebuilt_row['last_resolution_status'] = str(existing_row.get('last_resolution_status') or '').strip().lower()
+    rebuilt_row['resolution_note'] = str(existing_row.get('resolution_note') or '').strip()
+    rebuilt_row['joined_at'] = str(existing_row.get('joined_at') or rebuilt_row.get('joined_at') or _labyrinth_now_iso()).strip()
+    rebuilt_row['updated_at'] = _labyrinth_now_iso()
+    rebuilt_row['ability_state'] = ability_state
+    profile_snapshot = dict(rebuilt_row.get('profile_snapshot', {}) if isinstance(rebuilt_row.get('profile_snapshot', {}), dict) else {})
+    profile_snapshot['labyrinth_tank'] = bool(rebuilt_row.get('tank', False))
+    profile_snapshot['labyrinth_ability_state'] = copy.deepcopy(ability_state)
+    if isinstance(rebuilt_row.get('combat_snapshot', {}), dict):
+        combat_snapshot = copy.deepcopy(rebuilt_row.get('combat_snapshot', {}))
+        combat_snapshot['hp'] = int(rebuilt_row.get('current_hp', rebuilt_row.get('max_hp', 1)) or rebuilt_row.get('max_hp', 1))
+        combat_snapshot['mana'] = int(rebuilt_row.get('current_mana', rebuilt_row.get('max_mana', 0)) or rebuilt_row.get('max_mana', 0))
+        profile_snapshot['combat_snapshot'] = combat_snapshot
+        rebuilt_row['combat_snapshot'] = combat_snapshot
+    rebuilt_row['profile_snapshot'] = profile_snapshot
+    return _labyrinth_normalize_member_row(rebuilt_row)
+
+
 def _labyrinth_extract_combat_snapshot(raw_profile: object) -> Dict[str, object]:
     if not isinstance(raw_profile, dict):
         return {}
@@ -17528,6 +17831,10 @@ def ensure_labyrinth_state(self) -> None:
         'labyrinth_status': 'The Labyrinth of Light is still and silent.',
         'labyrinth_join_code_draft': '',
         'labyrinth_companion_class_draft': ALL_CLASS_ORDER[0] if ALL_CLASS_ORDER else 'Black Guard',
+        'labyrinth_roster_purchase_class_draft': ALL_CLASS_ORDER[0] if ALL_CLASS_ORDER else 'Black Guard',
+        'labyrinth_roster_companions': [],
+        'labyrinth_roster_item_drafts': {},
+        'labyrinth_panel_view': 'expedition',
         'labyrinth_session_id': '',
         'labyrinth_join_code': '',
         'labyrinth_floor': 0,
@@ -17705,6 +18012,7 @@ def _labyrinth_normalize_member_row(raw_row: object) -> Dict[str, object]:
         'session_id': str(raw_row.get('session_id') or '').strip(),
         'user_id': str(raw_row.get('user_id') or '').strip(),
         'is_companion': bool(raw_row.get('is_companion', False)),
+        'roster_companion_id': str(raw_row.get('roster_companion_id') or '').strip(),
         'tank': bool(raw_row.get('tank', snapshot.get('labyrinth_tank', False) if isinstance(snapshot, dict) else False)),
         'character_name': clean_character_name(str(raw_row.get('character_name') or 'Unknown Adventurer')) or 'Unknown Adventurer',
         'mode': normalize_ladder_mode(raw_row.get('mode') or '', ''),
@@ -18293,6 +18601,247 @@ def labyrinth_hire_companion(self, raw_class: object) -> bool:
         [dict(row) for row in list(getattr(self, 'labyrinth_vote_rows', []) or []) if isinstance(row, dict)],
     )
     self.labyrinth_status = f'{companion_row.get("character_name") or companion_class} hired for {LABYRINTH_COMPANION_COST} gold.'
+    self.sync_active_slot()
+    return True
+
+
+def labyrinth_set_roster_item_draft(self, companion_id: object, slot_name: object, raw_value: object) -> None:
+    ensure_labyrinth_state(self)
+    roster_id = str(companion_id or '').strip()
+    normalized_slot = str(slot_name or '').strip().lower()
+    if not roster_id or normalized_slot not in {'weapon', 'armor', 'charm'}:
+        return
+    drafts = copy.deepcopy(getattr(self, 'labyrinth_roster_item_drafts', {}) or {})
+    slot_drafts = dict(drafts.get(roster_id, {}) if isinstance(drafts.get(roster_id, {}), dict) else {})
+    slot_drafts[normalized_slot] = str(raw_value or '').strip()
+    drafts[roster_id] = slot_drafts
+    self.labyrinth_roster_item_drafts = drafts
+
+
+def labyrinth_buy_roster_companion(self, raw_class: object) -> bool:
+    ensure_labyrinth_state(self)
+    if not bool(getattr(self, 'labyrinth_is_local', False)):
+        self.labyrinth_status = 'Permanent companions can only be purchased inside a solo Labyrinth expedition.'
+        return False
+    if self.player is None or self.active_slot_index is None:
+        self.labyrinth_status = 'Open a live chronicle first.'
+        return False
+    companion_class = normalize_player_class_name(raw_class, '')
+    if companion_class not in KNOWN_CLASS_NAMES:
+        self.labyrinth_status = 'Choose a valid companion type first.'
+        return False
+    roster_id = _labyrinth_roster_companion_id(companion_class)
+    roster_entries = normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', []))
+    if any(str(entry.get('id') or '').strip() == roster_id for entry in roster_entries):
+        self.labyrinth_status = f'You already own a permanent {companion_class} companion.'
+        return False
+    if int(self.player.gold or 0) < LABYRINTH_ROSTER_COMPANION_COST:
+        self.labyrinth_status = f'You need {LABYRINTH_ROSTER_COMPANION_COST} gold to purchase a permanent companion.'
+        return False
+    roster_entry = _labyrinth_create_roster_companion_entry(self, companion_class)
+    if not roster_entry:
+        self.labyrinth_status = 'That companion could not be forged into your roster right now.'
+        return False
+    self.player.gold -= LABYRINTH_ROSTER_COMPANION_COST
+    roster_entries.append(roster_entry)
+    self.labyrinth_roster_companions = normalize_labyrinth_roster_companions(roster_entries)
+    self.labyrinth_status = f'{roster_entry.get("custom_name") or companion_class} joined your permanent roster for {LABYRINTH_ROSTER_COMPANION_COST} gold.'
+    self.sync_active_slot()
+    return True
+
+
+def labyrinth_rename_roster_companion(self, companion_id: object, raw_name: object) -> bool:
+    ensure_labyrinth_state(self)
+    if self.player is None or self.active_slot_index is None:
+        return False
+    roster_id = str(companion_id or '').strip()
+    if not roster_id:
+        return False
+    clean_name = clean_character_name(str(raw_name or '').strip())[:28]
+    roster_entries = normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', []))
+    changed = False
+    for entry in roster_entries:
+        if str(entry.get('id') or '').strip() != roster_id:
+            continue
+        fallback_name = str(entry.get('player_class') or 'Companion')
+        entry['custom_name'] = clean_name or fallback_name
+        changed = True
+        break
+    if not changed:
+        return False
+    self.labyrinth_roster_companions = normalize_labyrinth_roster_companions(roster_entries)
+    if bool(getattr(self, 'labyrinth_is_local', False)):
+        session_status = str((getattr(self, 'labyrinth_session_row', {}) or {}).get('status') or '').strip().lower()
+        if session_status not in {'encounter', 'boss'}:
+            member_rows = [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
+            updated_rows: List[Dict[str, object]] = []
+            active_changed = False
+            updated_entry = next((entry for entry in self.labyrinth_roster_companions if str(entry.get('id') or '').strip() == roster_id), None)
+            for row in member_rows:
+                if str(row.get('roster_companion_id') or '').strip() == roster_id and isinstance(updated_entry, dict):
+                    updated_rows.append(_labyrinth_rebuild_active_roster_member_row(self, row, updated_entry))
+                    active_changed = True
+                else:
+                    updated_rows.append(dict(row))
+            if active_changed:
+                _labyrinth_refresh_roster_member_rows(self, updated_rows)
+    self.sync_active_slot()
+    return True
+
+
+def labyrinth_add_roster_companion_to_expedition(self, companion_id: object) -> bool:
+    ensure_labyrinth_state(self)
+    if not bool(getattr(self, 'labyrinth_is_local', False)):
+        self.labyrinth_status = 'Roster companions can only be deployed in solo Labyrinth expeditions.'
+        return False
+    if self.player is None or self.active_slot_index is None:
+        self.labyrinth_status = 'Open a live chronicle first.'
+        return False
+    session_row = getattr(self, 'labyrinth_session_row', {})
+    if not isinstance(session_row, dict) or not session_row:
+        self.labyrinth_status = 'Open a solo Labyrinth expedition first.'
+        return False
+    session_status = str(session_row.get('status') or '').strip().lower()
+    if session_status in {'encounter', 'boss'}:
+        self.labyrinth_status = 'Add roster companions between encounters.'
+        return False
+    roster_id = str(companion_id or '').strip()
+    roster_entry = next((entry for entry in normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', [])) if str(entry.get('id') or '').strip() == roster_id), None)
+    if not isinstance(roster_entry, dict):
+        self.labyrinth_status = 'That roster companion could not be found.'
+        return False
+    member_rows = [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
+    if any(str(row.get('roster_companion_id') or '').strip() == roster_id for row in member_rows):
+        self.labyrinth_status = f'{roster_entry.get("custom_name") or roster_entry.get("player_class") or "That companion"} is already in this expedition.'
+        return False
+    if len(member_rows) >= LABYRINTH_MAX_PARTY_SIZE:
+        self.labyrinth_status = 'Your solo expedition is already filled to the maximum party size.'
+        return False
+    companion_row = _labyrinth_build_roster_companion_member_row(self, roster_entry)
+    if not companion_row:
+        self.labyrinth_status = 'That roster companion could not join the expedition.'
+        return False
+    updated_rows: List[Dict[str, object]] = []
+    self_identity = _labyrinth_member_identity(self)
+    refreshed_self_row = _labyrinth_normalize_member_row(_labyrinth_member_payload(self))
+    for row in member_rows:
+        if str(row.get('user_id') or '').strip() == self_identity:
+            updated_rows.append(refreshed_self_row)
+        else:
+            updated_rows.append(dict(row))
+    if not any(str(row.get('user_id') or '').strip() == self_identity for row in updated_rows):
+        updated_rows.insert(0, refreshed_self_row)
+    updated_rows.append(companion_row)
+    _labyrinth_refresh_roster_member_rows(self, updated_rows)
+    self.labyrinth_status = f'{companion_row.get("character_name") or roster_entry.get("player_class") or "Companion"} joined your expedition from the roster.'
+    self.sync_active_slot()
+    return True
+
+
+def labyrinth_set_roster_companion_item(self, companion_id: object, slot_name: object, raw_inventory_index: object) -> bool:
+    ensure_labyrinth_state(self)
+    if self.player is None or self.active_slot_index is None:
+        return False
+    if not bool(getattr(self, 'labyrinth_is_local', False)):
+        self.labyrinth_status = 'Roster gear can only be managed inside a solo Labyrinth expedition.'
+        return False
+    session_status = str((getattr(self, 'labyrinth_session_row', {}) or {}).get('status') or '').strip().lower()
+    if session_status in {'encounter', 'boss'}:
+        self.labyrinth_status = 'Change roster gear between encounters.'
+        return False
+    roster_id = str(companion_id or '').strip()
+    normalized_slot = str(slot_name or '').strip().lower()
+    if normalized_slot not in {'weapon', 'armor', 'charm'}:
+        return False
+    try:
+        inventory_index = int(str(raw_inventory_index or '').strip())
+    except Exception:
+        inventory_index = -1
+    if inventory_index < 0 or inventory_index >= len(self.player.inventory):
+        self.labyrinth_status = 'Choose one of your inventory items to equip first.'
+        return False
+    roster_entries = normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', []))
+    target_entry = next((entry for entry in roster_entries if str(entry.get('id') or '').strip() == roster_id), None)
+    if not isinstance(target_entry, dict):
+        self.labyrinth_status = 'That roster companion could not be found.'
+        return False
+    candidate_item = self.player.inventory[inventory_index]
+    preview_player = _labyrinth_build_roster_companion_player(target_entry, _labyrinth_roster_target_level(self))
+    can_equip, reason = can_player_equip_item(preview_player, candidate_item)
+    if not can_equip or str(getattr(candidate_item, 'slot', '') or '').strip().lower() != normalized_slot:
+        reason_text = reason or f'That item cannot be equipped in the {normalized_slot.title()} slot.'
+        self.labyrinth_status = reason_text
+        return False
+    removed_item = self.player.inventory.pop(inventory_index)
+    current_item = coerce_item((target_entry.get('equipped', {}) if isinstance(target_entry.get('equipped', {}), dict) else {}).get(normalized_slot))
+    current_source = str((target_entry.get('equipped_item_sources', {}) if isinstance(target_entry.get('equipped_item_sources', {}), dict) else {}).get(normalized_slot) or 'companion').strip().lower()
+    if current_item is not None and current_source == 'player':
+        self.player.inventory.append(copy.deepcopy(current_item))
+    target_entry.setdefault('equipped', {})
+    target_entry['equipped'][normalized_slot] = copy.deepcopy(removed_item.to_dict())
+    target_entry.setdefault('equipped_item_sources', {})
+    target_entry['equipped_item_sources'][normalized_slot] = 'player'
+    self.labyrinth_roster_companions = normalize_labyrinth_roster_companions(roster_entries)
+    member_rows = [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
+    active_changed = False
+    updated_entry = next((entry for entry in self.labyrinth_roster_companions if str(entry.get('id') or '').strip() == roster_id), None)
+    updated_rows: List[Dict[str, object]] = []
+    for row in member_rows:
+        if str(row.get('roster_companion_id') or '').strip() == roster_id and isinstance(updated_entry, dict):
+            updated_rows.append(_labyrinth_rebuild_active_roster_member_row(self, row, updated_entry))
+            active_changed = True
+        else:
+            updated_rows.append(dict(row))
+    if active_changed:
+        _labyrinth_refresh_roster_member_rows(self, updated_rows)
+    self.labyrinth_status = f'Equipped {removed_item.summary()} on {target_entry.get("custom_name") or target_entry.get("player_class") or "your companion"}.'
+    self.sync_active_slot()
+    return True
+
+
+def labyrinth_clear_roster_companion_item(self, companion_id: object, slot_name: object) -> bool:
+    ensure_labyrinth_state(self)
+    if self.player is None or self.active_slot_index is None:
+        return False
+    if not bool(getattr(self, 'labyrinth_is_local', False)):
+        self.labyrinth_status = 'Roster gear can only be managed inside a solo Labyrinth expedition.'
+        return False
+    session_status = str((getattr(self, 'labyrinth_session_row', {}) or {}).get('status') or '').strip().lower()
+    if session_status in {'encounter', 'boss'}:
+        self.labyrinth_status = 'Change roster gear between encounters.'
+        return False
+    roster_id = str(companion_id or '').strip()
+    normalized_slot = str(slot_name or '').strip().lower()
+    if normalized_slot not in {'weapon', 'armor', 'charm'}:
+        return False
+    roster_entries = normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', []))
+    target_entry = next((entry for entry in roster_entries if str(entry.get('id') or '').strip() == roster_id), None)
+    if not isinstance(target_entry, dict):
+        return False
+    current_item = coerce_item((target_entry.get('equipped', {}) if isinstance(target_entry.get('equipped', {}), dict) else {}).get(normalized_slot))
+    current_source = str((target_entry.get('equipped_item_sources', {}) if isinstance(target_entry.get('equipped_item_sources', {}), dict) else {}).get(normalized_slot) or 'companion').strip().lower()
+    if current_item is None:
+        return False
+    if current_source == 'player':
+        self.player.inventory.append(copy.deepcopy(current_item))
+    target_entry.setdefault('equipped', {})
+    target_entry['equipped'][normalized_slot] = None
+    target_entry.setdefault('equipped_item_sources', {})
+    target_entry['equipped_item_sources'][normalized_slot] = 'companion'
+    self.labyrinth_roster_companions = normalize_labyrinth_roster_companions(roster_entries)
+    member_rows = [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
+    active_changed = False
+    updated_entry = next((entry for entry in self.labyrinth_roster_companions if str(entry.get('id') or '').strip() == roster_id), None)
+    updated_rows: List[Dict[str, object]] = []
+    for row in member_rows:
+        if str(row.get('roster_companion_id') or '').strip() == roster_id and isinstance(updated_entry, dict):
+            updated_rows.append(_labyrinth_rebuild_active_roster_member_row(self, row, updated_entry))
+            active_changed = True
+        else:
+            updated_rows.append(dict(row))
+    if active_changed:
+        _labyrinth_refresh_roster_member_rows(self, updated_rows)
+    self.labyrinth_status = f'Cleared the {normalized_slot.title()} slot for {target_entry.get("custom_name") or target_entry.get("player_class") or "your companion"}.'
     self.sync_active_slot()
     return True
 
@@ -22236,6 +22785,12 @@ SessionState.labyrinth_current_vote_choice = labyrinth_current_vote_choice
 SessionState.create_labyrinth_session = create_labyrinth_session
 SessionState.create_labyrinth_solo_session = create_labyrinth_solo_session
 SessionState.labyrinth_hire_companion = labyrinth_hire_companion
+SessionState.labyrinth_set_roster_item_draft = labyrinth_set_roster_item_draft
+SessionState.labyrinth_buy_roster_companion = labyrinth_buy_roster_companion
+SessionState.labyrinth_rename_roster_companion = labyrinth_rename_roster_companion
+SessionState.labyrinth_add_roster_companion_to_expedition = labyrinth_add_roster_companion_to_expedition
+SessionState.labyrinth_set_roster_companion_item = labyrinth_set_roster_companion_item
+SessionState.labyrinth_clear_roster_companion_item = labyrinth_clear_roster_companion_item
 SessionState.labyrinth_set_tank_role = labyrinth_set_tank_role
 SessionState.labyrinth_activate_ability = labyrinth_activate_ability
 SessionState.join_labyrinth_session = join_labyrinth_session
@@ -24614,6 +25169,29 @@ def main_page(request: Request) -> None:
                         if companion_class_draft not in companion_class_options:
                             companion_class_draft = next(iter(companion_class_options.keys()), player.player_class)
                             state.labyrinth_companion_class_draft = companion_class_draft
+                        roster_companions = normalize_labyrinth_roster_companions(getattr(state, 'labyrinth_roster_companions', []))
+                        roster_companion_ids = {str(entry.get('id') or '').strip() for entry in roster_companions}
+                        roster_purchase_options = {
+                            class_name: class_name
+                            for class_name in ALL_CLASS_ORDER
+                            if _labyrinth_roster_companion_id(class_name) not in roster_companion_ids
+                        }
+                        roster_purchase_class_draft = normalize_player_class_name(
+                            getattr(state, 'labyrinth_roster_purchase_class_draft', player.player_class),
+                            player.player_class,
+                        )
+                        if roster_purchase_class_draft not in roster_purchase_options:
+                            roster_purchase_class_draft = next(iter(roster_purchase_options.keys()), player.player_class)
+                            state.labyrinth_roster_purchase_class_draft = roster_purchase_class_draft
+                        active_roster_companion_ids = {
+                            str(row.get('roster_companion_id') or '').strip()
+                            for row in member_rows
+                            if isinstance(row, dict) and str(row.get('roster_companion_id') or '').strip()
+                        }
+                        labyrinth_panel_view = str(getattr(state, 'labyrinth_panel_view', 'expedition') or 'expedition').strip().lower()
+                        if labyrinth_panel_view not in {'expedition', 'roster'}:
+                            labyrinth_panel_view = 'expedition'
+                            state.labyrinth_panel_view = labyrinth_panel_view
                         companion_slots_open = max(0, LABYRINTH_MAX_PARTY_SIZE - len(member_rows))
                         ui.run_javascript(f"window.mqSetLabyrinthKeysEnabled && window.mqSetLabyrinthKeysEnabled({json.dumps(can_move_labyrinth)});")
                         with ui.column().classes('w-full gap-4'):
@@ -24692,6 +25270,13 @@ def main_page(request: Request) -> None:
                                                     )
                                                 )
                                     with ui.row().classes('gap-2 flex-wrap'):
+                                        if is_local_labyrinth:
+                                            roster_btn = ui.button(
+                                                'Back to Expedition' if labyrinth_panel_view == 'roster' else 'Roster',
+                                                on_click=lambda: (setattr(state, 'labyrinth_panel_view', 'expedition' if str(getattr(state, 'labyrinth_panel_view', 'expedition') or 'expedition').strip().lower() == 'roster' else 'roster'), request_render_refresh()),
+                                            ).classes('mq-btn-secondary rounded-xl px-4 py-2 font-semibold')
+                                            if session_status in {'encounter', 'boss'}:
+                                                roster_btn.disable()
                                         ui.button('Refresh Expedition', on_click=lambda: (state.refresh_labyrinth_session_state(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-4 py-2 font-semibold')
                                         ui.button('Leave Expedition', on_click=lambda: ((state.enter_town('You leave the Labyrinth of Light behind.') if state.leave_labyrinth_session() else None), request_render_refresh())).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold')
                                 with ui.element('div').classes('mq-lab-layout w-full mt-4'):
@@ -24826,20 +25411,104 @@ def main_page(request: Request) -> None:
                                                 current_controller = str(session_row.get('controller_user_id') or session_row.get('leader_user_id') or '').strip()
                                                 controller_select = ui.select(controller_options, value=current_controller, on_change=lambda e: (state.labyrinth_assign_controller(str(e.value or '')), request_render_refresh())).props('dense outlined label=Party Controller').classes('w-full mt-3')
                                                 controller_select.classes('mq-item-select')
-                                            if is_local_labyrinth and companion_slots_open > 0 and session_status not in {'encounter', 'boss'}:
-                                                ui.label(f'Hire up to {companion_slots_open} companion{"s" if companion_slots_open != 1 else ""} for this expedition. Each costs {LABYRINTH_COMPANION_COST} gold.').classes('mq-detail-text mt-3')
-                                                companion_select = ui.select(
-                                                    companion_class_options,
-                                                    value=companion_class_draft,
-                                                    on_change=lambda e: setattr(state, 'labyrinth_companion_class_draft', normalize_player_class_name(e.value, player.player_class)),
-                                                ).props('dense outlined label=Companion Class').classes('w-full mt-3')
-                                                companion_select.classes('mq-item-select')
-                                                hire_btn = ui.button(
-                                                    f'Hire Companion ({LABYRINTH_COMPANION_COST} Gold)',
-                                                    on_click=lambda: (state.labyrinth_hire_companion(getattr(state, 'labyrinth_companion_class_draft', player.player_class)), request_render_refresh()),
-                                                ).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold mt-3')
-                                                if int(player.gold or 0) < LABYRINTH_COMPANION_COST:
-                                                    hire_btn.disable()
+                                            if is_local_labyrinth and labyrinth_panel_view == 'roster':
+                                                ui.label('Permanent Roster').classes('text-slate-100 text-xl font-semibold mt-3')
+                                                ui.label('Purchase one permanent companion of each class, rename them, equip them from your inventory, then add them to solo expeditions for free.').classes('mq-detail-text mt-2')
+                                                if roster_purchase_options and session_status not in {'encounter', 'boss'}:
+                                                    with ui.row().classes('w-full gap-2 items-end flex-wrap mt-3'):
+                                                        purchase_select = ui.select(
+                                                            roster_purchase_options,
+                                                            value=roster_purchase_class_draft,
+                                                            on_change=lambda e: setattr(state, 'labyrinth_roster_purchase_class_draft', normalize_player_class_name(e.value, player.player_class)),
+                                                        ).props('dense outlined label=New Companion Class').classes('min-w-[240px] flex-1')
+                                                        purchase_select.classes('mq-item-select')
+                                                        buy_btn = ui.button(
+                                                            f'Buy Permanent Companion ({LABYRINTH_ROSTER_COMPANION_COST} Gold)',
+                                                            on_click=lambda: (state.labyrinth_buy_roster_companion(getattr(state, 'labyrinth_roster_purchase_class_draft', player.player_class)), request_render_refresh()),
+                                                        ).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
+                                                        if int(player.gold or 0) < LABYRINTH_ROSTER_COMPANION_COST:
+                                                            buy_btn.disable()
+                                                elif not roster_purchase_options:
+                                                    ui.label('You already own every companion type available for permanent roster duty.').classes('mq-detail-text mt-3')
+                                                if roster_companions:
+                                                    for roster_entry in roster_companions:
+                                                        roster_id = str(roster_entry.get('id') or '').strip()
+                                                        roster_class = normalize_player_class_name(roster_entry.get('player_class'), 'Black Guard')
+                                                        roster_name = str(roster_entry.get('custom_name') or roster_class)
+                                                        roster_preview_player = _labyrinth_build_roster_companion_player(roster_entry, _labyrinth_roster_target_level(state))
+                                                        inventory_option_map: Dict[str, Dict[str, str]] = {}
+                                                        for slot_name in ('weapon', 'armor', 'charm'):
+                                                            slot_options: Dict[str, str] = {}
+                                                            for inventory_index, inventory_item in enumerate(list(player.inventory)):
+                                                                if str(getattr(inventory_item, 'slot', '') or '').strip().lower() != slot_name:
+                                                                    continue
+                                                                can_equip, _ = can_player_equip_item(roster_preview_player, inventory_item)
+                                                                if not can_equip:
+                                                                    continue
+                                                                slot_options[str(inventory_index)] = inventory_item.summary()
+                                                            inventory_option_map[slot_name] = slot_options
+                                                        with ui.card().classes('mq-panel-frame p-4 mt-4'):
+                                                            with ui.row().classes('w-full items-start justify-between gap-3 max-[900px]:flex-wrap'):
+                                                                with ui.column().classes('gap-2 flex-1 min-w-[240px]'):
+                                                                    ui.label(roster_class).classes('text-slate-100 text-lg font-semibold')
+                                                                    rename_input = ui.input(
+                                                                        label='Companion Name',
+                                                                        value=roster_name,
+                                                                        on_change=lambda e, companion_id=roster_id: (state.labyrinth_rename_roster_companion(companion_id, e.value), request_render_refresh()),
+                                                                    ).props('outlined dense').classes('w-full')
+                                                                    rename_input.props('input-style=color: #e2e8f0;')
+                                                                    ui.label(f'Expedition Level {max(LABYRINTH_UNLOCK_LEVEL, int(player.level or LABYRINTH_UNLOCK_LEVEL))}').classes('mq-detail-text')
+                                                                with ui.row().classes('gap-2 items-center flex-wrap'):
+                                                                    add_btn = ui.button(
+                                                                        'Added' if roster_id in active_roster_companion_ids else 'Add to Expedition',
+                                                                        on_click=lambda companion_id=roster_id: (state.labyrinth_add_roster_companion_to_expedition(companion_id), request_render_refresh()),
+                                                                    ).classes('mq-btn-secondary rounded-xl px-4 py-2 font-semibold')
+                                                                    if roster_id in active_roster_companion_ids or companion_slots_open <= 0 or session_status in {'encounter', 'boss'}:
+                                                                        add_btn.disable()
+                                                            with ui.row().classes('w-full gap-3 items-start flex-wrap mt-3'):
+                                                                for slot_name, token_label in (('weapon', 'W'), ('armor', 'A'), ('charm', 'C')):
+                                                                    equipped_item = coerce_item((roster_entry.get('equipped', {}) if isinstance(roster_entry.get('equipped', {}), dict) else {}).get(slot_name))
+                                                                    draft_lookup = getattr(state, 'labyrinth_roster_item_drafts', {}) if isinstance(getattr(state, 'labyrinth_roster_item_drafts', {}), dict) else {}
+                                                                    slot_drafts = draft_lookup.get(roster_id, {}) if isinstance(draft_lookup.get(roster_id, {}), dict) else {}
+                                                                    current_draft = str(slot_drafts.get(slot_name) or '').strip()
+                                                                    with ui.column().classes('gap-2 min-w-[190px] flex-1'):
+                                                                        ui.html(labyrinth_companion_token_html(equipped_item, token_label, persist_key=f'lab-roster-{roster_id}-{slot_name}'))
+                                                                        gear_select = ui.select(
+                                                                            inventory_option_map.get(slot_name, {}),
+                                                                            value=current_draft if current_draft in inventory_option_map.get(slot_name, {}) else None,
+                                                                            on_change=lambda e, companion_id=roster_id, target_slot=slot_name: state.labyrinth_set_roster_item_draft(companion_id, target_slot, e.value),
+                                                                        ).props(f'dense outlined label={slot_name.title()} from Inventory').classes('w-full')
+                                                                        gear_select.classes('mq-item-select')
+                                                                        with ui.row().classes('gap-2 flex-wrap'):
+                                                                            equip_btn = ui.button(
+                                                                                'Equip',
+                                                                                on_click=lambda companion_id=roster_id, target_slot=slot_name: (state.labyrinth_set_roster_companion_item(companion_id, target_slot, ((getattr(state, "labyrinth_roster_item_drafts", {}) or {}).get(companion_id, {}) if isinstance((getattr(state, "labyrinth_roster_item_drafts", {}) or {}).get(companion_id, {}), dict) else {}).get(target_slot, '')), request_render_refresh()),
+                                                                            ).classes('mq-btn-secondary rounded-xl px-3 py-2 font-semibold')
+                                                                            if not inventory_option_map.get(slot_name):
+                                                                                equip_btn.disable()
+                                                                            clear_btn = ui.button(
+                                                                                'Unequip',
+                                                                                on_click=lambda companion_id=roster_id, target_slot=slot_name: (state.labyrinth_clear_roster_companion_item(companion_id, target_slot), request_render_refresh()),
+                                                                            ).classes('mq-btn-secondary rounded-xl px-3 py-2 font-semibold')
+                                                                            if equipped_item is None:
+                                                                                clear_btn.disable()
+                                                else:
+                                                    ui.label('No permanent companions purchased yet. Buy one above and it will persist across future solo expeditions.').classes('mq-detail-text mt-4')
+                                            else:
+                                                if is_local_labyrinth and companion_slots_open > 0 and session_status not in {'encounter', 'boss'}:
+                                                    ui.label(f'Hire up to {companion_slots_open} companion{"s" if companion_slots_open != 1 else ""} for this expedition. Each costs {LABYRINTH_COMPANION_COST} gold.').classes('mq-detail-text mt-3')
+                                                    companion_select = ui.select(
+                                                        companion_class_options,
+                                                        value=companion_class_draft,
+                                                        on_change=lambda e: setattr(state, 'labyrinth_companion_class_draft', normalize_player_class_name(e.value, player.player_class)),
+                                                    ).props('dense outlined label=Companion Class').classes('w-full mt-3')
+                                                    companion_select.classes('mq-item-select')
+                                                    hire_btn = ui.button(
+                                                        f'Hire Companion ({LABYRINTH_COMPANION_COST} Gold)',
+                                                        on_click=lambda: (state.labyrinth_hire_companion(getattr(state, 'labyrinth_companion_class_draft', player.player_class)), request_render_refresh()),
+                                                    ).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold mt-3')
+                                                    if int(player.gold or 0) < LABYRINTH_COMPANION_COST:
+                                                        hire_btn.disable()
                                             if can_move_labyrinth:
                                                 ui.label('Use arrow keys or WASD, or click the direction pad below.').classes('mq-detail-text mt-3')
                                                 with ui.element('div').classes('mq-lab-direction-pad mt-4'):
