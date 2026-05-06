@@ -16016,20 +16016,14 @@ def claim_pending_vault_transfer(self, transfer_id: str) -> bool:
             .eq('id', cleaned_transfer_id)
             .eq('recipient_user_id', self.auth_user_id)
             .eq('status', 'pending')
+            .select('id, status')
             .execute()
         )
         err = _supabase_response_error(response)
         if err:
             self.inn_vault_transfer_status = _supabase_error_text(err) or 'That vault courier delivery could not be claimed.'
             return False
-        status_rows = _supabase_response_data(
-            self.supabase.table(VAULT_TRANSFER_TABLE)
-            .select('status')
-            .eq('id', cleaned_transfer_id)
-            .eq('recipient_user_id', self.auth_user_id)
-            .limit(1)
-            .execute()
-        )
+        status_rows = _supabase_response_data(response)
         status_row = status_rows[0] if isinstance(status_rows, list) and status_rows else (status_rows if isinstance(status_rows, dict) else {})
         if not isinstance(status_row, dict) or str(status_row.get('status') or '').strip().lower() != 'claimed':
             self.inn_vault_transfer_status = 'That vault courier delivery could not be secured before the handoff.'
@@ -17209,6 +17203,7 @@ def maybe_restore_plpurtell_admin_items(self) -> bool:
     if clean_character_name(self.player.name) != 'PLPurtell':
         return False
     equipped_items = [coerce_item(self.player.equipped.get(slot_name)) for slot_name in ('weapon', 'armor', 'charm')]
+    roster_entries = normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', []))
     granted_any = False
     for restore_item in _build_admin_restore_item_payloads():
         target_payload = restore_item.to_dict()
@@ -17219,6 +17214,14 @@ def maybe_restore_plpurtell_admin_items(self) -> bool:
         if _container_has_exact_item_payload(self.vault_items, target_payload):
             continue
         if any(_container_has_exact_item_payload(slot_items, target_payload) for slot_items in list((self.saved_item_sets or {}).values())):
+            continue
+        if any(
+            _container_has_exact_item_payload(
+                entry.get('equipped', {}) if isinstance(entry, dict) else {},
+                target_payload,
+            )
+            for entry in roster_entries
+        ):
             continue
         self.player.inventory.append(copy.deepcopy(restore_item))
         granted_any = True
