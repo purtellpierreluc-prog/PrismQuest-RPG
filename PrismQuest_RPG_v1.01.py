@@ -6948,6 +6948,7 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
         'disable_last_drop_animation': False,
         'arena_combat_log_default_open': False,
         'labyrinth_low_load_mode': False,
+        'labyrinth_slow_cadence_mode': False,
         'bazaar_ledger_entries': [],
         'labyrinth_session_id': '',
         'labyrinth_join_code': '',
@@ -7524,6 +7525,8 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
     slot['arena_combat_log_default_open'] = bool(combat_log_default_open) if isinstance(combat_log_default_open, bool) else False
     labyrinth_low_load_mode = raw_slot.get('labyrinth_low_load_mode', False)
     slot['labyrinth_low_load_mode'] = bool(labyrinth_low_load_mode) if isinstance(labyrinth_low_load_mode, bool) else False
+    labyrinth_slow_cadence_mode = raw_slot.get('labyrinth_slow_cadence_mode', False)
+    slot['labyrinth_slow_cadence_mode'] = bool(labyrinth_slow_cadence_mode) if isinstance(labyrinth_slow_cadence_mode, bool) else False
     slot['bazaar_ledger_entries'] = normalize_bazaar_ledger_entries(raw_slot.get('bazaar_ledger_entries', []))
     slot['labyrinth_session_id'] = str(raw_slot.get('labyrinth_session_id', '') or '').strip()
     slot['labyrinth_join_code'] = str(raw_slot.get('labyrinth_join_code', '') or '').strip().upper()
@@ -11359,6 +11362,7 @@ class SessionState:
         self.arena_combat_log_default_open: bool = False
         self.disable_last_drop_animation: bool = False
         self.labyrinth_low_load_mode: bool = False
+        self.labyrinth_slow_cadence_mode: bool = False
         self.arena_combat_log_hidden: bool = not self.arena_combat_log_default_open
         self.arena_flee_requested: bool = False
         self.last_monster_drop_item: Optional[Item] = None
@@ -13143,6 +13147,7 @@ class SessionState:
         slot['disable_last_drop_animation'] = bool(self.disable_last_drop_animation)
         slot['arena_combat_log_default_open'] = bool(self.arena_combat_log_default_open)
         slot['labyrinth_low_load_mode'] = bool(self.labyrinth_low_load_mode)
+        slot['labyrinth_slow_cadence_mode'] = bool(self.labyrinth_slow_cadence_mode)
         slot['bazaar_ledger_entries'] = [dict(entry) for entry in normalize_bazaar_ledger_entries(self.bazaar_ledger_entries)]
         current_labyrinth_row = _labyrinth_self_member_row(self) if self.player is not None else {}
         slot['labyrinth_player_tank'] = bool(current_labyrinth_row.get('tank', slot.get('labyrinth_player_tank', False)) if isinstance(current_labyrinth_row, dict) and current_labyrinth_row else slot.get('labyrinth_player_tank', False))
@@ -13239,6 +13244,7 @@ class SessionState:
         self.disable_last_drop_animation = bool(slot.get('disable_last_drop_animation', False))
         self.arena_combat_log_default_open = bool(slot.get('arena_combat_log_default_open', False))
         self.labyrinth_low_load_mode = bool(slot.get('labyrinth_low_load_mode', False))
+        self.labyrinth_slow_cadence_mode = bool(slot.get('labyrinth_slow_cadence_mode', False))
         self.ladder_stats = normalize_ladder_stats(slot.get('ladder_stats'))
         self.current_global_season_id = max(self.current_global_season_id, sanitize_ladder_season_id(slot.get('season_id', DEFAULT_LADDER_SEASON_ID)))
         self.global_ladder_reset_count = max(self.global_ladder_reset_count, sanitize_ladder_reset_count(slot.get('ladder_reset_count', 0)))
@@ -13280,6 +13286,8 @@ class SessionState:
         self.labyrinth_last_sync_at = 0.0
         self.labyrinth_last_member_sync_at = 0.0
         self.labyrinth_last_timer_pulse_at = 0.0
+        self.labyrinth_last_slot_sync_at = 0.0
+        self.labyrinth_last_persisted_status = ''
         self.labyrinth_acknowledged_floor = max(0, int(self.labyrinth_floor or 0) - 1)
         self.bazaar_status = 'Browse adventurer listings or post your own wares.'
         self.bazaar_status_tone = 'info'
@@ -15201,6 +15209,7 @@ def export_save(self) -> None:
         'disable_last_drop_animation': bool(self.disable_last_drop_animation),
         'arena_combat_log_default_open': bool(self.arena_combat_log_default_open),
         'labyrinth_low_load_mode': bool(self.labyrinth_low_load_mode),
+        'labyrinth_slow_cadence_mode': bool(self.labyrinth_slow_cadence_mode),
         'labyrinth_roster_companions': [copy.deepcopy(entry) for entry in normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', []))],
     }
     raw = json.dumps(payload, separators=(',', ':')).encode('utf-8')
@@ -15255,6 +15264,7 @@ def import_save(self) -> None:
         self.disable_last_drop_animation = bool(payload.get('disable_last_drop_animation', False))
         self.arena_combat_log_default_open = bool(payload.get('arena_combat_log_default_open', False))
         self.labyrinth_low_load_mode = bool(payload.get('labyrinth_low_load_mode', False))
+        self.labyrinth_slow_cadence_mode = bool(payload.get('labyrinth_slow_cadence_mode', False))
         self.labyrinth_roster_companions = normalize_labyrinth_roster_companions(payload.get('labyrinth_roster_companions', []))
         self.scene_tutorial_open_key = ''
         self.trigger_town_tutorial_if_needed()
@@ -17763,7 +17773,7 @@ def _labyrinth_step_delay_seconds(self) -> float:
         delay = max(1.0, base_delay * 1.5)
     except Exception:
         delay = 1.5
-    if bool(getattr(self, 'labyrinth_low_load_mode', False)):
+    if bool(getattr(self, 'labyrinth_slow_cadence_mode', False)):
         return max(2.25, delay * 1.45)
     return delay
 
@@ -17790,18 +17800,24 @@ def _labyrinth_refresh_interval_seconds(self, session_row: Optional[Dict[str, ob
 
 def _labyrinth_timer_tick_interval_seconds(self, session_row: Optional[Dict[str, object]] = None) -> float:
     ensure_labyrinth_state(self)
-    if not bool(getattr(self, 'labyrinth_low_load_mode', False)):
+    low_load = bool(getattr(self, 'labyrinth_low_load_mode', False))
+    slow_cadence = bool(getattr(self, 'labyrinth_slow_cadence_mode', False))
+    if not low_load and not slow_cadence:
         return 0.0
     row = session_row if isinstance(session_row, dict) else getattr(self, 'labyrinth_session_row', {})
     status = str((row or {}).get('status') or '').strip().lower()
     local_or_controller = bool(getattr(self, 'labyrinth_is_local', False)) or labyrinth_is_controller(self)
     if status in {'encounter', 'boss'}:
-        return 1.1 if local_or_controller else 1.9
+        if local_or_controller:
+            return 1.1 if slow_cadence else 0.0
+        return 1.9 if low_load else 0.0
     if status == 'reward':
-        return 1.35 if (local_or_controller or labyrinth_is_leader(self)) else 2.0
+        if local_or_controller or labyrinth_is_leader(self):
+            return 1.35 if slow_cadence else 0.0
+        return 2.0 if low_load else 0.0
     if status == 'exploring':
-        return 1.35 if local_or_controller else 2.2
-    return 2.0
+        return 0.0 if local_or_controller else (2.2 if low_load else 0.0)
+    return 2.0 if low_load else 0.0
 
 
 def _labyrinth_next_step_iso(self, delay_seconds: Optional[float] = None) -> str:
@@ -18069,6 +18085,8 @@ def ensure_labyrinth_state(self) -> None:
         'labyrinth_last_sync_at': 0.0,
         'labyrinth_last_member_sync_at': 0.0,
         'labyrinth_last_timer_pulse_at': 0.0,
+        'labyrinth_last_slot_sync_at': 0.0,
+        'labyrinth_last_persisted_status': '',
         'labyrinth_acknowledged_floor': 0,
         'labyrinth_claimed_reward_ids': set(),
         'labyrinth_controller_target': '',
@@ -18192,6 +18210,25 @@ def _labyrinth_pending_payload(session_row: object, payload: Optional[Dict[str, 
     return data
 
 
+def _labyrinth_maybe_sync_active_slot(self, session_row: Optional[Dict[str, object]] = None, force: bool = False) -> bool:
+    ensure_labyrinth_state(self)
+    if getattr(self, 'active_slot_index', None) is None:
+        return False
+    row = session_row if isinstance(session_row, dict) else getattr(self, 'labyrinth_session_row', {})
+    status = str((row or {}).get('status') or '').strip().lower()
+    now = time.monotonic()
+    last_status = str(getattr(self, 'labyrinth_last_persisted_status', '') or '').strip().lower()
+    last_sync_at = float(getattr(self, 'labyrinth_last_slot_sync_at', 0.0) or 0.0)
+    min_interval = 2.6 if bool(getattr(self, 'labyrinth_low_load_mode', False)) else 1.35
+    should_sync = bool(force or status != last_status or (now - last_sync_at) >= min_interval)
+    if not should_sync:
+        return False
+    self.sync_active_slot()
+    self.labyrinth_last_slot_sync_at = now
+    self.labyrinth_last_persisted_status = status
+    return True
+
+
 def _labyrinth_apply_local_session_update(
     self,
     payload: Dict[str, object],
@@ -18210,7 +18247,8 @@ def _labyrinth_apply_local_session_update(
         effective_vote_rows = [dict(row) for row in vote_rows if isinstance(row, dict)]
     changed = _labyrinth_store_snapshot(self, session_row, effective_member_rows, effective_vote_rows)
     _labyrinth_sync_self_from_party_state(self, session_row)
-    self.sync_active_slot()
+    if changed:
+        _labyrinth_maybe_sync_active_slot(self, session_row=session_row)
     return changed
 
 
@@ -22852,6 +22890,11 @@ def set_labyrinth_low_load_mode(self, value: object) -> None:
     self.sync_active_slot()
 
 
+def set_labyrinth_slow_cadence_mode(self, value: object) -> None:
+    self.labyrinth_slow_cadence_mode = bool(value)
+    self.sync_active_slot()
+
+
 def set_hotkey_binding(self, action: str, value: object) -> None:
     if action not in DEFAULT_HOTKEY_BINDINGS:
         return
@@ -22884,6 +22927,7 @@ SessionState.export_save = export_save
 SessionState.set_last_drop_animation_disabled = set_last_drop_animation_disabled
 SessionState.set_arena_combat_log_default_open = set_arena_combat_log_default_open
 SessionState.set_labyrinth_low_load_mode = set_labyrinth_low_load_mode
+SessionState.set_labyrinth_slow_cadence_mode = set_labyrinth_slow_cadence_mode
 SessionState.set_hotkey_binding = set_hotkey_binding
 SessionState.reset_hotkey_bindings = reset_hotkey_bindings
 SessionState.ensure_marketplace_offers = ensure_marketplace_offers
@@ -25371,7 +25415,10 @@ def main_page(request: Request) -> None:
                         return
                     elif state.game_tab == 'labyrinth':
                         ensure_labyrinth_state(state)
-                        state.refresh_labyrinth_session_state(force=False)
+                        initial_labyrinth_session_row = state.labyrinth_session_row if isinstance(getattr(state, 'labyrinth_session_row', {}), dict) else {}
+                        initial_labyrinth_member_rows = [row for row in list(getattr(state, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
+                        if not initial_labyrinth_session_row or (not initial_labyrinth_member_rows and not bool(getattr(state, 'labyrinth_is_local', False))):
+                            state.refresh_labyrinth_session_state(force=False)
                         session_row = state.labyrinth_session_row if isinstance(getattr(state, 'labyrinth_session_row', {}), dict) else {}
                         member_rows = [row for row in list(getattr(state, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
                         reward_votes = [row for row in list(getattr(state, 'labyrinth_vote_rows', []) or []) if isinstance(row, dict)]
@@ -27477,10 +27524,14 @@ def main_page(request: Request) -> None:
                                         combat_log_default.classes('text-slate-200 mt-4')
                                         combat_log_default.on_value_change(lambda e: (state.set_arena_combat_log_default_open(bool(e.value)), request_render_refresh()))
                                         ui.label('When enabled, arena and well fights start with the combat log already open.').classes('text-slate-400 text-sm mt-2')
-                                        lab_low_load = ui.checkbox('Labyrinth low-load mode', value=bool(getattr(state, 'labyrinth_low_load_mode', False)))
+                                        lab_low_load = ui.checkbox('Labyrinth reduced-effects mode', value=bool(getattr(state, 'labyrinth_low_load_mode', False)))
                                         lab_low_load.classes('text-slate-200 mt-4')
                                         lab_low_load.on_value_change(lambda e: (state.set_labyrinth_low_load_mode(bool(e.value)), request_render_refresh()))
-                                        ui.label('Greatly reduces Labyrinth rendering and sync pressure by removing damage popups, disabling smooth HP and Mana bar animation, trimming combat-log payloads, and slowing automatic Lab updates for better stability on weaker connections.').classes('text-slate-400 text-sm mt-2 leading-6')
+                                        ui.label('Reduces Labyrinth visual load by removing damage popups, disabling smooth HP and Mana bar animation, trimming combat-log payloads, and easing refresh pressure without changing the actual combat pace.').classes('text-slate-400 text-sm mt-2 leading-6')
+                                        lab_slow_cadence = ui.checkbox('Slow Lab automatic combat pacing', value=bool(getattr(state, 'labyrinth_slow_cadence_mode', False)))
+                                        lab_slow_cadence.classes('text-slate-200 mt-4')
+                                        lab_slow_cadence.on_value_change(lambda e: (state.set_labyrinth_slow_cadence_mode(bool(e.value)), request_render_refresh()))
+                                        ui.label('Separately slows the automatic Labyrinth combat/update cadence to reduce CPU spikes, but it does noticeably change the feel of the run.').classes('text-slate-400 text-sm mt-2 leading-6')
                             else:
                                 bindings = normalize_hotkey_bindings(getattr(state, 'hotkey_bindings', {}))
                                 with ui.card().classes('mq-card w-full p-5'):
