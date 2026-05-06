@@ -6953,6 +6953,7 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
         'labyrinth_floor': 0,
         'labyrinth_player_tank': False,
         'labyrinth_roster_companions': [],
+        'admin_item_restore_20260505_done': False,
         'season_id': normalized_season,
         'ladder_reset_count': 0,
         'run_started_wall_time': 0.0,
@@ -7529,6 +7530,7 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
     except Exception:
         slot['labyrinth_floor'] = 0
     slot['labyrinth_roster_companions'] = normalize_labyrinth_roster_companions(raw_slot.get('labyrinth_roster_companions', []))
+    slot['admin_item_restore_20260505_done'] = bool(raw_slot.get('admin_item_restore_20260505_done', False))
     slot['ladder_reset_count'] = sanitize_ladder_reset_count(raw_slot.get('ladder_reset_count', 0))
     raw_run_started = raw_slot.get('run_started_wall_time', 0.0)
     try:
@@ -13313,6 +13315,7 @@ class SessionState:
         slot_player = slot.get('player')
         if slot_player:
             self.player = Player.from_dict(copy.deepcopy(slot_player))
+            maybe_restore_plpurtell_admin_items(self)
             self.selection_return_class = self.player.player_class
             self.pending_character_name = clean_character_name(self.player.name)
             self.shared_gold = int(self.player.gold)
@@ -17146,6 +17149,92 @@ def _labyrinth_sync_local_self_row(self) -> None:
     )
 
 
+def _build_admin_restore_item_payloads() -> List[Item]:
+    return [
+        Item(
+            name='Relic Lightning Charm',
+            slot='charm',
+            level=40,
+            rarity='Relic',
+            subtype='Lightning',
+            base_stats=build_item_base_stats('charm', 'Lightning', 40),
+            affix_stats={
+                'strength': 44,
+                'crit_chance': 5,
+                'armor_penetration': 9,
+                'life_per_kill': 397,
+                'max_mana': 707,
+                'magic_find': 32,
+            },
+        ),
+        Item(
+            name='Epic Heavy Armor',
+            slot='armor',
+            level=45,
+            rarity='Epic',
+            subtype='Heavy',
+            base_stats=build_item_base_stats('armor', 'Heavy', 45),
+            affix_stats={
+                'enhanced_effect': 194,
+                'lifesteal': 3,
+                'accuracy': 15,
+            },
+        ),
+    ]
+
+
+def _container_has_exact_item_payload(container: object, target_payload: Dict[str, object]) -> bool:
+    if isinstance(container, list):
+        for item in container:
+            normalized = coerce_item(item)
+            if normalized is not None and normalized.to_dict() == target_payload:
+                return True
+    elif isinstance(container, dict):
+        for item in container.values():
+            normalized = coerce_item(item)
+            if normalized is not None and normalized.to_dict() == target_payload:
+                return True
+    return False
+
+
+def maybe_restore_plpurtell_admin_items(self) -> bool:
+    if self.player is None or self.active_slot_index is None:
+        return False
+    slot = normalize_slot_payload(self.slots[self.active_slot_index])
+    if bool(slot.get('admin_item_restore_20260505_done', False)):
+        return False
+    account_email = str(getattr(self, 'auth_user_email', '') or getattr(self, 'auth_email', '') or '').strip().lower()
+    if account_email != 'plpurtell@outlook.com':
+        return False
+    if clean_character_name(self.player.name) != 'PLPurtell':
+        return False
+    equipped_items = [coerce_item(self.player.equipped.get(slot_name)) for slot_name in ('weapon', 'armor', 'charm')]
+    granted_any = False
+    for restore_item in _build_admin_restore_item_payloads():
+        target_payload = restore_item.to_dict()
+        if any(item is not None and item.to_dict() == target_payload for item in equipped_items):
+            continue
+        if _container_has_exact_item_payload(self.player.inventory, target_payload):
+            continue
+        if _container_has_exact_item_payload(self.vault_items, target_payload):
+            continue
+        if any(_container_has_exact_item_payload(slot_items, target_payload) for slot_items in list((self.saved_item_sets or {}).values())):
+            continue
+        self.player.inventory.append(copy.deepcopy(restore_item))
+        granted_any = True
+    slot['player'] = copy.deepcopy(self.player.to_dict())
+    slot['carryover_gold'] = int(self.player.gold)
+    slot['carryover_inventory'] = [asdict(item) for item in build_carryover_inventory_from_player(self.player)]
+    slot['carryover_proficiency_levels'] = dict(getattr(self.player, 'proficiency_levels', empty_proficiency_levels()))
+    slot['carryover_proficiency_progress'] = dict(getattr(self.player, 'proficiency_progress', empty_proficiency_progress()))
+    slot['admin_item_restore_20260505_done'] = True
+    self.slots[self.active_slot_index] = slot
+    if granted_any:
+        self.add_log('Admin inventory restoration applied for PLPurtell.', 'success')
+    self.persist_to_disk(force=True)
+    return granted_any
+
+
 def _labyrinth_rebuild_active_roster_member_row(self, existing_row: Dict[str, object], roster_entry: Dict[str, object]) -> Dict[str, object]:
     rebuilt_row = _labyrinth_build_roster_companion_member_row(self, roster_entry)
     if not rebuilt_row:
@@ -17446,15 +17535,18 @@ def _labyrinth_party_state_for_session(self, session_row: Dict[str, object], mem
         if not member_id:
             continue
         existing_entry = existing_state.get(member_id, {})
-        raw_snapshot = (
-            copy.deepcopy(existing_entry.get('player_snapshot'))
-            if isinstance(existing_entry.get('player_snapshot'), dict)
-            else copy.deepcopy(row.get('combat_snapshot'))
-            if isinstance(row.get('combat_snapshot'), dict)
-            else self.player.to_dict()
-            if member_id == self_id and self.player is not None
-            else _labyrinth_fallback_player_snapshot(row)
-        )
+        if bool(getattr(self, 'labyrinth_is_local', False)) and member_id == self_id and self.player is not None:
+            raw_snapshot = self.player.to_dict()
+        else:
+            raw_snapshot = (
+                copy.deepcopy(existing_entry.get('player_snapshot'))
+                if isinstance(existing_entry.get('player_snapshot'), dict)
+                else copy.deepcopy(row.get('combat_snapshot'))
+                if isinstance(row.get('combat_snapshot'), dict)
+                else self.player.to_dict()
+                if member_id == self_id and self.player is not None
+                else _labyrinth_fallback_player_snapshot(row)
+            )
         current_hp = None if full_heal else (
             existing_entry.get('current_hp')
             if existing_entry
