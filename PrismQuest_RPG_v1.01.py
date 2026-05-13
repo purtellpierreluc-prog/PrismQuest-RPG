@@ -6953,6 +6953,8 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
         'labyrinth_session_id': '',
         'labyrinth_join_code': '',
         'labyrinth_floor': 0,
+        'labyrinth_visual_damage_popups': {},
+        'labyrinth_visual_sequence': 0,
         'labyrinth_player_tank': False,
         'labyrinth_roster_companions': [],
         'admin_item_restore_20260505_done': False,
@@ -11363,6 +11365,8 @@ class SessionState:
         self.disable_last_drop_animation: bool = False
         self.labyrinth_low_load_mode: bool = False
         self.labyrinth_slow_cadence_mode: bool = False
+        self.labyrinth_visual_damage_popups: Dict[str, Dict[str, object]] = {}
+        self.labyrinth_visual_sequence: int = 0
         self.arena_combat_log_hidden: bool = not self.arena_combat_log_default_open
         self.arena_flee_requested: bool = False
         self.last_monster_drop_item: Optional[Item] = None
@@ -13282,6 +13286,8 @@ class SessionState:
         self.labyrinth_recent_events = []
         self.labyrinth_local_combat_log = []
         self.labyrinth_local_resolution_text = ''
+        self.labyrinth_visual_damage_popups = {}
+        self.labyrinth_visual_sequence = 0
         self.labyrinth_last_snapshot_hash = ''
         self.labyrinth_last_sync_at = 0.0
         self.labyrinth_last_member_sync_at = 0.0
@@ -16606,7 +16612,7 @@ def _labyrinth_damage_popup_html(raw_pending: object, target_key: object, low_lo
         return ''
     if not isinstance(raw_pending, dict):
         return ''
-    damage_popups = raw_pending.get('damage_popups', {})
+    damage_popups = raw_pending.get('damage_popups', raw_pending)
     if not isinstance(damage_popups, dict):
         return ''
     popup = damage_popups.get(str(target_key or '').strip(), {})
@@ -17728,7 +17734,6 @@ def _labyrinth_build_shared_encounter(self, session_row: Dict[str, object], memb
         'turn_index': 0,
         'announced_round': 0,
         'log': encounter_log,
-        'damage_popups': {},
         'next_step_at': _labyrinth_next_step_iso(self),
         'started_at': _labyrinth_now_iso(),
     }
@@ -17809,7 +17814,7 @@ def _labyrinth_timer_tick_interval_seconds(self, session_row: Optional[Dict[str,
     local_or_controller = bool(getattr(self, 'labyrinth_is_local', False)) or labyrinth_is_controller(self)
     if status in {'encounter', 'boss'}:
         if local_or_controller:
-            return 1.1 if slow_cadence else 0.0
+            return 2.35 if slow_cadence else 1.65
         return 1.9 if low_load else 0.0
     if status == 'reward':
         if local_or_controller or labyrinth_is_leader(self):
@@ -17823,6 +17828,19 @@ def _labyrinth_timer_tick_interval_seconds(self, session_row: Optional[Dict[str,
 def _labyrinth_next_step_iso(self, delay_seconds: Optional[float] = None) -> str:
     delay = _labyrinth_step_delay_seconds(self) if delay_seconds is None else max(0.0, float(delay_seconds))
     return (datetime.now(timezone.utc) + timedelta(seconds=delay)).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
+
+
+def _labyrinth_next_step_delay_ms(raw_pending: object, fallback_seconds: float = 1.0) -> int:
+    try:
+        fallback_ms = int(max(0.15, float(fallback_seconds or 1.0)) * 1000)
+    except Exception:
+        fallback_ms = 1000
+    if isinstance(raw_pending, dict):
+        next_step_at = _labyrinth_parse_iso_timestamp(raw_pending.get('next_step_at'))
+        if next_step_at is not None:
+            remaining = (next_step_at - datetime.now(timezone.utc)).total_seconds()
+            return max(120, min(9000, int(remaining * 1000)))
+    return max(120, min(9000, fallback_ms))
 
 
 def _labyrinth_repair_session_row(self, session_row: Dict[str, object], member_rows: List[Dict[str, object]]) -> Tuple[Dict[str, object], bool]:
@@ -18081,6 +18099,8 @@ def ensure_labyrinth_state(self) -> None:
         'labyrinth_combat_log_hidden': True,
         'labyrinth_echoes_hidden': True,
         'labyrinth_local_resolution_text': '',
+        'labyrinth_visual_damage_popups': {},
+        'labyrinth_visual_sequence': 0,
         'labyrinth_last_snapshot_hash': '',
         'labyrinth_last_sync_at': 0.0,
         'labyrinth_last_member_sync_at': 0.0,
@@ -20088,7 +20108,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
     announced_round = max(0, int(pending.get('announced_round', 0) or 0))
     next_sequence = max(1, int(pending.get('sequence', 0) or 0) + 1)
     low_load_mode = bool(getattr(self, 'labyrinth_low_load_mode', False))
-    damage_popups = {} if low_load_mode else (copy.deepcopy(pending.get('damage_popups', {})) if isinstance(pending.get('damage_popups', {}), dict) else {})
+    damage_popups: Dict[str, Dict[str, object]] = {}
     log_limit = 10 if low_load_mode else 18
     if turn_index == 0 and announced_round != current_round:
         action_log.insert(0, f'-- Round {current_round} --')
@@ -20138,7 +20158,6 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
         defeat = True
     if not victory and not defeat and turn_index >= party_turn_count:
         monster_phase_index = max(0, turn_index - party_turn_count)
-        acted_monster = False
         while monster_phase_index < len(monsters):
             current_monster = monsters[monster_phase_index]
             if not current_monster.is_alive():
@@ -20167,14 +20186,13 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
                 active_text = monster_event.text
                 turn_index = party_turn_count + monster_phase_index + 1
                 defeat = not _labyrinth_alive_party_ids(party_state, turn_order)
-                acted_monster = True
                 if defeat:
                     break
                 monster_phase_index += 1
                 continue
             monster_phase_index += 1
             turn_index = party_turn_count + monster_phase_index
-        if not defeat and not acted_monster:
+        if not defeat:
             regen_logs: List[str] = []
             refreshed_alive_ids = _labyrinth_alive_party_ids(party_state, turn_order)
             for alive_id in refreshed_alive_ids:
@@ -20205,6 +20223,7 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
                 action_log.insert(0, log_line)
             current_round += 1
             turn_index = 0
+            announced_round = current_round - 1
             defeat = not _labyrinth_alive_party_ids(party_state, turn_order)
     party_rows = _labyrinth_member_rows_from_party_state(member_rows, party_state)
     summary_bits: List[str] = []
@@ -20279,7 +20298,6 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
                 'reward_gold_gain': gold_gain_amount,
                 'run_gold_earned': _labyrinth_pending_run_gold(payload) + max(0, gold_gain_amount),
                 'log': action_log[:log_limit],
-                'damage_popups': damage_popups,
             })
             payload['reward_options'] = _labyrinth_build_reward_choices(int(payload.get('floor', 1) or 1))
             payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), 'The floor boss falls. Three unstable prism offers descend into view.')
@@ -20331,13 +20349,14 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
             'turn_index': turn_index,
             'announced_round': announced_round if turn_index > 0 else current_round - 1,
             'log': action_log[:log_limit],
-            'damage_popups': damage_popups,
             'next_step_at': _labyrinth_next_step_iso(self),
             'started_at': str(pending.get('started_at') or _labyrinth_now_iso()),
         })
         payload['reward_options'] = []
         self.labyrinth_local_resolution_text = active_text or 'The encounter keeps moving through the party order.'
     self.labyrinth_local_combat_log = action_log[:log_limit]
+    self.labyrinth_visual_damage_popups = damage_popups if not low_load_mode else {}
+    self.labyrinth_visual_sequence = next_sequence
     if not _labyrinth_upsert_session_row(self, payload):
         return False
     _labyrinth_apply_local_session_update(
@@ -25432,6 +25451,9 @@ def main_page(request: Request) -> None:
                         current_floor = int(session_row.get('floor', 1) or 1) if session_row else 0
                         run_gold_earned = _labyrinth_pending_run_gold(session_row)
                         labyrinth_low_load_mode = bool(getattr(state, 'labyrinth_low_load_mode', False))
+                        labyrinth_visual_popups = getattr(state, 'labyrinth_visual_damage_popups', {})
+                        if not isinstance(labyrinth_visual_popups, dict):
+                            labyrinth_visual_popups = {}
                         labyrinth_meter_duration_ms = 0 if labyrinth_low_load_mode else 900
                         labyrinth_mana_meter_duration_ms = 0 if labyrinth_low_load_mode else 1200
                         join_code = str(session_row.get('join_code') or getattr(state, 'labyrinth_join_code', '') or '').strip().upper()
@@ -25442,6 +25464,7 @@ def main_page(request: Request) -> None:
                         is_local_labyrinth = bool(getattr(state, 'labyrinth_is_local', False))
                         self_member_row = next((row for row in display_member_rows if str(row.get('user_id') or '').strip() == _labyrinth_member_identity(state)), {})
                         can_move_labyrinth = bool(session_row and state.labyrinth_is_controller() and session_status == 'exploring')
+                        can_drive_labyrinth_combat = bool(session_row and session_status in {'encounter', 'boss'} and encounter_monster_snapshots and (is_local_labyrinth or state.labyrinth_is_controller()))
                         companion_class_options = {class_name: class_name for class_name in ALL_CLASS_ORDER}
                         companion_class_draft = normalize_player_class_name(getattr(state, 'labyrinth_companion_class_draft', player.player_class), player.player_class)
                         if companion_class_draft not in companion_class_options:
@@ -25472,6 +25495,23 @@ def main_page(request: Request) -> None:
                             state.labyrinth_panel_view = labyrinth_panel_view
                         companion_slots_open = max(0, LABYRINTH_MAX_PARTY_SIZE - len(member_rows))
                         ui.run_javascript(f"window.mqSetLabyrinthKeysEnabled && window.mqSetLabyrinthKeysEnabled({json.dumps(can_move_labyrinth)});")
+                        if can_drive_labyrinth_combat:
+                            def _advance_labyrinth_round_from_client() -> None:
+                                if state.run_labyrinth_encounter(ignore_timing=True):
+                                    request_render_refresh()
+                            ui.button('', on_click=_advance_labyrinth_round_from_client).props('id=mq-lab-advance-round').style('display:none;')
+                            next_round_delay_ms = _labyrinth_next_step_delay_ms(pending_encounter, _labyrinth_step_delay_seconds(state))
+                            ui.run_javascript(f"""
+(() => {{
+  window.clearTimeout(window.__mqLabAdvanceTimer);
+  window.__mqLabAdvanceTimer = window.setTimeout(() => {{
+    const button = document.getElementById('mq-lab-advance-round');
+    if (button) button.click();
+  }}, {int(next_round_delay_ms)});
+}})();
+""")
+                        else:
+                            ui.run_javascript("window.clearTimeout(window.__mqLabAdvanceTimer); window.__mqLabAdvanceTimer = null;")
                         with ui.column().classes('w-full gap-4'):
                             with ui.card().classes('mq-card w-full p-5'):
                                 ui.label('Labyrinth of Light').classes('mq-inv-title')
@@ -25600,7 +25640,7 @@ def main_page(request: Request) -> None:
                                             hero_class = normalize_player_class_name(row.get('player_class'), 'Black Guard')
                                             hero_uri = _hero_data_uri(hero_class)
                                             member_id = str(row.get('user_id') or '').strip()
-                                            member_popup_html = _labyrinth_damage_popup_html(pending_encounter, member_id, low_load=labyrinth_low_load_mode)
+                                            member_popup_html = _labyrinth_damage_popup_html(labyrinth_visual_popups, member_id, low_load=labyrinth_low_load_mode)
                                             is_companion = bool(row.get('is_companion', False))
                                             can_toggle_tank = member_id == _labyrinth_member_identity(state) or (bool(getattr(state, 'labyrinth_is_local', False)) and is_companion)
                                             ability_meta = _labyrinth_class_ability_meta(hero_class)
@@ -25814,7 +25854,7 @@ def main_page(request: Request) -> None:
                                                     monster_type = str(monster_snapshot.get('monster_type') or pending_encounter.get('monster_type') or 'Lantern Beast')
                                                     monster_level = int(monster_snapshot.get('level', pending_encounter.get('monster_level', max(LABYRINTH_UNLOCK_LEVEL, player.level))) or max(LABYRINTH_UNLOCK_LEVEL, player.level))
                                                     monster_uri = _arena_monster_data_uri(monster_type)
-                                                    monster_popup_html = _labyrinth_damage_popup_html(pending_encounter, 'monster-0', low_load=labyrinth_low_load_mode)
+                                                    monster_popup_html = _labyrinth_damage_popup_html(labyrinth_visual_popups, 'monster-0', low_load=labyrinth_low_load_mode)
                                                     monster_hp = int(monster_snapshot.get('hp', 1) or 1)
                                                     monster_max_hp = max(1, int(monster_snapshot.get('max_hp', 1) or 1))
                                                     is_boss_monster = bool(pending_encounter.get('boss', False))
@@ -25867,7 +25907,7 @@ def main_page(request: Request) -> None:
                                                             monster_max_hp = max(1, int(monster_snapshot.get('max_hp', 1) or 1))
                                                             monster_alive = monster_hp > 0
                                                             is_acting_monster = monster_turn_pending and monster_index == current_monster_actor_index
-                                                            monster_popup_html = _labyrinth_damage_popup_html(pending_encounter, f'monster-{monster_index}', low_load=labyrinth_low_load_mode)
+                                                            monster_popup_html = _labyrinth_damage_popup_html(labyrinth_visual_popups, f'monster-{monster_index}', low_load=labyrinth_low_load_mode)
                                                             with ui.card().classes('mq-panel-frame mq-lab-monster-card w-full p-3').style(
                                                                 ('outline: 2px solid rgba(251,191,36,0.75); outline-offset: 0px;' if is_acting_monster else '')
                                                                 + ('opacity: 0.55;' if not monster_alive else '')
@@ -28160,9 +28200,15 @@ def main_page(request: Request) -> None:
             and session_status in {'encounter', 'boss'}
             and (is_local_lab or state.labyrinth_is_controller())
         ):
-            if state.run_labyrinth_encounter(ignore_timing=False):
+            pending = session_row.get('pending_encounter', {}) if isinstance(session_row.get('pending_encounter', {}), dict) else {}
+            next_step_at = _labyrinth_parse_iso_timestamp(pending.get('next_step_at'))
+            fallback_after = max(6.0, _labyrinth_step_delay_seconds(state) * 4.0)
+            if next_step_at is not None and datetime.now(timezone.utc) < (next_step_at + timedelta(seconds=fallback_after)):
+                return
+            if state.run_labyrinth_encounter(ignore_timing=True):
                 request_render_refresh()
                 return
+            return
         session_row = getattr(state, 'labyrinth_session_row', {})
         session_status = str((session_row or {}).get('status') or '').strip().lower()
         if (
