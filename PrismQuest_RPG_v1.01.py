@@ -651,6 +651,15 @@ def normalize_player_class_name(value: object, default: str = 'Black Guard') -> 
     raw = str(value or '').strip()
     mapped = LEGACY_CLASS_ALIASES.get(raw, raw)
     return mapped if mapped in KNOWN_CLASS_NAMES else default
+
+
+def selection_index(value: object) -> int:
+    try:
+        return int(value) if value is not None else -1
+    except (TypeError, ValueError, OverflowError):
+        return -1
+
+
 CASTER_CLASSES = {'Shadow Mage', 'Warlock', 'Prismatic Sorceress', 'Shadow Arcanist', 'Night Angel', 'Frost Oracle', 'Ember Fae'}
 CLASS_DESCRIPTIONS = {
     'Black Guard': 'Higher HP and armor. Steady physical damage.',
@@ -997,7 +1006,10 @@ ui.add_head_html('''
 
   function paint(btn){
     if (!(btn instanceof HTMLElement)) return;
-    const t = THEMES[themeName(btn)] || THEMES.gold;
+    if (btn.classList.contains('mq-lab-tank-btn')) return;
+    const name = themeName(btn);
+    if (btn.dataset.mqPaintTheme === name && btn.style.backgroundImage) return;
+    const t = THEMES[name] || THEMES.gold;
     btn.classList.remove('bg-primary','bg-blue','bg-indigo','bg-secondary','bg-accent','bg-positive','bg-negative','bg-warning','bg-info','text-white','glossy','q-btn--glossy');
     btn.style.setProperty('background-image', t.bg, 'important');
     btn.style.setProperty('background-color', '#2d2214', 'important');
@@ -1005,6 +1017,7 @@ ui.add_head_html('''
     btn.style.setProperty('border', '1px solid ' + t.border, 'important');
     btn.style.setProperty('box-shadow', '0 12px 24px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -10px 18px rgba(0,0,0,0.22)', 'important');
     btn.querySelectorAll('.q-btn__content,.block,span,i,.q-icon').forEach(el => el.style.setProperty('color', t.color, 'important'));
+    btn.dataset.mqPaintTheme = name;
   }
 
   function repaintAll(root){
@@ -1202,6 +1215,14 @@ body {
 .mq-lab-side-stack {
   display: grid;
   gap: 0.85rem;
+  min-width: 0;
+}
+.mq-lab-layout > *,
+.mq-lab-member-top > *,
+.mq-lab-member-body > *,
+.mq-lab-pack-grid > *,
+.mq-lab-single-monster-card > * {
+  min-width: 0;
 }
 .mq-lab-member-card,
 .mq-lab-grid-card,
@@ -1373,22 +1394,22 @@ body {
 .mq-lab-member-meter-wrap {
   position: relative;
 }
-.mq-lab-tank-btn.q-btn {
+.mq-page .q-btn.q-btn.mq-lab-tank-btn {
   min-width: 62px;
   min-height: 34px;
   padding: 0 0.55rem;
   border-radius: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
-  border: 1px solid rgba(255, 104, 104, 0.88);
-  color: #ffd8d8;
+  border: 1px solid rgba(255, 104, 104, 0.88) !important;
+  color: #ffd8d8 !important;
   background:
     linear-gradient(180deg, rgba(255, 182, 182, 0.14) 0%, rgba(158, 44, 44, 0.14) 46%, rgba(38, 10, 10, 0.96) 100%),
-    rgba(26, 10, 10, 0.96);
+    rgba(26, 10, 10, 0.96) !important;
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,0.03),
     0 0 0 1px rgba(255, 92, 92, 0.18),
-    0 0 16px rgba(255, 74, 74, 0.14);
+    0 0 16px rgba(255, 74, 74, 0.14) !important;
   transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease, background 0.14s ease;
 }
 .mq-lab-tank-btn.q-btn .q-btn__content {
@@ -1400,17 +1421,18 @@ body {
 .mq-lab-tank-btn.q-btn[aria-pressed="true"] {
   transform: translateY(2px) scale(0.96);
 }
-.mq-lab-tank-btn-active.q-btn {
-  transform: translateY(2px) scale(0.96);
-  border-color: rgba(124, 255, 170, 0.96);
+.mq-page .q-btn.q-btn.mq-lab-tank-btn.mq-lab-tank-btn-active {
+  transform: translateY(2px) scale(0.96) !important;
+  border-color: rgba(124, 255, 170, 0.96) !important;
+  color: #e4ffe9 !important;
   background:
     linear-gradient(180deg, rgba(199, 255, 214, 0.28) 0%, rgba(118, 255, 167, 0.18) 46%, rgba(16, 72, 42, 0.94) 100%),
-    rgba(9, 30, 20, 0.96);
+    rgba(9, 30, 20, 0.96) !important;
   box-shadow:
     inset 0 2px 14px rgba(223, 255, 232, 0.18),
     inset 0 -4px 10px rgba(7, 46, 25, 0.40),
     0 0 0 1px rgba(134, 255, 181, 0.28),
-    0 0 28px rgba(110, 255, 164, 0.26);
+    0 0 28px rgba(110, 255, 164, 0.26) !important;
 }
 .mq-lab-tank-btn-active.q-btn .q-btn__content {
   color: #e4ffe9;
@@ -1470,10 +1492,15 @@ body {
   }
 }
 .mq-lab-stage-card {
+  --mq-lab-stage-height: clamp(35rem, 70dvh, 37rem);
   min-height: clamp(35rem, 70vh, 37rem);
-  height: clamp(35rem, 70vh, 37rem);
+  height: var(--mq-lab-stage-height);
   display: grid;
-  align-content: start;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  overflow: auto;
+  overscroll-behavior: contain;
+  container-type: inline-size;
 }
 .mq-lab-grid-shell {
   display: grid;
@@ -1481,8 +1508,9 @@ body {
   gap: 0.7rem;
   justify-items: center;
   text-align: center;
-  min-height: 100%;
-  align-content: start;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
   width: 100%;
   padding-inline: 0.15rem;
 }
@@ -1498,7 +1526,8 @@ body {
   align-content: start;
 }
 .mq-lab-monster-stage {
-  min-height: 228px !important;
+  min-height: clamp(112px, 30cqw, 228px) !important;
+  height: clamp(112px, 30cqw, 228px);
   max-height: 228px;
   padding: 0;
 }
@@ -1507,16 +1536,19 @@ body {
   max-height: 262px;
 }
 .mq-lab-monster-stage .mq-monster-image-wrap {
-  min-height: 194px;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
   padding: 8px 8px;
 }
 .mq-lab-monster-stage-large .mq-monster-image-wrap {
-  min-height: 228px;
+  min-height: 0;
   padding: 10px 10px;
 }
 .mq-lab-monster-stage .mq-monster-image-static {
   max-width: min(92%, 216px);
-  max-height: 186px;
+  max-height: 100%;
+  object-fit: contain;
 }
 .mq-lab-monster-stage-large .mq-monster-image-static {
   max-width: min(94%, 248px);
@@ -1603,7 +1635,10 @@ body {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.42rem;
-  width: min(calc(100% - 0.4rem), 29.5rem);
+  width: min(calc(100% - 0.4rem), 29.5rem, calc(var(--mq-lab-stage-height, 35rem) - 10rem));
+  aspect-ratio: 1;
+  min-height: 0;
+  align-self: center;
   margin-inline: auto;
 }
 .mq-lab-tile {
@@ -1725,15 +1760,52 @@ body {
   .mq-lab-reward-grid {
     grid-template-columns: minmax(0, 1fr);
   }
-  .mq-lab-pack-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 @media (max-width: 900px) {
-  .mq-lab-member-body,
-  .mq-lab-pack-grid {
+  .mq-lab-member-body {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+.mq-lab-member-downed .mq-lab-member-portrait {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+@media (max-width: 600px) {
+  .mq-lab-member-portrait {
+    width: 84px;
+    min-width: 84px;
+    height: 110px;
+  }
+  .mq-lab-pack-grid { gap: 0.35rem; }
+  .mq-lab-pack-grid .mq-lab-monster-card { padding: 0.4rem; }
+  .mq-lab-pack-grid .mq-lab-monster-card .text-lg { font-size: 0.82rem; }
+  .mq-lab-single-monster-card { gap: 0.5rem; }
+}
+.mq-inn-vault-card {
+  width: min(96vw, 1380px) !important;
+  max-width: calc(100vw - 1rem) !important;
+  max-height: 92dvh;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.mq-inn-vault-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px) minmax(0, 1fr);
+  align-items: start;
+  gap: 1rem;
+  width: 100%;
+}
+.mq-inn-vault-layout > * { min-width: 0; width: 100%; }
+.mq-inn-vault-list {
+  max-height: min(520px, 60dvh);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+@media (max-width: 900px) {
+  .mq-inn-vault-layout { grid-template-columns: minmax(0, 1fr); }
+  .mq-inn-vault-list { max-height: 40dvh; }
 }
 .mq-scene-glossary {
   --mq-accent: #a8d2df;
@@ -5722,6 +5794,50 @@ window.mqSetMeterValue = function(meterId, value, maximum, duration, cycle, roll
   window.mqBindMeter(el);
   return true;
 };
+window.mqScheduleLabRound = function(delayMs) {
+  window.clearTimeout(window.__mqLabAdvanceTimer);
+  window.__mqLabAdvanceTimer = window.setTimeout(function() {
+    const button = document.getElementById('mq-lab-advance-round');
+    if (button) button.click();
+  }, Math.max(120, Number(delayMs) || 120));
+};
+window.mqUpdateLabCombat = function(payload) {
+  function updateMeter(id, current, maximum, duration, popup) {
+    window.mqSetMeterValue(id, current, maximum, duration, null, false);
+    const meter = document.getElementById(id);
+    if (!meter) return;
+    const wrap = meter.closest('.mq-meter-shell');
+    if (!wrap) return;
+    const valueText = Number(current).toLocaleString() + ' / ' + Number(maximum).toLocaleString();
+    meter.title = valueText;
+    const hoverLine = wrap.querySelector('.mq-item-hover-line');
+    if (hoverLine) hoverLine.textContent = valueText;
+    if (popup && Date.now() / 1000 - Number(popup.at) < 1.45 && wrap.dataset.popupAt !== String(popup.at)) {
+      wrap.dataset.popupAt = String(popup.at);
+      wrap.querySelectorAll('.mq-damage-float').forEach(node => node.remove());
+      const effect = document.createElement('div');
+      effect.className = 'mq-damage-float ' + (popup.crit ? 'crit' : 'normal');
+      effect.textContent = popup.text;
+      effect.addEventListener('animationend', () => effect.remove(), {once: true});
+      wrap.appendChild(effect);
+    }
+  }
+  payload.members.forEach(function(row, index) {
+    updateMeter('mq-meter-lab-party-hp-' + index, row[0], row[1], payload.duration, row[5]);
+    updateMeter('mq-meter-lab-party-mana-' + index, row[2], row[3], payload.manaDuration, null);
+    const card = document.getElementById('mq-lab-member-' + index);
+    if (card) card.classList.toggle('mq-lab-member-downed', row[4]);
+  });
+  payload.monsters.forEach(function(row, index) {
+    const suffix = payload.monsters.length === 1 ? '' : '-' + index;
+    updateMeter('mq-meter-labyrinth-monster-hp' + suffix, row[0], row[1], payload.duration, row[2]);
+    const heading = document.getElementById('mq-lab-monster-heading-' + index);
+    if (heading) heading.textContent = row[3];
+  });
+  const round = document.getElementById('mq-lab-round-note');
+  if (round) round.textContent = 'Round ' + payload.round + ' - Party, then monsters';
+  if (payload.delay !== null) window.mqScheduleLabRound(payload.delay);
+};
 document.addEventListener('DOMContentLoaded', function() {
   window.mqBindMeters(document);
   if (window.__mqMeterObserver) return;
@@ -7453,7 +7569,7 @@ def normalize_labyrinth_roster_companion(raw_entry: object) -> Optional[Dict[str
 
 def normalize_labyrinth_roster_companions(raw_entries: object) -> List[Dict[str, object]]:
     rows: List[Dict[str, object]] = []
-    seen_ids: Set[str] = set()
+    seen_ids: set[str] = set()
     if isinstance(raw_entries, list):
         for raw_entry in raw_entries:
             normalized = normalize_labyrinth_roster_companion(raw_entry)
@@ -10024,10 +10140,18 @@ class Item:
         base = {'Common': 1, 'Fine': 2, 'Rare': 4, 'Epic': 7, 'Mythic': 11, 'Ancient': 16, 'Relic': 22, 'Ascendant': 29, 'Legendary': 37, 'Unspawnable': 55}[self.rarity]
         return base + max(0, self.level // 5)
     def to_dict(self) -> Dict:
-        return asdict(self)
+        return {
+            'name': self.name, 'slot': self.slot, 'level': self.level,
+            'rarity': self.rarity, 'subtype': self.subtype,
+            'base_stats': dict(self.base_stats), 'affix_stats': dict(self.affix_stats),
+            'is_starter': self.is_starter,
+        }
     @classmethod
     def from_dict(cls, data: Dict) -> 'Item':
-        return cls(**data)
+        payload = dict(data)
+        payload['base_stats'] = dict(payload.get('base_stats') or {})
+        payload['affix_stats'] = dict(payload.get('affix_stats') or {})
+        return cls(**payload)
 @dataclass
 class Fighter:
     name: str
@@ -10226,7 +10350,12 @@ class Player(Fighter):
         self.recalculate_stats()
         return f'Allocated 1 point to {STAT_LABELS[key]}.'
     def to_dict(self) -> Dict:
-        payload = asdict(self)
+        # Equipment and inventory are serialized below; avoid walking them twice.
+        payload = {
+            key: copy.deepcopy(getattr(self, key))
+            for key in self.__dataclass_fields__
+            if key not in {'inventory', 'equipped'}
+        }
         normalized_inventory: List[Dict] = []
         for raw_item in self.inventory:
             item = coerce_item(raw_item)
@@ -13119,7 +13248,7 @@ class SessionState:
         )
         slot['saved_item_sets'] = saved_item_sets_to_payload(self.saved_item_sets)
         slot['saved_set_collapsed'] = dict(self.saved_set_collapsed)
-        slot['vault_items'] = [asdict(item) for item in self.vault_items]
+        slot['vault_items'] = [item.to_dict() for item in self.vault_items]
         slot['vault_capacity'] = max(int(self.vault_capacity), len(self.vault_items), 0)
         slot['last_monster_drop_item'] = None if self.last_monster_drop_item is None else copy.deepcopy(self.last_monster_drop_item.to_dict())
         slot['last_monster_drop_source'] = str(self.last_monster_drop_source or '')
@@ -13135,7 +13264,7 @@ class SessionState:
             else None
         )
         slot['carryover_gold'] = int(self.shared_gold)
-        slot['carryover_inventory'] = [asdict(item) for item in self.shared_inventory]
+        slot['carryover_inventory'] = [item.to_dict() for item in self.shared_inventory]
         slot['carryover_proficiency_levels'] = dict(self.shared_proficiency_levels)
         slot['carryover_proficiency_progress'] = dict(self.shared_proficiency_progress)
         slot['monster_chain_combo'] = int(self.monster_chain_combo)
@@ -13166,7 +13295,7 @@ class SessionState:
         slot['labyrinth_roster_companions'] = [copy.deepcopy(entry) for entry in normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', []))]
         slot['ladder_reset_count'] = int(self.current_account_ladder_resets())
         slot['run_started_wall_time'] = float(self.current_run_start_wall_time if self.player is not None else 0.0)
-        slot['player'] = None if self.player is None else copy.deepcopy(self.player.to_dict())
+        slot['player'] = None if self.player is None else self.player.to_dict()
         self.persist_runtime_session()
         self.persist_to_disk()
 
@@ -13288,6 +13417,7 @@ class SessionState:
         self.labyrinth_local_resolution_text = ''
         self.labyrinth_visual_damage_popups = {}
         self.labyrinth_visual_sequence = 0
+        self.labyrinth_last_self_snapshot_key = None
         self.labyrinth_last_snapshot_hash = ''
         self.labyrinth_last_sync_at = 0.0
         self.labyrinth_last_member_sync_at = 0.0
@@ -17636,24 +17766,28 @@ def _labyrinth_member_player_from_entry(
     party_state: Optional[Dict[str, Dict[str, object]]] = None,
     session_row: Optional[Dict[str, object]] = None,
 ) -> Player:
-    raw_snapshot = copy.deepcopy(entry.get('player_snapshot')) if isinstance(entry.get('player_snapshot'), dict) else {}
+    raw_snapshot = entry.get('player_snapshot') if isinstance(entry.get('player_snapshot'), dict) else {}
     player = Player.from_dict(raw_snapshot)
     _labyrinth_apply_effects_to_player(player, effects, boss=False)
     _labyrinth_apply_ability_bonuses_to_player(player, entry, party_state or {}, session_row or {})
-    player.hp = max(0, min(player.max_hp, int(entry.get('current_hp', player.hp) or player.hp)))
-    player.mana = max(0, min(player.max_mana, int(entry.get('current_mana', player.mana) or player.mana)))
+    player.hp = max(0, min(player.max_hp, int(entry.get('current_hp', player.hp))))
+    player.mana = max(0, min(player.max_mana, int(entry.get('current_mana', player.mana))))
     return player
 
 
 def _labyrinth_update_raw_snapshot_from_player(raw_snapshot: Dict[str, object], player: Player) -> Dict[str, object]:
     updated = player.to_dict()
-    payload = copy.deepcopy(raw_snapshot) if isinstance(raw_snapshot, dict) else {}
-    for key in (
+    refreshed_keys = (
         'name', 'level', 'xp', 'xp_to_next', 'gold', 'wins', 'losses', 'unspent_stat_points',
         'base_max_hp', 'base_max_mana', 'base_accuracy', 'base_crit_chance',
         'inventory', 'equipped', 'proficiency_levels', 'proficiency_progress',
-    ):
-        payload[key] = copy.deepcopy(updated.get(key))
+    )
+    payload = {
+        key: copy.deepcopy(value) for key, value in raw_snapshot.items()
+        if key not in refreshed_keys
+    } if isinstance(raw_snapshot, dict) else {}
+    for key in refreshed_keys:
+        payload[key] = updated.get(key)
     payload['hp'] = max(0, min(int(updated.get('max_hp', player.max_hp) or player.max_hp), int(player.hp)))
     payload['mana'] = max(0, min(int(updated.get('max_mana', player.max_mana) or player.max_mana), int(player.mana)))
     return payload
@@ -17677,22 +17811,31 @@ def _labyrinth_store_entry_from_player(entry: Dict[str, object], player: Player)
     return updated
 
 
-def _labyrinth_sync_self_from_party_state(self, session_row: Dict[str, object]) -> None:
+def _labyrinth_sync_self_from_party_state(self, session_row: Dict[str, object], *, persist: bool = True) -> bool:
     ensure_labyrinth_state(self)
     if self.player is None:
-        return
+        return False
     pending = session_row.get('pending_encounter', {}) if isinstance(session_row.get('pending_encounter', {}), dict) else {}
-    party_state = _labyrinth_party_state_map(pending)
+    party_state = pending.get('party_state', {})
+    if not isinstance(party_state, dict):
+        return False
     member_id = _labyrinth_member_identity(self)
     entry = party_state.get(member_id, {})
     raw_snapshot = entry.get('player_snapshot') if isinstance(entry, dict) else None
     if not isinstance(raw_snapshot, dict) or not raw_snapshot:
-        return
+        return False
+    snapshot_key = (str(session_row.get('id') or ''), member_id, _stable_payload_hash(raw_snapshot))
+    if snapshot_key == getattr(self, 'labyrinth_last_self_snapshot_key', None):
+        return False
     try:
-        self.player = Player.from_dict(copy.deepcopy(raw_snapshot))
-        self.sync_active_slot()
-    except Exception:
-        return
+        self.player = Player.from_dict(raw_snapshot)
+        self.labyrinth_last_self_snapshot_key = snapshot_key
+        if persist:
+            _labyrinth_maybe_sync_active_slot(self, session_row=session_row)
+        return True
+    except Exception as exc:
+        LOGGER.warning('Labyrinth character snapshot could not be applied: %s', exc)
+        return False
 
 
 def _labyrinth_build_shared_encounter(self, session_row: Dict[str, object], member_rows: List[Dict[str, object]], monster_type: str, target_level: int, *, boss: bool, tile_key: str) -> Dict[str, object]:
@@ -17827,7 +17970,7 @@ def _labyrinth_timer_tick_interval_seconds(self, session_row: Optional[Dict[str,
 
 def _labyrinth_next_step_iso(self, delay_seconds: Optional[float] = None) -> str:
     delay = _labyrinth_step_delay_seconds(self) if delay_seconds is None else max(0.0, float(delay_seconds))
-    return (datetime.now(timezone.utc) + timedelta(seconds=delay)).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
+    return (datetime.now(timezone.utc) + timedelta(seconds=delay)).isoformat().replace('+00:00', 'Z')
 
 
 def _labyrinth_next_step_delay_ms(raw_pending: object, fallback_seconds: float = 1.0) -> int:
@@ -17871,7 +18014,9 @@ def _labyrinth_repair_session_row(self, session_row: Dict[str, object], member_r
             pending['monster_snapshot'] = normalized_primary
             payload['pending_encounter'] = pending
             changed = True
-    party_state = _labyrinth_party_state_for_session(self, payload, member_rows, full_heal=False) if member_rows else {}
+    party_state = _labyrinth_party_state_map(pending)
+    if not party_state and member_rows:
+        party_state = _labyrinth_party_state_for_session(self, payload, member_rows, full_heal=False)
     if member_rows and not _labyrinth_party_state_map(pending):
         pending = dict(pending)
         pending['party_state'] = party_state
@@ -18101,6 +18246,7 @@ def ensure_labyrinth_state(self) -> None:
         'labyrinth_local_resolution_text': '',
         'labyrinth_visual_damage_popups': {},
         'labyrinth_visual_sequence': 0,
+        'labyrinth_last_self_snapshot_key': None,
         'labyrinth_last_snapshot_hash': '',
         'labyrinth_last_sync_at': 0.0,
         'labyrinth_last_member_sync_at': 0.0,
@@ -18266,8 +18412,8 @@ def _labyrinth_apply_local_session_update(
     else:
         effective_vote_rows = [dict(row) for row in vote_rows if isinstance(row, dict)]
     changed = _labyrinth_store_snapshot(self, session_row, effective_member_rows, effective_vote_rows)
-    _labyrinth_sync_self_from_party_state(self, session_row)
-    if changed:
+    player_changed = _labyrinth_sync_self_from_party_state(self, session_row, persist=False)
+    if changed or player_changed:
         _labyrinth_maybe_sync_active_slot(self, session_row=session_row)
     return changed
 
@@ -18334,7 +18480,7 @@ def _labyrinth_vote_count_map(vote_rows: object) -> Dict[int, int]:
         if not isinstance(row, dict):
             continue
         try:
-            choice_index = int(row.get('choice_index', -1) or -1)
+            choice_index = selection_index(row.get('choice_index'))
         except Exception:
             choice_index = -1
         if choice_index < 0:
@@ -18397,6 +18543,10 @@ def _labyrinth_member_payload(self, extra_updates: Optional[Dict[str, object]] =
 
 def _labyrinth_store_snapshot(self, session_row: Dict[str, object], member_rows: List[Dict[str, object]], vote_rows: List[Dict[str, object]]) -> bool:
     ensure_labyrinth_state(self)
+    if (session_row == self.labyrinth_session_row
+            and member_rows == self.labyrinth_member_rows
+            and vote_rows == self.labyrinth_vote_rows):
+        return False
     snapshot_hash = _stable_payload_hash({
         'session': session_row,
         'members': member_rows,
@@ -18404,6 +18554,7 @@ def _labyrinth_store_snapshot(self, session_row: Dict[str, object], member_rows:
     })
     changed = snapshot_hash != str(getattr(self, 'labyrinth_last_snapshot_hash', '') or '')
     self.labyrinth_last_snapshot_hash = snapshot_hash
+    self.labyrinth_snapshot_revision = int(getattr(self, 'labyrinth_snapshot_revision', 0)) + 1
     self.labyrinth_session_row = dict(session_row)
     self.labyrinth_member_rows = [dict(row) for row in member_rows]
     self.labyrinth_vote_rows = [dict(row) for row in vote_rows]
@@ -18517,7 +18668,58 @@ def labyrinth_sync_member_snapshot(self, force: bool = False, extra_updates: Opt
         return False
 
 
-def labyrinth_refresh_session_state(self, force: bool = False) -> bool:
+def _labyrinth_fetch_session_rows(client, session_id: str, join_code: str) -> Tuple[object, object, object]:
+    query = client.table(LABYRINTH_SESSION_TABLE).select('*')
+    query = query.eq('id', session_id) if session_id else query.eq('join_code', join_code)
+    rows = _supabase_response_data(query.limit(1).execute())
+    raw_row = rows[0] if isinstance(rows, list) and rows else (rows if isinstance(rows, dict) else {})
+    if not isinstance(raw_row, dict) or not raw_row or raw_row.get('status') == 'closed':
+        return raw_row, [], []
+    member_rows = _supabase_response_data(
+        client.table(LABYRINTH_SESSION_MEMBER_TABLE).select('*')
+        .eq('session_id', raw_row['id']).order('joined_at', desc=False).limit(16).execute()
+    )
+    vote_rows = []
+    if raw_row.get('status') == 'reward':
+        vote_rows = _supabase_response_data(
+            client.table(LABYRINTH_SESSION_VOTE_TABLE).select('*')
+            .eq('session_id', raw_row['id']).eq('floor', int(raw_row.get('floor', 1)))
+            .limit(16).execute()
+        )
+    return raw_row, member_rows, vote_rows
+
+
+async def labyrinth_refresh_session_state_async(self) -> bool:
+    if bool(getattr(self, 'labyrinth_is_local', False)):
+        return labyrinth_refresh_session_state(self)
+    if self.supabase is None or not self.is_authenticated() or getattr(self, 'labyrinth_poll_in_flight', False):
+        return False
+    session_id = str(getattr(self, 'labyrinth_session_id', '') or '')
+    join_code = str(getattr(self, 'labyrinth_join_code', '') or '')
+    if not session_id and not join_code:
+        return False
+    now = time.monotonic()
+    if now - float(getattr(self, 'labyrinth_last_sync_at', 0)) < _labyrinth_refresh_interval_seconds(self):
+        return False
+    self.labyrinth_last_sync_at = now
+    revision = int(getattr(self, 'labyrinth_snapshot_revision', 0))
+    identity = (session_id, join_code, self.active_slot_index, self.auth_user_id)
+    self.labyrinth_poll_in_flight = True
+    try:
+        # Only network reads leave the event loop; character state stays on it.
+        remote_rows = await asyncio.to_thread(_labyrinth_fetch_session_rows, self.supabase, session_id, join_code)
+        current_identity = (self.labyrinth_session_id, self.labyrinth_join_code, self.active_slot_index, self.auth_user_id)
+        if identity != current_identity or revision != int(getattr(self, 'labyrinth_snapshot_revision', 0)):
+            return False
+        return labyrinth_refresh_session_state(self, force=True, remote_rows=remote_rows)
+    except Exception as exc:
+        LOGGER.warning('Labyrinth polling will retry after a read failure: %s', exc)
+        return False
+    finally:
+        self.labyrinth_poll_in_flight = False
+
+
+def labyrinth_refresh_session_state(self, force: bool = False, remote_rows: Optional[Tuple[object, object, object]] = None) -> bool:
     ensure_labyrinth_state(self)
     if bool(getattr(self, 'labyrinth_is_local', False)):
         session_row = getattr(self, 'labyrinth_session_row', {})
@@ -18535,7 +18737,9 @@ def labyrinth_refresh_session_state(self, force: bool = False) -> bool:
         current_floor = int(session_row.get('floor', 1) or 1)
         current_state = str(session_row.get('status') or 'lobby').title()
         self.labyrinth_status = f'Floor {current_floor} • {current_state} • Solo Expedition'
-        _labyrinth_sync_self_from_party_state(self, session_row)
+        player_changed = _labyrinth_sync_self_from_party_state(self, session_row, persist=False)
+        if repaired or player_changed:
+            _labyrinth_maybe_sync_active_slot(self, session_row=session_row)
         self_member = _labyrinth_self_member_row(self)
         if self_member:
             _labyrinth_restore_self_for_floor(self, current_floor)
@@ -18552,14 +18756,7 @@ def labyrinth_refresh_session_state(self, force: bool = False) -> bool:
         return False
     self.labyrinth_last_sync_at = now
     try:
-        query = self.supabase.table(LABYRINTH_SESSION_TABLE).select('*')
-        if session_id:
-            query = query.eq('id', session_id)
-        else:
-            query = query.eq('join_code', join_code)
-        response = query.limit(1).execute()
-        rows = _supabase_response_data(response)
-        raw_row = rows[0] if isinstance(rows, list) and rows else (rows if isinstance(rows, dict) else {})
+        raw_row, member_rows_raw, vote_rows_raw = remote_rows if remote_rows is not None else _labyrinth_fetch_session_rows(self.supabase, session_id, join_code)
         session_row = _labyrinth_normalize_session_row(raw_row)
         if not session_row:
             self.labyrinth_status = 'That Labyrinth expedition no longer answers the lantern.'
@@ -18589,14 +18786,6 @@ def labyrinth_refresh_session_state(self, force: bool = False) -> bool:
             self.labyrinth_local_resolution_text = ''
             self.sync_active_slot()
             return True
-        member_rows_raw = _supabase_response_data(
-            self.supabase.table(LABYRINTH_SESSION_MEMBER_TABLE)
-            .select('*')
-            .eq('session_id', session_row['id'])
-            .order('joined_at', desc=False)
-            .limit(16)
-            .execute()
-        )
         member_rows = [
             row for row in (
                 _labyrinth_normalize_member_row(raw_member)
@@ -18609,14 +18798,6 @@ def labyrinth_refresh_session_state(self, force: bool = False) -> bool:
             return False
         vote_rows: List[Dict[str, object]] = []
         if str(session_row.get('status') or '').strip().lower() == 'reward':
-            vote_rows_raw = _supabase_response_data(
-                self.supabase.table(LABYRINTH_SESSION_VOTE_TABLE)
-                .select('*')
-                .eq('session_id', session_row['id'])
-                .eq('floor', int(session_row.get('floor', 1) or 1))
-                .limit(16)
-                .execute()
-            )
             if isinstance(vote_rows_raw, list):
                 for raw_vote in vote_rows_raw:
                     if not isinstance(raw_vote, dict):
@@ -18625,13 +18806,14 @@ def labyrinth_refresh_session_state(self, force: bool = False) -> bool:
                         'session_id': str(raw_vote.get('session_id') or '').strip(),
                         'floor': max(1, int(raw_vote.get('floor', 1) or 1)),
                         'user_id': str(raw_vote.get('user_id') or raw_vote.get('voter_user_id') or '').strip(),
-                        'choice_index': max(-1, int(raw_vote.get('choice_index', -1) or -1)),
+                        'choice_index': max(-1, selection_index(raw_vote.get('choice_index'))),
                         'updated_at': str(raw_vote.get('updated_at') or '').strip(),
                     })
         changed = _labyrinth_store_snapshot(self, session_row, member_rows, vote_rows)
         self.labyrinth_status = f'Floor {int(session_row.get("floor", 1) or 1)} • {str(session_row.get("status") or "lobby").title()} • Join Code {session_row.get("join_code") or "Unknown"}'
-        _labyrinth_sync_self_from_party_state(self, session_row)
-        self.sync_active_slot()
+        player_changed = _labyrinth_sync_self_from_party_state(self, session_row, persist=False)
+        if changed or player_changed:
+            _labyrinth_maybe_sync_active_slot(self, session_row=session_row)
         self_member = _labyrinth_self_member_row(self)
         if self_member:
             _labyrinth_restore_self_for_floor(self, int(session_row.get('floor', 1) or 1))
@@ -18664,32 +18846,17 @@ def labyrinth_current_vote_choice(self) -> int:
         if not isinstance(row, dict):
             continue
         if str(row.get('user_id') or row.get('voter_user_id') or '').strip() == user_id and int(row.get('floor', floor) or floor) == floor:
-            return int(row.get('choice_index', -1) or -1)
+            return selection_index(row.get('choice_index'))
     return -1
 
 
 def _labyrinth_upsert_session_row(self, payload: Dict[str, object]) -> bool:
     if bool(getattr(self, 'labyrinth_is_local', False)):
         session_id = str(payload.get('id') or getattr(self, 'labyrinth_session_id', '') or '').strip() or f'local-lab-{uuid.uuid4().hex}'
-        local_payload = dict(payload)
-        local_payload['id'] = session_id
-        local_payload['updated_at'] = _labyrinth_now_iso()
-        session_row = _labyrinth_normalize_session_row(local_payload)
-        if not session_row:
-            return False
-        vote_rows = [dict(row) for row in list(getattr(self, 'labyrinth_vote_rows', []) or []) if isinstance(row, dict)] if str(session_row.get('status') or '').strip().lower() == 'reward' else []
-        local_member_rows = [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)]
-        local_party_state = _labyrinth_party_state_map(session_row.get('pending_encounter', {}))
-        if local_party_state:
-            local_member_rows = _labyrinth_member_rows_from_party_state(local_member_rows, local_party_state)
-        _labyrinth_store_snapshot(
-            self,
-            session_row,
-            local_member_rows,
-            vote_rows,
-        )
-        self.sync_active_slot()
-        return True
+        payload['id'] = session_id
+        payload['updated_at'] = _labyrinth_now_iso()
+        # The caller applies the committed snapshot once, including companions.
+        return bool(_labyrinth_normalize_session_row(payload))
     if self.supabase is None or not self.is_authenticated():
         return False
     session_id = str(payload.get('id') or getattr(self, 'labyrinth_session_id', '') or '').strip()
@@ -19030,10 +19197,7 @@ def labyrinth_set_roster_companion_item(self, companion_id: object, slot_name: o
     normalized_slot = str(slot_name or '').strip().lower()
     if normalized_slot not in {'weapon', 'armor', 'charm'}:
         return False
-    try:
-        inventory_index = int(str(raw_inventory_index or '').strip())
-    except Exception:
-        inventory_index = -1
+    inventory_index = selection_index(raw_inventory_index)
     if inventory_index < 0 or inventory_index >= len(self.player.inventory):
         self.labyrinth_status = 'Choose one of your inventory items to equip first.'
         return False
@@ -20062,7 +20226,7 @@ def labyrinth_finalize_encounter_if_ready(self) -> bool:
     return False
 
 
-def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
+def run_labyrinth_encounter(self, ignore_timing: bool = False, expected_step: Optional[Tuple[str, str, int]] = None) -> bool:
     ensure_labyrinth_state(self)
     if self.player is None or self.active_slot_index is None:
         self.labyrinth_status = 'Open a live chronicle first.'
@@ -20079,6 +20243,9 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
         self.labyrinth_status = 'No active Labyrinth encounter is waiting.'
         return False
     pending = session_row.get('pending_encounter', {}) if isinstance(session_row.get('pending_encounter', {}), dict) else {}
+    step_key = (str(session_row.get('id') or ''), str(pending.get('started_at') or ''), int(pending.get('sequence', 0) or 0))
+    if expected_step is not None and expected_step != step_key:
+        return False
     monster_snapshots = _labyrinth_monster_snapshots_from_pending(pending)
     if not pending or not monster_snapshots:
         self.labyrinth_status = 'The Labyrinth encounter state is incomplete.'
@@ -20186,13 +20353,14 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
                 active_text = monster_event.text
                 turn_index = party_turn_count + monster_phase_index + 1
                 defeat = not _labyrinth_alive_party_ids(party_state, turn_order)
-                if defeat:
+                victory = not _labyrinth_alive_monster_indices(updated_monster_snapshots)
+                if defeat or victory:
                     break
                 monster_phase_index += 1
                 continue
             monster_phase_index += 1
             turn_index = party_turn_count + monster_phase_index
-        if not defeat:
+        if not defeat and not victory:
             regen_logs: List[str] = []
             refreshed_alive_ids = _labyrinth_alive_party_ids(party_state, turn_order)
             for alive_id in refreshed_alive_ids:
@@ -20355,10 +20523,10 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False) -> bool:
         payload['reward_options'] = []
         self.labyrinth_local_resolution_text = active_text or 'The encounter keeps moving through the party order.'
     self.labyrinth_local_combat_log = action_log[:log_limit]
-    self.labyrinth_visual_damage_popups = damage_popups if not low_load_mode else {}
-    self.labyrinth_visual_sequence = next_sequence
     if not _labyrinth_upsert_session_row(self, payload):
         return False
+    self.labyrinth_visual_damage_popups = damage_popups if not low_load_mode else {}
+    self.labyrinth_visual_sequence = next_sequence
     _labyrinth_apply_local_session_update(
         self,
         payload,
@@ -22215,7 +22383,7 @@ def selected_marketplace_offer(self) -> Optional[MarketplaceOffer]:
 def displayed_marketplace_offer_index(self) -> int:
     if not self.marketplace_offers:
         return 0
-    hovered = int(getattr(self, 'marketplace_hovered_index', -1) or -1)
+    hovered = selection_index(getattr(self, 'marketplace_hovered_index', -1))
     if 0 <= hovered < len(self.marketplace_offers):
         return hovered
     idx = max(0, min(self.marketplace_selected_index, len(self.marketplace_offers) - 1))
@@ -24050,7 +24218,7 @@ def main_page(request: Request) -> None:
     if False:  # Marketplace purchase now reuses the shared confirmation flow.
         @ui.refreshable
         def render_marketplace_purchase_dialog() -> None:
-            pending_index = int(getattr(state, 'marketplace_pending_purchase_index', -1) or -1)
+            pending_index = selection_index(getattr(state, 'marketplace_pending_purchase_index', -1))
             offer = state.marketplace_offers[pending_index] if 0 <= pending_index < len(state.marketplace_offers) else None
             with ui.card().classes('mq-card max-w-[620px] w-[92vw] p-5'):
                 ui.label('Buy This Offer?').classes('text-2xl font-semibold text-slate-100')
@@ -24179,7 +24347,7 @@ def main_page(request: Request) -> None:
         vault_send_dialog.open()
 
     def confirm_inn_vault_send_dialog() -> None:
-        idx = int(vault_send_state.get('selected_index', -1) or -1)
+        idx = selection_index(vault_send_state.get('selected_index'))
         raw_code = str(getattr(vault_send_input, 'value', '') or getattr(state, 'inn_vault_transfer_code_draft', '') or '').strip()
         state.inn_vault_transfer_code_draft = raw_code.upper()
         if state.send_vault_item_to_player(idx, raw_code):
@@ -24418,7 +24586,7 @@ def main_page(request: Request) -> None:
             transfer_rows = list(getattr(state, 'inn_vault_transfer_rows', []) or [])
             transfer_status = str(getattr(state, 'inn_vault_transfer_status', '') or '')
             courier_locked = bool(state.supabase is None or not state.is_authenticated() or state.current_slot_mode() == 'SSF')
-            with ui.card().classes('mq-card max-w-[1380px] w-[96vw] p-5 mx-auto').style('max-height: 92vh; overflow-y: auto;'):
+            with ui.card().classes('mq-card mq-inn-vault-card p-5 mx-auto'):
                 ui.label('Inn Vault').classes('mq-inv-title')
                 if state.player is None:
                     ui.label('No active adventurer is available.').classes('mq-inv-empty mt-3')
@@ -24439,10 +24607,10 @@ def main_page(request: Request) -> None:
                     affix_select.props('dense outlined options-dense popup-content-class=mq-item-select-menu options-selected-class=mq-item-select-option-selected behavior=menu')
                     affix_select.on_value_change(lambda e: apply_inn_vault_filter_change('inn_vault_affix_filter', e.value, 'All attributes'))
                     ui.button('Reset Filters', on_click=reset_inn_vault_filters).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
-                with ui.row().classes('w-full items-stretch gap-4 mt-4 no-wrap max-[1180px]:flex-wrap'):
-                    with ui.card().classes('mq-card flex-1 min-w-[340px] p-4'):
+                with ui.element('div').classes('mq-inn-vault-layout mt-4'):
+                    with ui.card().classes('mq-card p-4'):
                         ui.label(f'Inventory ({len(filtered_inventory_entries)}/{len(state.player.inventory)})').classes('mq-inv-section-title mb-3')
-                        with ui.element('div').props('id=mq-inn-vault-inventory-scroll data-mq-vault-list=inventory tabindex=0 onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-inventory-scroll")').classes('w-full mq-pack-manifest-scroll').style('max-height: 520px; overflow-y: auto; padding-right: 6px; padding-top: 2px;'):
+                        with ui.element('div').props('id=mq-inn-vault-inventory-scroll data-mq-vault-list=inventory tabindex=0 onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-inventory-scroll")').classes('w-full mq-pack-manifest-scroll mq-inn-vault-list').style('padding-right: 6px; padding-top: 2px;'):
                             if not state.player.inventory:
                                 ui.label('No inventory items to deposit.').classes('mq-inv-empty')
                             elif not filtered_inventory_entries:
@@ -24463,7 +24631,7 @@ def main_page(request: Request) -> None:
                                                     ui.label(safe_item_base_stat_text(item)).classes('mq-inv-entry-base')
                                                     ui.label(safe_item_affix_preview_text(item)).classes('mq-inv-entry-affix')
                                                 ui.html(inn_vault_selected_flag_html(selected))
-                    with ui.column().classes('w-full max-w-[320px] gap-4 items-stretch justify-start'):
+                    with ui.column().classes('w-full gap-4 items-stretch justify-start'):
                         with ui.card().classes('mq-card p-4'):
                             ui.label('Vault Actions').classes('mq-inv-section-title mb-3 text-center')
                             buy_slots_btn = ui.button(f'Buy {VAULT_SLOT_BUNDLE_SIZE} Slots ({VAULT_SLOT_BUNDLE_COST} Gold)', on_click=buy_inn_vault_slots).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold w-full')
@@ -24522,9 +24690,9 @@ def main_page(request: Request) -> None:
                                                 if transfer_item is not None:
                                                     ui.label(f'{saved_item_type_label(transfer_item)} • Tier {item_required_level(transfer_item)}').classes('mq-detail-text mt-1')
                                                 ui.button(claim_btn_label, on_click=lambda transfer_id=str(transfer.get('id') or ''): (state.claim_pending_vault_transfer(transfer_id), refresh_inn_vault_views(preserve_scroll=True, remember_scroll=True))).classes('mq-btn-gold rounded-xl px-4 py-2 font-semibold w-full mt-3')
-                    with ui.card().classes('mq-card flex-1 min-w-[340px] p-4'):
+                    with ui.card().classes('mq-card p-4'):
                         ui.label(f'Vault Storage ({len(filtered_vault_entries)}/{vault_count})').classes('mq-inv-section-title mb-3')
-                        with ui.element('div').props('id=mq-inn-vault-storage-scroll data-mq-vault-list=storage tabindex=0 onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-storage-scroll")').classes('w-full mq-pack-manifest-scroll').style('max-height: 520px; overflow-y: auto; padding-right: 6px; padding-top: 2px;'):
+                        with ui.element('div').props('id=mq-inn-vault-storage-scroll data-mq-vault-list=storage tabindex=0 onscroll=window.mqRememberScroll&&window.mqRememberScroll("mq-inn-vault-storage-scroll")').classes('w-full mq-pack-manifest-scroll mq-inn-vault-list').style('padding-right: 6px; padding-top: 2px;'):
                             if not state.vault_items:
                                 empty_text = 'No vault slots purchased yet.' if vault_capacity <= 0 else 'The vault is empty.'
                                 ui.label(empty_text).classes('mq-inv-empty')
@@ -24706,6 +24874,57 @@ def main_page(request: Request) -> None:
                     hotkey_button.disable()
 
     refresh_state = {'pending': False, 'last_at': 0.0, 'dirty': False, 'token': 0}
+    labyrinth_view_refs: Dict[str, object] = {'key': None, 'step': None}
+
+    def labyrinth_combat_view_key(session_row: Dict[str, object]) -> object:
+        if str(session_row.get('status') or '') not in {'encounter', 'boss'}:
+            return None
+        pending = session_row.get('pending_encounter', {})
+        return (
+            session_row.get('id'), session_row.get('floor'), session_row.get('status'),
+            pending.get('started_at'),
+            tuple((str(row.get('user_id') or ''), bool(pending.get('party_state', {}).get(str(row.get('user_id') or ''), row).get('tank', False))) for row in state.labyrinth_member_rows),
+            tuple(str(monster.get('monster_type') or '') for monster in _labyrinth_monster_snapshots_from_pending(pending)),
+        )
+
+    def refresh_labyrinth_combat_view() -> bool:
+        if state.screen != 'game' or state.game_tab != 'labyrinth':
+            return False
+        session_row = state.labyrinth_session_row
+        view_key = labyrinth_combat_view_key(session_row)
+        if view_key is None or view_key != labyrinth_view_refs['key']:
+            return False
+        pending = session_row.get('pending_encounter', {})
+        party_state = pending.get('party_state', {})
+        low_load = bool(state.labyrinth_low_load_mode)
+        popups = {} if low_load else state.labyrinth_visual_damage_popups
+        members = []
+        for row in state.labyrinth_member_rows:
+            member_id = str(row.get('user_id') or '')
+            entry = party_state.get(member_id, row)
+            members.append([
+                int(entry.get('current_hp', 0)), max(1, int(entry.get('max_hp', 1))),
+                int(entry.get('current_mana', 0)), max(0, int(entry.get('max_mana', 0))),
+                bool(entry.get('is_downed', False)), popups.get(member_id),
+            ])
+        monsters = []
+        for index, monster in enumerate(_labyrinth_monster_snapshots_from_pending(pending)):
+            hp = int(monster.get('hp', 0))
+            heading = f'{monster.get("monster_type") or "Lantern Beast"} • Level {int(monster.get("level", 1))}'
+            if pending.get('boss'):
+                heading += ' • Floor Boss'
+            if hp <= 0:
+                heading += ' • Defeated'
+            monsters.append([hp, max(1, int(monster.get('max_hp', 1))), popups.get(f'monster-{index}'), heading])
+        drives_combat = state.labyrinth_is_local or state.labyrinth_is_controller()
+        packet = {
+            'members': members, 'monsters': monsters, 'round': int(pending.get('round', 1)),
+            'duration': 0 if low_load else 900, 'manaDuration': 0 if low_load else 1200,
+            'delay': _labyrinth_next_step_delay_ms(pending, _labyrinth_step_delay_seconds(state)) + 50 if drives_combat else None,
+        }
+        labyrinth_view_refs['step'] = (str(session_row.get('id') or ''), str(pending.get('started_at') or ''), int(pending.get('sequence', 0)))
+        ui.run_javascript('window.mqUpdateLabCombat && window.mqUpdateLabCombat(' + json.dumps(packet) + ');')
+        return True
 
     def request_render_refresh(*_args, force: bool = False, delay: float = 0.0) -> None:
         min_gap = 0.25
@@ -24747,12 +24966,13 @@ def main_page(request: Request) -> None:
         now = time.monotonic()
         wait = max(float(delay), max(0.0, min_gap - (now - float(refresh_state['last_at']))))
         if refresh_state['pending']:
-            refresh_state['dirty'] = True
             return
         _schedule_follow_up(wait)
 
     @ui.refreshable
     def render() -> None:
+        labyrinth_view_refs['key'] = None
+        labyrinth_view_refs['step'] = None
         if state.player is None:
             inventory_dialog.close()
         active_scene = state.screen
@@ -25465,6 +25685,7 @@ def main_page(request: Request) -> None:
                         self_member_row = next((row for row in display_member_rows if str(row.get('user_id') or '').strip() == _labyrinth_member_identity(state)), {})
                         can_move_labyrinth = bool(session_row and state.labyrinth_is_controller() and session_status == 'exploring')
                         can_drive_labyrinth_combat = bool(session_row and session_status in {'encounter', 'boss'} and encounter_monster_snapshots and (is_local_labyrinth or state.labyrinth_is_controller()))
+                        labyrinth_view_refs['key'] = labyrinth_combat_view_key(session_row)
                         companion_class_options = {class_name: class_name for class_name in ALL_CLASS_ORDER}
                         companion_class_draft = normalize_player_class_name(getattr(state, 'labyrinth_companion_class_draft', player.player_class), player.player_class)
                         if companion_class_draft not in companion_class_options:
@@ -25496,19 +25717,18 @@ def main_page(request: Request) -> None:
                         companion_slots_open = max(0, LABYRINTH_MAX_PARTY_SIZE - len(member_rows))
                         ui.run_javascript(f"window.mqSetLabyrinthKeysEnabled && window.mqSetLabyrinthKeysEnabled({json.dumps(can_move_labyrinth)});")
                         if can_drive_labyrinth_combat:
+                            labyrinth_step_key = (str(session_row.get('id') or ''), str(pending_encounter.get('started_at') or ''), int(pending_encounter.get('sequence', 0) or 0))
+                            labyrinth_view_refs['step'] = labyrinth_step_key
                             def _advance_labyrinth_round_from_client() -> None:
-                                if state.run_labyrinth_encounter(ignore_timing=True):
+                                if state.screen != 'game' or state.game_tab != 'labyrinth':
+                                    return
+                                state.run_labyrinth_encounter(ignore_timing=False, expected_step=labyrinth_view_refs['step'])
+                                if not refresh_labyrinth_combat_view():
                                     request_render_refresh()
                             ui.button('', on_click=_advance_labyrinth_round_from_client).props('id=mq-lab-advance-round').style('display:none;')
                             next_round_delay_ms = _labyrinth_next_step_delay_ms(pending_encounter, _labyrinth_step_delay_seconds(state))
                             ui.run_javascript(f"""
-(() => {{
-  window.clearTimeout(window.__mqLabAdvanceTimer);
-  window.__mqLabAdvanceTimer = window.setTimeout(() => {{
-    const button = document.getElementById('mq-lab-advance-round');
-    if (button) button.click();
-  }}, {int(next_round_delay_ms)});
-}})();
+window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms) + 50});
 """)
                         else:
                             ui.run_javascript("window.clearTimeout(window.__mqLabAdvanceTimer); window.__mqLabAdvanceTimer = null;")
@@ -25652,7 +25872,7 @@ def main_page(request: Request) -> None:
                                                 portrait_classes += ' mq-lab-ability-ready'
                                             if hero_class == 'Warlock' and bool(ability_state.get('toggle_on', False)):
                                                 portrait_classes += ' mq-lab-ability-warlock'
-                                            with ui.card().classes('mq-panel-frame mq-lab-member-card p-3'):
+                                            with ui.card().classes('mq-panel-frame mq-lab-member-card p-3' + (' mq-lab-member-downed' if row.get('is_downed') else '')).props(f'id=mq-lab-member-{member_index}'):
                                                 with ui.element('div').classes('mq-lab-member-top'):
                                                     with ui.element('button').classes(portrait_classes) as portrait_button:
                                                         portrait_button._props['type'] = 'button'
@@ -25680,7 +25900,7 @@ def main_page(request: Request) -> None:
                                                                     ui.label('Controller').classes('mq-lab-pill')
                                                                 if is_companion:
                                                                     ui.label('Companion').classes('mq-lab-pill')
-                                                                if bool(row.get('is_downed', False)):
+                                                                if bool(row.get('is_downed', False)) and session_status not in {'encounter', 'boss'}:
                                                                     ui.label('Downed').classes('mq-lab-pill')
                                                                 tank_active = bool(row.get('tank', False))
                                                                 tank_btn = ui.button('T ON' if tank_active else 'T OFF', on_click=lambda target_id=member_id, current_value=tank_active: (state.labyrinth_set_tank_role(target_id, not current_value), request_render_refresh())).classes('mq-btn-secondary mq-lab-tank-btn')
@@ -25875,7 +26095,7 @@ def main_page(request: Request) -> None:
                                                                             else:
                                                                                 ui.label(monster_species_name(monster_type)).classes('text-3xl font-semibold text-slate-100')
                                                                     if not monster_stat_rows:
-                                                                        ui.label(monster_heading).classes('text-slate-200 text-2xl font-semibold text-center')
+                                                                        ui.label(monster_heading).classes('text-slate-200 text-2xl font-semibold text-center').props('id=mq-lab-monster-heading-0')
                                                                         with ui.element('div').classes('mq-meter-shell w-full'):
                                                                             ui.html(animated_meter_html('labyrinth-monster-hp', 'HP', monster_hp, monster_max_hp, 'hp', labyrinth_meter_duration_ms, cycle=f'{pending_encounter.get("sequence",0)}-{monster_hp}'))
                                                                             if monster_popup_html:
@@ -25883,7 +26103,7 @@ def main_page(request: Request) -> None:
                                                             if monster_stat_rows:
                                                                 with ui.card().classes('mq-panel-frame w-full p-4'):
                                                                     with ui.column().classes('mq-lab-boss-stats'):
-                                                                        ui.label(monster_heading).classes('text-slate-100 text-2xl font-semibold')
+                                                                        ui.label(monster_heading).classes('text-slate-100 text-2xl font-semibold').props('id=mq-lab-monster-heading-0')
                                                                         ui.label('Boss Readings').classes('mq-detail-text')
                                                                         with ui.element('div').classes('mq-lab-boss-stats-grid mt-1'):
                                                                             for stat_label, stat_value in monster_stat_rows:
@@ -25922,7 +26142,7 @@ def main_page(request: Request) -> None:
                                                                     heading = f'{monster_type} • Level {monster_level}'
                                                                     if not monster_alive:
                                                                         heading += ' • Defeated'
-                                                                    ui.label(heading).classes('text-slate-200 text-lg font-semibold text-center')
+                                                                    ui.label(heading).classes('text-slate-200 text-lg font-semibold text-center').props(f'id=mq-lab-monster-heading-{monster_index}')
                                                                     with ui.element('div').classes('mq-meter-shell w-full'):
                                                                         ui.html(animated_meter_html(f'labyrinth-monster-hp-{monster_index}', 'HP', monster_hp, monster_max_hp, 'hp', labyrinth_meter_duration_ms, cycle=f'{pending_encounter.get("sequence",0)}-{monster_index}-{monster_hp}'))
                                                                         if monster_popup_html:
@@ -25995,7 +26215,7 @@ def main_page(request: Request) -> None:
                                                     )
                                                     if pack_names:
                                                         ui.label(f'Pack: {pack_names}').classes('mq-detail-text mt-2')
-                                                ui.label(f'Round {round_number} • {next_turn_text}').classes('mq-detail-text mt-3')
+                                                ui.label(f'Round {round_number} • Party, then monsters').classes('mq-detail-text mt-3').props('id=mq-lab-round-note')
                                                 ui.label('Combat resolves automatically in steady side-based bursts with arena-style pacing.').classes('mq-detail-text mt-2')
                                                 with ui.row().classes('gap-2 mt-4 flex-wrap'):
                                                     ui.button('Refresh Encounter', on_click=lambda: (state.refresh_labyrinth_session_state(force=True), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
@@ -26003,10 +26223,8 @@ def main_page(request: Request) -> None:
                                                     ui.label('You are downed for this fight and can only watch until the floor changes.').classes('mq-detail-text mt-3')
                                                 elif not bool(getattr(state, 'labyrinth_is_local', False)) and not state.labyrinth_is_controller():
                                                     ui.label('The controller client is advancing the shared fight automatically.').classes('mq-detail-text mt-3')
-                                                elif monster_turn_pending:
-                                                    ui.label(f'{monster_name} is about to answer the party.').classes('mq-detail-text mt-3')
-                                                elif current_actor_name:
-                                                    ui.label(f'{current_actor_name} is taking the current turn.').classes('mq-detail-text mt-3')
+                                                elif session_status in {'encounter', 'boss'}:
+                                                    ui.label('Each living party member acts, then each living monster answers.').classes('mq-detail-text mt-3')
                                                 elif getattr(state, 'labyrinth_local_resolution_text', ''):
                                                     ui.label(str(state.labyrinth_local_resolution_text)).classes('mq-detail-text mt-3')
                                             elif session_status == 'reward':
@@ -28178,7 +28396,7 @@ def main_page(request: Request) -> None:
             ) % (snapshot['hp'], snapshot['max_hp'], snapshot['mana'], snapshot['max_mana'])
         )
 
-    def maybe_refresh_labyrinth_session() -> None:
+    async def maybe_refresh_labyrinth_session() -> None:
         if str(getattr(state, 'screen', '') or '') != 'game':
             return
         if str(getattr(state, 'game_tab', '') or '') != 'labyrinth':
@@ -28206,7 +28424,8 @@ def main_page(request: Request) -> None:
             if next_step_at is not None and datetime.now(timezone.utc) < (next_step_at + timedelta(seconds=fallback_after)):
                 return
             if state.run_labyrinth_encounter(ignore_timing=True):
-                request_render_refresh()
+                if not refresh_labyrinth_combat_view():
+                    request_render_refresh()
                 return
             return
         session_row = getattr(state, 'labyrinth_session_row', {})
@@ -28222,8 +28441,9 @@ def main_page(request: Request) -> None:
                 return
         if is_local_lab:
             return
-        if state.refresh_labyrinth_session_state(force=False):
-            request_render_refresh()
+        if await labyrinth_refresh_session_state_async(state):
+            if not refresh_labyrinth_combat_view():
+                request_render_refresh()
 
     def maybe_retry_auth_reconnect() -> None:
         if not getattr(state, '_auth_reconnect_started_at', 0.0):
