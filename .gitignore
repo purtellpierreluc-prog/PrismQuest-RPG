@@ -1,1 +1,14 @@
 logs/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+.local-test/
+.native-test/
+.mq_runtime_static/
+.nicegui/
+masterquest_nicegui_saves.json
+masterquest_nicegui_bazaar.json

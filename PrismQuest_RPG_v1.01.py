@@ -17,6 +17,15 @@ import time
 import uuid
 from logging.handlers import RotatingFileHandler
 from urllib.parse import urlencode
+from steam_client.paths import DesktopPaths
+from steam_client.storage import AtomicSaveStore
+
+DESKTOP_MODE = os.environ.get('PRISMQUEST_DESKTOP') == '1'
+DESKTOP_PATHS = DesktopPaths.from_environment() if DESKTOP_MODE else None
+if DESKTOP_PATHS is not None:
+    DESKTOP_PATHS.prepare()
+DESKTOP_SAVE_STORE = AtomicSaveStore(DESKTOP_PATHS.save_file, DESKTOP_PATHS.backups) if DESKTOP_PATHS else None
+DESKTOP_ACTIVE_STATE = None
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 try:
@@ -39,7 +48,7 @@ COMMUNITY_DISCORD_URL = 'https://discord.gg/5MtzdPkTW'
 DEFAULT_LADDER_SEASON_ID = 1
 LOGGER = logging.getLogger('prismquest.runtime')
 DISCONNECT_LOGGER = logging.getLogger('prismquest.disconnect')
-DISCONNECT_LOG_DIR = os.path.join(SCRIPT_DIR, 'logs')
+DISCONNECT_LOG_DIR = str(DESKTOP_PATHS.logs) if DESKTOP_PATHS else os.path.join(SCRIPT_DIR, 'logs')
 DISCONNECT_LOG_PATH = os.path.join(DISCONNECT_LOG_DIR, 'disconnect_events.log')
 DISCONNECT_LOG_MAX_BYTES = 1_024_000
 DISCONNECT_LOG_BACKUP_COUNT = 5
@@ -6445,7 +6454,7 @@ def _find_title_screen_path() -> Optional[str]:
                 if os.path.splitext(lower)[1] in RASTER_ASSET_EXTENSIONS and 'title' in lower and 'screen' in lower:
                     return os.path.join(root, name)
     return None
-GENERATED_STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.mq_runtime_static')
+GENERATED_STATIC_DIR = str(DESKTOP_PATHS.cache / 'assets') if DESKTOP_PATHS else os.path.join(os.path.dirname(os.path.abspath(__file__)), '.mq_runtime_static')
 os.makedirs(GENERATED_STATIC_DIR, exist_ok=True)
 DEFAULT_STATIC_IMAGE_TARGET_MAX = 1600
 CROPPED_STATIC_IMAGE_TARGET_MAX = 1400
@@ -6817,7 +6826,7 @@ PERSISTENT_BAZAAR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__))
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '').strip()
 SUPABASE_PUBLISHABLE_KEY = os.environ.get('SUPABASE_PUBLISHABLE_KEY', '').strip()
 SUPABASE_SITE_URL = os.environ.get('SUPABASE_SITE_URL', 'https://prismquest-rpg.com').strip()
-SUPABASE_ENABLED = bool(SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY and create_client is not None)
+SUPABASE_ENABLED = bool(not DESKTOP_MODE and SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY and create_client is not None)
 AUTH_RECONNECT_GRACE_SECONDS = 30.0
 
 def sanitize_ladder_season_id(value: object, default: int = DEFAULT_LADDER_SEASON_ID) -> int:
@@ -7073,6 +7082,7 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
         'labyrinth_visual_sequence': 0,
         'labyrinth_player_tank': False,
         'labyrinth_roster_companions': [],
+        'desktop_labyrinth_run': {},
         'admin_item_restore_20260505_done': False,
         'season_id': normalized_season,
         'ladder_reset_count': 0,
@@ -7654,6 +7664,8 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
     except Exception:
         slot['labyrinth_floor'] = 0
     slot['labyrinth_roster_companions'] = normalize_labyrinth_roster_companions(raw_slot.get('labyrinth_roster_companions', []))
+    checkpoint = raw_slot.get('desktop_labyrinth_run', {})
+    slot['desktop_labyrinth_run'] = copy.deepcopy(checkpoint) if isinstance(checkpoint, dict) and checkpoint.get('version') == 1 else {}
     slot['admin_item_restore_20260505_done'] = bool(raw_slot.get('admin_item_restore_20260505_done', False))
     slot['ladder_reset_count'] = sanitize_ladder_reset_count(raw_slot.get('ladder_reset_count', 0))
     raw_run_started = raw_slot.get('run_started_wall_time', 0.0)
@@ -7936,6 +7948,9 @@ def normalize_public_ladder_rows(rows: object) -> List[Dict[str, object]]:
 
 def load_persisted_slots() -> List[Dict[str, object]]:
     slots = [build_default_slot_payload() for _ in range(3)]
+    if DESKTOP_SAVE_STORE is not None:
+        raw_slots = DESKTOP_SAVE_STORE.load()
+        return [normalize_slot_payload(slot) for slot in raw_slots] if raw_slots is not None else slots
     if not os.path.exists(PERSISTENT_SAVE_PATH):
         return slots
     try:
@@ -7951,6 +7966,9 @@ def load_persisted_slots() -> List[Dict[str, object]]:
     return slots
 
 def persist_slots(slots: List[Dict[str, object]]) -> None:
+    if DESKTOP_SAVE_STORE is not None:
+        DESKTOP_SAVE_STORE.save(slots)
+        return
     try:
         with open(PERSISTENT_SAVE_PATH, 'w', encoding='utf-8') as handle:
             json.dump({'slots': slots}, handle, indent=2)
@@ -11731,6 +11749,9 @@ class SessionState:
             self.auth_status_tone = 'success'
             self.load_cloud_slots()
         self.restore_runtime_session()
+        if DESKTOP_MODE:
+            global DESKTOP_ACTIVE_STATE
+            DESKTOP_ACTIVE_STATE = self
     def _stored_ui_preferences(self) -> Dict[str, object]:
         try:
             stored = app.storage.user.get('ui_preferences', {})
@@ -12132,7 +12153,7 @@ class SessionState:
     def _stored_runtime_session(self) -> Dict[str, object]:
         source = ''
         try:
-            stored = app.storage.browser.get('runtime_session', {})
+            stored = (app.storage.user if DESKTOP_MODE else app.storage.browser).get('runtime_session', {})
         except Exception:
             stored = {}
         if isinstance(stored, dict) and stored:
@@ -12191,6 +12212,13 @@ class SessionState:
             **payload,
             'saved_at': time.time(),
         }
+        if DESKTOP_MODE:
+            try:
+                app.storage.user['runtime_session'] = runtime_payload
+                self._last_runtime_session_hash = payload_hash
+            except Exception:
+                LOGGER.exception('Could not store desktop navigation state.')
+            return
         try:
             app.storage.browser['runtime_session'] = runtime_payload
             try:
@@ -12390,7 +12418,7 @@ class SessionState:
 
     def restore_runtime_session(self) -> bool:
         stored = self._stored_runtime_session()
-        self.guest_mode = bool(stored.get('guest_mode', False)) and not self.is_authenticated()
+        self.guest_mode = bool(not DESKTOP_MODE and stored.get('guest_mode', False)) and not self.is_authenticated()
         if self.guest_mode:
             self.slots = self.load_guest_slots_from_storage()
             self._last_local_slots_hash = _stable_payload_hash(self.slots)
@@ -12421,7 +12449,7 @@ class SessionState:
         desired_tab = str(stored.get('game_tab') or '').strip().lower()
         safe_tab = desired_tab if desired_tab in {
             'arena', 'inventory', 'bazaar', 'marketplace', 'transmute', 'inn', 'well',
-            'masterquest', 'guild_hall', 'ladder', 'glossary', 'settings', 'donate', 'stats'
+            'masterquest', 'guild_hall', 'ladder', 'glossary', 'settings', 'donate', 'stats', 'labyrinth'
         } else 'arena'
         try:
             if self.player is None:
@@ -13293,6 +13321,8 @@ class SessionState:
             slot['labyrinth_join_code'] = str(getattr(self, 'labyrinth_join_code', '') or '').strip().upper()
             slot['labyrinth_floor'] = max(0, int(getattr(self, 'labyrinth_floor', 0) or 0))
         slot['labyrinth_roster_companions'] = [copy.deepcopy(entry) for entry in normalize_labyrinth_roster_companions(getattr(self, 'labyrinth_roster_companions', []))]
+        if DESKTOP_MODE:
+            slot['desktop_labyrinth_run'] = capture_desktop_labyrinth(self)
         slot['ladder_reset_count'] = int(self.current_account_ladder_resets())
         slot['run_started_wall_time'] = float(self.current_run_start_wall_time if self.player is not None else 0.0)
         slot['player'] = None if self.player is None else self.player.to_dict()
@@ -13491,6 +13521,10 @@ class SessionState:
             self.trigger_town_tutorial_if_needed()
             self.log = [CombatEvent(f'{slot_title_for_index(index)} reopened. Welcome back, level {self.player.level} {self.player.player_class}.', 'success')]
             self.persist_runtime_session()
+            if DESKTOP_MODE and restore_desktop_labyrinth(self, slot.get('desktop_labyrinth_run', {})):
+                self.screen = 'game'
+                self.game_tab = 'labyrinth'
+                self.persist_runtime_session()
         else:
             self.player = None
             self.current_run_started_at = 0.0
@@ -13504,6 +13538,8 @@ class SessionState:
             self.persist_runtime_session()
     def return_to_title(self) -> None:
         self.sync_active_slot()
+        if DESKTOP_MODE:
+            self.active_slot_index = None
         if self.player is not None:
             self.pending_character_name = clean_character_name(self.player.name)
         self.player = None
@@ -13660,6 +13696,8 @@ class SessionState:
         return True
 
     def trigger_scene_tutorial_if_needed(self, scene_key: str) -> None:
+        if DESKTOP_MODE and scene_key == 'ladder':
+            return
         if self.player is None or scene_key not in SCENE_TUTORIAL_CONTENT:
             return
         if self.scene_tutorials_seen.get(scene_key, False):
@@ -15773,6 +15811,8 @@ def town_crier_status_text(self) -> str:
     source = str(getattr(self, 'town_coffers_source', 'local') or 'local')
     total_gold = int(getattr(self, 'town_coffers_total', 0) or 0)
     by_service = dict(getattr(self, 'town_coffers_by_service', {}) or {})
+    if DESKTOP_MODE:
+        return f'The Town Crier counts {total_gold:,} gold spent on town services during this visit to the offline chronicle.'
     if source == 'cloud_unavailable':
         return 'The Town Crier slaps a sealed municipal ledger and grumbles that the shared town coffers cannot be read just now.'
     if source == 'local':
@@ -21102,6 +21142,9 @@ def open_game_tab(self, tab_name: str, note: Optional[str] = None) -> None:
     if self.player is None:
         return
     requested_tab = str(tab_name or '')
+    if DESKTOP_MODE and requested_tab in {'bazaar', 'guild_hall', 'donate'}:
+        self.add_log('That online service is not available in the offline desktop prototype.', 'warning')
+        return
     previous_screen = str(getattr(self, 'screen', '') or '')
     current_mode = self.current_slot_mode()
     public_sync_due = bool(
@@ -21141,7 +21184,7 @@ def open_game_tab(self, tab_name: str, note: Optional[str] = None) -> None:
         self.ensure_transmute_scene_state(True)
     elif requested_tab == 'masterquest':
         self.ensure_masterquest_scene_state(True)
-    elif requested_tab == 'ladder':
+    elif requested_tab == 'ladder' and not DESKTOP_MODE:
         self.ladder_mode = current_mode
         self.refresh_global_season_state()
         if public_sync_due:
@@ -23414,7 +23457,7 @@ def main_page(request: Request) -> None:
                 'Beyond the lantern-lit safety of Town, the roads are broken, the arena is merciless, and the old rites of Prismatic Quest still call to anyone reckless enough to climb.'
             ).classes('text-slate-300 text-xl md:text-2xl leading-9 mt-4')
             ui.label(
-                'You are an adventurer entering that climb. Your journey starts in the Arena: win there first, gather stronger gear, and only then spread outward into the Bazaar, the Well of Evil, and the final ritual.'
+                'You are an adventurer entering that climb. Your journey starts in the Arena: win there first, gather stronger gear, and only then spread outward into the Marketplace, the Well of Evil, and the final ritual.'
             ).classes('text-slate-300 text-xl md:text-2xl leading-9 mt-4')
             with ui.card().classes('mq-panel-frame p-5 mt-6'):
                 ui.label('Your Goal').classes('mq-panel-caption text-2xl md:text-3xl')
@@ -23425,7 +23468,7 @@ def main_page(request: Request) -> None:
                 'Every run is about momentum: survive, scale, and decide when you are ready to risk everything on Prismatic Quest. For this first step, go to the Arena and let the climb begin there.'
             ).classes('text-slate-400 text-lg md:text-xl leading-8 mt-5')
             with ui.row().classes('justify-end gap-3 mt-7 max-[640px]:w-full max-[640px]:flex-wrap'):
-                ui.button(state.guided_town_tutorial_primary_label(), on_click=handle_town_tutorial_primary).classes('mq-btn-gold rounded-xl px-6 py-3 font-semibold text-lg md:text-xl max-[640px]:w-full')
+                town_tutorial_primary_button = ui.button(state.guided_town_tutorial_primary_label(), on_click=handle_town_tutorial_primary).classes('mq-btn-gold rounded-xl px-6 py-3 font-semibold text-lg md:text-xl max-[640px]:w-full')
 
     with scene_tutorial_dialog:
         with ui.card().classes('mq-card max-w-[900px] w-[95vw] p-7 md:p-8'):
@@ -24652,6 +24695,8 @@ def main_page(request: Request) -> None:
                             if vault_code:
                                 ui.label('Your Vault Code').classes('mq-detail-text text-center uppercase tracking-[0.18em]')
                                 ui.label(vault_code).classes('text-slate-100 text-[0.96rem] font-semibold tracking-[0.16em] leading-6 text-center break-all mt-2')
+                            elif DESKTOP_MODE:
+                                ui.label('Player couriers are unavailable in offline play. Your personal vault works normally.').classes('mq-detail-text text-center mt-1')
                             elif courier_locked and state.current_slot_mode() == 'SSF':
                                 ui.label('Vault couriers are sealed in SSF.').classes('mq-detail-text text-center mt-1')
                             else:
@@ -25016,8 +25061,14 @@ def main_page(request: Request) -> None:
                             ui.label(t('title_caption')).classes('mq-title-caption')
                     with ui.column().classes('mq-title-side-stack w-full gap-4'):
                         with ui.card().classes('mq-side-card mq-title-side-card-rich p-5'):
-                            ui.label(t('account_cloud_saves')).classes('text-2xl font-semibold text-slate-100')
-                            if SUPABASE_ENABLED:
+                            ui.label('Your Local Chronicles' if DESKTOP_MODE else t('account_cloud_saves')).classes('text-2xl font-semibold text-slate-100')
+                            if DESKTOP_MODE:
+                                ui.label('Steam Edition - Offline Prototype').classes('mq-panel-caption mt-2')
+                                ui.label('Your adventure runs entirely on this computer. No account or internet connection is required.').classes('text-slate-300 mt-3 leading-7')
+                                ui.button('Play', on_click=lambda: (state.go_to_chronicles(), request_render_refresh())).classes('w-full mq-btn-gold rounded-xl py-3 font-semibold mt-4')
+                                ui.label('Three local chronicles, protected saves, and solo Labyrinth expeditions with companions.').classes('mq-detail-text mt-3')
+                                ui.button('Quit Game', on_click=app.shutdown).classes('w-full mq-btn-secondary rounded-xl py-3 mt-4')
+                            elif SUPABASE_ENABLED:
                                 if state.is_authenticated():
                                     ui.label(t('signed_in_as', email=state.auth_user_email or state.auth_email)).classes('text-slate-200 mt-2 leading-6')
                                     ui.label(t('signed_in_ledger_hint')).classes('text-slate-300 mt-1 leading-6')
@@ -25110,7 +25161,7 @@ def main_page(request: Request) -> None:
                                 button = ui.button(f'Open {slot_title_for_index(index)}', on_click=lambda idx=index: (state.open_slot(idx), request_render_refresh()))
                                 button.classes(f'w-full font-semibold tracking-wide rounded-xl py-3 mt-3 {button_theme_class}')
                         with ui.card().classes('mq-side-card mq-title-side-card-rich p-4'):
-                            ui.label('Each slot keeps its own hero, stash thread, vault, unlock path, and now its own cloud-backed place on the global ladder.').classes('text-slate-400 leading-6')
+                            ui.label('Each local slot keeps its own hero, items, vault, unlocks, companions, and saved solo expedition.' if DESKTOP_MODE else 'Each slot keeps its own hero, stash thread, vault, unlock path, and now its own cloud-backed place on the global ladder.').classes('text-slate-400 leading-6')
                 return
             if state.screen == 'class_select':
                 active_slot_text = state.current_slot_title()
@@ -25330,6 +25381,7 @@ def main_page(request: Request) -> None:
             if state.screen == 'town':
                 render_hotkey_action_buttons()
                 if state.town_tutorial_open:
+                    town_tutorial_primary_button.set_text(state.guided_town_tutorial_primary_label())
                     town_tutorial_dialog.open()
                 else:
                     town_tutorial_dialog.close()
@@ -25395,7 +25447,8 @@ def main_page(request: Request) -> None:
                                             bazaar_btn = ui.button('Bazaar (SSF Locked)', on_click=lambda: (state.add_log('The Bazaar is disabled in SSF.', 'warning'), request_render_refresh())).classes('mq-route-btn opacity-70')
                                             bazaar_btn.disable()
                                         else:
-                                            ui.button('Bazaar', on_click=lambda: (state.open_game_tab('bazaar', 'You slip into the bazaar where adventurers barter their spoils.'), request_render_refresh())).classes('mq-route-btn')
+                                            if not DESKTOP_MODE:
+                                                ui.button('Bazaar', on_click=lambda: (state.open_game_tab('bazaar', 'You slip into the bazaar where adventurers barter their spoils.'), request_render_refresh())).classes('mq-route-btn')
                                         ui.button('Marketplace', on_click=lambda: (state.open_game_tab('marketplace', 'Lanternlight and bargaining voices drift from the fairy bazaar.'), request_render_refresh())).classes('mq-route-btn')
                                         ui.button('Transmutation', on_click=lambda: (state.open_transmute_scene('Brass rings hum softly as Varkesh sizes up your offerings.'), request_render_refresh())).classes('mq-route-btn')
                                         ui.button('Well of Evil', on_click=lambda: (state.open_game_tab('well', 'You approach the cursed stones and feel the well looking back.'), request_render_refresh())).classes('mq-route-btn')
@@ -25418,14 +25471,16 @@ def main_page(request: Request) -> None:
                                 with ui.element('div').classes('mq-town-route-group social'):
                                     with ui.element('div').classes('mq-route-grid w-full mt-4'):
                                         ui.button('Inventory', on_click=lambda: open_inventory_scene('You check your pack before setting out again.')).classes('mq-route-btn')
-                                        ui.button('Ladder', on_click=lambda: (state.open_game_tab('ladder', 'The registrar lifts the ledger and marks your place in the climb.'), request_render_refresh())).classes('mq-route-btn')
-                                        ui.button('Guild Hall', on_click=lambda: (state.open_game_tab('guild_hall', 'You cross the square toward the carved doors of the Guild Hall.'), request_render_refresh())).classes('mq-route-btn')
+                                        ui.button('Chronicle Records' if DESKTOP_MODE else 'Ladder', on_click=lambda: (state.open_game_tab('ladder', 'The registrar lifts the ledger and marks your place in the climb.'), request_render_refresh())).classes('mq-route-btn')
+                                        if not DESKTOP_MODE:
+                                            ui.button('Guild Hall', on_click=lambda: (state.open_game_tab('guild_hall', 'You cross the square toward the carved doors of the Guild Hall.'), request_render_refresh())).classes('mq-route-btn')
                                         ui.button('Glossary', on_click=lambda: (state.open_game_tab('glossary', 'You unseal the brass-bound ledger of systems and secrets.'), request_render_refresh())).classes('mq-route-btn')
                                         ui.button('Class Select', on_click=open_class_select_warning).classes('mq-route-btn')
                                         ui.button('Settings', on_click=lambda: (state.open_game_tab('settings', 'You open a quieter ledger of personal settings, audio balances, and route bindings.'), request_render_refresh())).classes('mq-route-btn')
-                                        ui.button('Donate', on_click=lambda: (state.open_game_tab('donate', 'You open a simple note from the maker.'), request_render_refresh())).classes('mq-route-btn')
+                                        if not DESKTOP_MODE:
+                                            ui.button('Donate', on_click=lambda: (state.open_game_tab('donate', 'You open a simple note from the maker.'), request_render_refresh())).classes('mq-route-btn')
                                         ui.button('Quit to Title', on_click=lambda: (state.return_to_title(), request_render_refresh())).classes('mq-route-btn mq-route-quit')
-                        with ui.card().classes('mq-log mq-town-comm-card w-full max-w-none p-4 md:p-5'):
+                        with ui.card().classes('mq-log mq-town-comm-card w-full max-w-none p-4 md:p-5' + (' hidden' if DESKTOP_MODE else '')):
                             ensure_social_chat_state(state)
                             if not getattr(state, 'town_chat_tab', ''):
                                 state.town_chat_tab = 'square'
@@ -25770,7 +25825,7 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                                 solo_btn.disable()
                                             if scene_blocker:
                                                 ui.label(scene_blocker).classes('text-amber-300 text-sm mt-3')
-                                        with ui.card().classes('mq-panel-frame flex-1 p-4'):
+                                        with ui.card().classes('mq-panel-frame flex-1 p-4' + (' hidden' if DESKTOP_MODE else '')):
                                             ui.label('Host Expedition').classes('text-slate-100 text-2xl font-semibold')
                                             ui.label('Create a shared lobby, invite up to four more players, and choose who controls the party through the Labyrinth.').classes('mq-detail-text mt-2')
                                             host_btn = ui.button('Create New Expedition', on_click=lambda: (state.create_labyrinth_session(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold mt-4')
@@ -25778,7 +25833,7 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                                 host_btn.disable()
                                             if multiplayer_blocker:
                                                 ui.label(multiplayer_blocker).classes('text-slate-400 text-sm mt-3')
-                                        with ui.card().classes('mq-panel-frame flex-1 p-4'):
+                                        with ui.card().classes('mq-panel-frame flex-1 p-4' + (' hidden' if DESKTOP_MODE else '')):
                                             ui.label('Join Expedition').classes('text-slate-100 text-2xl font-semibold')
                                             ui.label('Use a join code from another party leader to drop directly into that active Labyrinth run.').classes('mq-detail-text mt-2')
                                             join_input = ui.input(
@@ -27303,6 +27358,17 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                 ui.button('Return to Arena', on_click=lambda: (state.open_game_tab('arena'), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
                             return
                     elif state.game_tab == 'ladder':
+                        if DESKTOP_MODE:
+                            with ui.card().classes('mq-card w-full p-5'):
+                                ui.label('Chronicle Records').classes('mq-inv-title')
+                                ui.label('Your local progression. Offline records are separate from the live online ladder.').classes('mq-detail-text mt-3')
+                                for index, slot in enumerate(state.slots):
+                                    with ui.card().classes('mq-panel-frame w-full p-4 mt-3'):
+                                        ui.label(slot_title_for_index(index)).classes('text-xl font-semibold text-slate-100')
+                                        ui.label(state.slot_summary(index)).classes('mq-detail-text whitespace-pre-line mt-2')
+                                        ui.label(f'Prismatic Quest attempts: {slot_masterquest_attempts(slot)}').classes('mq-detail-text mt-2')
+                                ui.button('Return to Town', on_click=lambda: (state.enter_town(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 mt-4')
+                            return
                         state.ensure_ladder_scene_state(False, allow_cached=True)
                         state.refresh_guild_leaderboard(allow_cached=True)
                         current_run = format_duration(state.current_run_elapsed_seconds()) if player is not None else '—'
@@ -28482,11 +28548,53 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
     render()
     if oauth_consumed:
         ui.run_javascript("if (window.location.search) { window.history.replaceState({}, document.title, window.location.pathname); }")
-ui.run(
-    title=APP_TITLE,
-    host='0.0.0.0',
-    port=int(os.environ.get('PORT', 8080)),
-    reload=False,
-    reconnect_timeout=15.0,
-    storage_secret=os.environ.get('NICEGUI_STORAGE_SECRET', 'prismquest-discord-oauth-storage-secret'),
-)
+def capture_desktop_labyrinth(state) -> Dict[str, object]:
+    row = getattr(state, 'labyrinth_session_row', {})
+    if not getattr(state, 'labyrinth_is_local', False) or not isinstance(row, dict) or not row:
+        return {}
+    return {
+        'version': 1,
+        'session': copy.deepcopy(row),
+        'members': copy.deepcopy(state.labyrinth_member_rows),
+        'votes': copy.deepcopy(state.labyrinth_vote_rows),
+        'acknowledged_floor': int(state.labyrinth_acknowledged_floor),
+        'claimed_reward_ids': sorted(state.labyrinth_claimed_reward_ids),
+    }
+
+
+def restore_desktop_labyrinth(state, checkpoint: object) -> bool:
+    if not isinstance(checkpoint, dict) or checkpoint.get('version') != 1:
+        return False
+    row = _labyrinth_normalize_session_row(checkpoint.get('session', {}))
+    if not row or not str(row.get('id') or '').startswith('local-lab-') or row.get('status') == 'closed':
+        return False
+    if normalize_ladder_mode(row.get('mode')) != state.current_slot_mode():
+        return False
+    members = [_labyrinth_normalize_member_row(entry) for entry in checkpoint.get('members', []) if isinstance(entry, dict)]
+    members = [entry for entry in members if entry]
+    if not members or len(members) > LABYRINTH_MAX_PARTY_SIZE:
+        return False
+    state.labyrinth_is_local = True
+    state.labyrinth_acknowledged_floor = int(checkpoint.get('acknowledged_floor', row.get('floor', 1)))
+    state.labyrinth_claimed_reward_ids = set(checkpoint.get('claimed_reward_ids', []))
+    _labyrinth_store_snapshot(state, row, members, checkpoint.get('votes', []))
+    _labyrinth_sync_self_from_party_state(state, row, persist=False)
+    state.labyrinth_status = f'Resumed your saved solo expedition on floor {state.labyrinth_floor}.'
+    return True
+
+
+def flush_desktop_save() -> None:
+    state = DESKTOP_ACTIVE_STATE
+    if state is None:
+        return
+    if state.player is not None:
+        state.sync_active_slot()
+    else:
+        state.persist_to_disk(force=True)
+
+
+if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()
+    from steam_client.runtime import launch
+    launch()
