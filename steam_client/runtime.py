@@ -48,15 +48,35 @@ def launch(argv=None):
     parser.add_argument('--port', type=int, default=0, help='Local development port; 0 selects a free port.')
     parser.add_argument('--data-dir', help='Use a separate writable local profile directory.')
     parser.add_argument('--native-smoke', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--diagnostics', action='store_true', help='Write a privacy-limited local diagnostic report without starting the game.')
+    parser.add_argument('--verify-package', action='store_true', help='Verify the packaged file inventory without starting the game.')
     parser.add_argument('--version', action='version', version=f'PrismQuest Steam Prototype {__version__}')
     args = parser.parse_args(argv)
     if args.data_dir:
         os.environ['PRISMQUEST_DATA_DIR'] = args.data_dir
     paths = DesktopPaths.from_environment()
     paths.prepare()
+    if args.diagnostics or args.verify_package:
+        from .diagnostics import verify_package, write_diagnostics
+        if args.diagnostics:
+            report = write_diagnostics(paths)
+            if sys.stdout:
+                print(report)
+        if args.verify_package:
+            directory = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else paths.resources / 'dist' / 'PrismQuest'
+            result = verify_package(directory)
+            if sys.stdout:
+                print(json.dumps(result))
+            if not result['valid']:
+                raise RuntimeError('Package integrity verification failed. Reinstall the game; local saves were not changed.')
+        return
+    if not args.browser:
+        from .diagnostics import check_native_prerequisites
+        check_native_prerequisites()
     os.environ['PRISMQUEST_DATA_DIR'] = str(paths.data)
     instance = SingleInstance(paths.data / 'desktop.lock').acquire()
     handler = None
+    smoke_passed = False
     try:
         # Never inherit production cloud credentials into a local desktop save.
         os.environ['PRISMQUEST_DESKTOP'] = '1'
@@ -80,6 +100,13 @@ def launch(argv=None):
         install_desktop_transport()
         display = DesktopDisplay(paths.data / 'display.json', native=None if args.browser else app.native)
         game.DESKTOP_DISPLAY = display
+        from .transactions import DesktopTransactionError
+
+        def handle_error(error):
+            if isinstance(error, DesktopTransactionError):
+                ui.notify(str(error), type='negative', timeout=15000, close_button=True)
+
+        app.on_exception(handle_error)
         app.on_shutdown(game.flush_desktop_save)
         app.on_shutdown(display.flush)
         if not args.browser:
@@ -89,6 +116,7 @@ def launch(argv=None):
             if args.native_smoke:
                 app.native.window_args['hidden'] = True
                 async def native_loaded():
+                    nonlocal smoke_passed
                     await asyncio.sleep(2)
                     try:
                         app.native.main_window.resize(1100, 720)
@@ -104,6 +132,7 @@ def launch(argv=None):
                             raise RuntimeError(f'Native desktop layout check failed: {report}')
                         (paths.data / 'native-smoke.json').write_text(json.dumps(report), encoding='utf-8')
                         (paths.data / 'native-smoke.ok').write_text('Native WebView2 window and viewport loaded.', encoding='utf-8')
+                        smoke_passed = True
                     except Exception:
                         logging.getLogger(__name__).exception('Native window smoke validation failed.')
                     finally:
@@ -123,6 +152,8 @@ def launch(argv=None):
             binding_refresh_interval=0.25,
             storage_secret=secret_file.read_text(encoding='ascii'),
         )
+        if args.native_smoke and not smoke_passed:
+            raise RuntimeError('Native window validation failed or timed out. A zero-error shutdown alone is not a successful native smoke test.')
     finally:
         if handler is not None:
             logging.getLogger().removeHandler(handler)

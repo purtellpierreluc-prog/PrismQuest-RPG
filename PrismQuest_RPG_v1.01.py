@@ -7018,7 +7018,7 @@ def slot_button_class_for_index(index: Optional[int]) -> str:
     return 'mq-btn-gold'
 
 def slot_uses_global_ladder(mode: object) -> bool:
-    return normalize_ladder_mode(mode) in GLOBAL_LADDER_MODES
+    return not DESKTOP_MODE and normalize_ladder_mode(mode) in GLOBAL_LADDER_MODES
 
 def slot_masterquest_attempts(slot: object) -> int:
     if not isinstance(slot, dict):
@@ -14035,6 +14035,13 @@ def finish_masterquest_attempt(self, passed: bool) -> None:
     self.queue_masterquest_result_popup(passed)
     chance_text = masterquest_blind_clear_text(current_class)
     if passed and bool(current_order) and current_class == current_order[-1]:
+        if DESKTOP_MODE:
+            self.class_select_notice = 'Prismatic Quest complete. Your local chronicle has conquered its full class path. Your hero, equipment, companions, and other chronicles are preserved; the Labyrinth remains open.'
+            self.log = [CombatEvent(self.class_select_notice, 'success')]
+            self.screen = 'town'
+            self.game_tab = 'arena'
+            self.sync_active_slot()
+            return
         if current_mode == 'SSF':
             slot_index = self.active_slot_index if self.active_slot_index is not None else SLOT_INDEX_BY_MODE['SSF']
             base_slot = normalize_slot_payload(self.slots[slot_index]) if 0 <= slot_index < len(self.slots) else build_default_slot_payload(season_id)
@@ -15330,8 +15337,8 @@ def sell_item(self, inventory_index: int) -> None:
         return
     if inventory_index < 0 or inventory_index >= len(self.player.inventory):
         return
+    value = self.player.inventory[inventory_index].sell_value()
     item = self.player.inventory.pop(inventory_index)
-    value = item.sell_value()
     self.player.gold += value
     self.add_log(f'Sold {item.summary()} for {value} gold.', 'warning')
     self.sync_active_slot()
@@ -15341,6 +15348,29 @@ def allocate(self, stat_key: str) -> None:
     msg = self.player.allocate_core_stat(stat_key)
     self.add_log(msg, 'success' if msg.startswith('Allocated') else 'warning')
     self.sync_active_slot()
+
+
+def sell_inventory_items(self, indices) -> Tuple[int, int]:
+    if self.player is None:
+        return 0, 0
+    selected = sorted({selection_index(value) for value in indices if 0 <= selection_index(value) < len(self.player.inventory)}, reverse=True)
+    total = sum(int(self.player.inventory[index].sell_value()) for index in selected)
+    if not selected:
+        self.add_log('No inventory items match the current filters.', 'warning')
+        return 0, 0
+    for index in selected:
+        self.player.inventory.pop(index)
+    self.player.gold += total
+    self.selected_inventory_key = ''
+    self.hovered_inventory_key = ''
+    self.add_log(f'Sold {len(selected)} items from the Pack Manifest for {total} gold.', 'warning')
+    self.sync_active_slot()
+    return len(selected), total
+
+
+SessionState.sell_inventory_items = sell_inventory_items
+
+
 def allocate_multiple(self, stat_key: str, amount: int = 1) -> None:
     if self.player is None:
         return
@@ -17276,30 +17306,6 @@ def _labyrinth_refresh_roster_member_rows(self, updated_rows: List[Dict[str, obj
     )
 
 
-def _labyrinth_remove_matching_saved_set_item(self, item: Optional[Item]) -> None:
-    normalized_item = coerce_item(item)
-    if normalized_item is None:
-        return
-    target_payload = normalized_item.to_dict()
-    changed = False
-    for category, slot_items in list((self.saved_item_sets or {}).items()):
-        if not isinstance(slot_items, dict):
-            continue
-        buckets_to_remove: List[int] = []
-        for bucket, saved_item in list(slot_items.items()):
-            existing_item = coerce_item(saved_item)
-            if existing_item is None:
-                continue
-            if existing_item.to_dict() == target_payload:
-                buckets_to_remove.append(bucket)
-                break
-        for bucket in buckets_to_remove:
-            slot_items.pop(bucket, None)
-            changed = True
-    if changed:
-        self.saved_item_sets = saved_item_sets_from_payload(saved_item_sets_to_payload(self.saved_item_sets))
-
-
 def _labyrinth_sync_local_self_row(self) -> None:
     ensure_labyrinth_state(self)
     if not bool(getattr(self, 'labyrinth_is_local', False)):
@@ -18346,13 +18352,31 @@ def labyrinth_multiplayer_blocker(self) -> str:
 def _labyrinth_profile_payload_for_current_player(self) -> Dict[str, object]:
     if self.player is None or self.active_slot_index is None:
         return {}
-    slot = normalize_slot_payload(self.slots[self.active_slot_index])
+    slot = self.slots[self.active_slot_index] if DESKTOP_MODE else normalize_slot_payload(self.slots[self.active_slot_index])
     slot_index = int(self.active_slot_index) + 1
     mode = slot_mode_from_slot_index(slot_index)
     season_id = int(self.current_global_season_id if slot_uses_global_ladder(mode) else sanitize_ladder_season_id(slot.get('season_id', DEFAULT_LADDER_SEASON_ID)))
     ladder_resets = int(slot_ladder_reset_total(slot, mode, self.global_ladder_reset_count))
     pq_points = int(slot_masterquest_attempts(slot))
-    payload = public_profile_payload_for_slot(slot, self.auth_user_id, season_id, ladder_resets, pq_points, slot_index)
+    if DESKTOP_MODE:
+        # Local HUD data comes from the live character. The public-web profile
+        # pipeline repeatedly normalizes/copies the entire saved Lab checkpoint.
+        progressed = [name for name in self.unlocked_classes if class_progression_rank(name) > 0]
+        highest_class = max(progressed, key=class_progression_rank) if progressed else self.player.player_class
+        if class_progression_rank(self.player.player_class) > class_progression_rank(highest_class):
+            highest_class = self.player.player_class
+        payload = {
+            'user_id': '', 'character_name': self.player.name,
+            'highest_class': highest_class, 'level': int(self.player.level),
+            'class_rank': class_progression_rank(highest_class), 'pq_points': pq_points,
+            'ladder_resets': ladder_resets, 'season_id': season_id,
+            'slot_index': slot_index, 'mode': mode,
+            'equipped_items': player_equipped_payload(self.player),
+            'inventory_items': player_inventory_payload(self.player),
+            'saved_item_sets': saved_item_sets_to_payload(self.saved_item_sets),
+        }
+    else:
+        payload = public_profile_payload_for_slot(slot, self.auth_user_id, season_id, ladder_resets, pq_points, slot_index)
     if not isinstance(payload, dict):
         return {}
     current_row = _labyrinth_self_member_row(self)
@@ -18541,7 +18565,7 @@ def _labyrinth_member_payload(self, extra_updates: Optional[Dict[str, object]] =
     ensure_labyrinth_state(self)
     if self.player is None or self.active_slot_index is None:
         return {}
-    slot = normalize_slot_payload(self.slots[self.active_slot_index])
+    slot = self.slots[self.active_slot_index] if DESKTOP_MODE else normalize_slot_payload(self.slots[self.active_slot_index])
     profile_snapshot = _labyrinth_embed_combat_snapshot(_labyrinth_profile_payload_for_current_player(self), self.player)
     current_row = _labyrinth_self_member_row(self)
     tank_value = (
@@ -18683,15 +18707,19 @@ def labyrinth_sync_member_snapshot(self, force: bool = False, extra_updates: Opt
         updated_row = _labyrinth_normalize_member_row(payload)
         if not updated_row:
             return False
-        other_rows = [
-            dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or [])
-            if isinstance(row, dict) and not (
-                str(row.get('user_id') or '').strip() == str(updated_row.get('user_id') or '').strip()
-                and int(row.get('slot_index', 0) or 0) == int(updated_row.get('slot_index', 0) or 0)
-            )
-        ]
-        other_rows.append(updated_row)
-        other_rows.sort(key=lambda row: str(row.get('joined_at') or ''))
+        other_rows = []
+        replaced = False
+        for row in list(getattr(self, 'labyrinth_member_rows', []) or []):
+            if not isinstance(row, dict):
+                continue
+            if (str(row.get('user_id') or '').strip() == str(updated_row.get('user_id') or '').strip()
+                    and int(row.get('slot_index', 0) or 0) == int(updated_row.get('slot_index', 0) or 0)):
+                other_rows.append(updated_row)
+                replaced = True
+            else:
+                other_rows.append(dict(row))
+        if not replaced:
+            other_rows.append(updated_row)
         _labyrinth_store_snapshot(self, dict(session_row), other_rows, [dict(row) for row in list(getattr(self, 'labyrinth_vote_rows', []) or []) if isinstance(row, dict)])
         return True
     if self.supabase is None or not self.is_authenticated():
@@ -19262,7 +19290,6 @@ def labyrinth_set_roster_companion_item(self, companion_id: object, slot_name: o
         self.labyrinth_status = reason_text
         return False
     removed_item = self.player.inventory.pop(inventory_index)
-    _labyrinth_remove_matching_saved_set_item(self, removed_item)
     current_item = coerce_item((target_entry.get('equipped', {}) if isinstance(target_entry.get('equipped', {}), dict) else {}).get(normalized_slot))
     current_source = str((target_entry.get('equipped_item_sources', {}) if isinstance(target_entry.get('equipped_item_sources', {}), dict) else {}).get(normalized_slot) or 'companion').strip().lower()
     if current_item is not None and current_source == 'player':
@@ -22322,6 +22349,8 @@ def transmute_selected(self) -> None:
     if self.player.gold < ritual_cost:
         self.transmute_message = f"Varkesh folds his arms. 'Come back with {ritual_cost} gold. I refuse to subsidize your miracle.'"
         return
+    result_rarity = determine_transmute_rarity(first_item, second_item)
+    new_item = generate_specific_item(first_item.level, first_item.slot, first_item.subtype, result_rarity)
     self.player.gold -= ritual_cost
     self.record_town_service_spend('transmutation', int(ritual_cost))
     removals = sorted([first_ref, second_ref], key=lambda ref: int(ref[1]), reverse=True)
@@ -22330,8 +22359,6 @@ def transmute_selected(self) -> None:
             index = int(key)
             if 0 <= index < len(self.player.inventory):
                 self.player.inventory.pop(index)
-    result_rarity = determine_transmute_rarity(first_item, second_item)
-    new_item = generate_specific_item(first_item.level, first_item.slot, first_item.subtype, result_rarity)
     self.player.inventory.append(new_item)
     self.player.recalculate_stats()
     self.current_transmute_line = random.choice([
@@ -22970,7 +22997,7 @@ def current_slot_title(self) -> str:
 def current_account_ladder_resets(self) -> int:
     mode = self.current_slot_mode()
     if self.active_slot_index is not None and 0 <= self.active_slot_index < len(self.slots):
-        slot = normalize_slot_payload(self.slots[self.active_slot_index])
+        slot = self.slots[self.active_slot_index] if DESKTOP_MODE else normalize_slot_payload(self.slots[self.active_slot_index])
     else:
         slot_index = SLOT_INDEX_BY_MODE.get(mode, 0)
         slot = normalize_slot_payload(self.slots[slot_index]) if 0 <= slot_index < len(self.slots) else build_default_slot_payload()
@@ -23386,9 +23413,25 @@ def animated_meter_html(meter_id: str, label: str, value: int, maximum: int, ton
 def rarity_badge_html(rarity: str) -> str:
     color = RARITY_COLORS.get(rarity, '#cbd5e1')
     return f'<span style="display:inline-block;padding:4px 8px;border-radius:999px;background:{color}22;border:1px solid {color}66;color:{color};font-size:12px;font-weight:700;">{rarity}</span>'
+from steam_client.transactions import install_item_transactions
+install_item_transactions(SessionState, enabled=lambda: DESKTOP_MODE)
+
+
+def page_session_state():
+    # A native reload or diagnostic second tab must not create another writer
+    # with an older copy of the same offline character.
+    if DESKTOP_MODE and DESKTOP_ACTIVE_STATE is not None:
+        return DESKTOP_ACTIVE_STATE
+    return SessionState()
+
+
 @ui.page('/')
 def main_page(request: Request) -> None:
-    state = SessionState()
+    state = page_session_state()
+    if DESKTOP_MODE and DESKTOP_DISPLAY is not None:
+        ui.run_javascript(f'document.documentElement.dataset.mqReducedMotion = {str(DESKTOP_DISPLAY.preferences.reduce_motion).lower()!r}')
+    if DESKTOP_MODE and DESKTOP_SAVE_STORE is not None and DESKTOP_SAVE_STORE.recovery_source:
+        ui.notify('A recovery backup was loaded because the current save was unreadable. The damaged file has been preserved. Check Settings > Desktop and create a manual backup.', type='warning', timeout=20000, close_button=True)
     if DESKTOP_MODE and DESKTOP_DISPLAY is not None and DESKTOP_DISPLAY.available:
         ui.button('', on_click=DESKTOP_DISPLAY.toggle_fullscreen).props('id=mq-desktop-fullscreen').style('display:none;')
     oauth_error = str(request.query_params.get('error_description') or request.query_params.get('error') or '')
@@ -23856,31 +23899,11 @@ def main_page(request: Request) -> None:
                 refresh_inventory_views(preserve_scroll=False)
                 return
             sell_indices = sorted((int(entry[1]) for entry in matching_entries if isinstance(entry[1], int)), reverse=True)
-            total_gold = 0
-            sold_count = 0
             remember_manifest_scroll()
-            for inventory_index in sell_indices:
-                if state.player is None:
-                    break
-                if inventory_index < 0 or inventory_index >= len(state.player.inventory):
-                    continue
-                item = state.player.inventory.pop(inventory_index)
-                try:
-                    total_gold += int(item.sell_value())
-                except Exception:
-                    pass
-                sold_count += 1
-            if state.player is not None:
-                state.player.gold += total_gold
-            if sold_count <= 0:
-                state.add_log('No inventory items match the current filters.', 'warning')
-            else:
-                noun = 'item' if sold_count == 1 else 'items'
-                state.add_log(f'Sold {sold_count} {noun} from the Pack Manifest for {total_gold} gold.', 'warning')
+            state.sell_inventory_items(sell_indices)
             invalidate_inventory_state_cache()
             state.selected_inventory_key = ''
             state.hovered_inventory_key = ''
-            state.sync_active_slot()
             state.normalize_inventory_state()
             select_manifest_entry_by_position(0, preferred_source='inventory')
             refresh_inventory_views()

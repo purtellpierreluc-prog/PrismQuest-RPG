@@ -17,6 +17,7 @@ class DisplayPreferences:
     width: int = 1360
     height: int = 900
     fullscreen: bool = False
+    reduce_motion: bool = False
 
     @classmethod
     def from_payload(cls, payload):
@@ -26,7 +27,7 @@ class DisplayPreferences:
             width, height = int(payload.get('width', 1360)), int(payload.get('height', 900))
         except (TypeError, ValueError, OverflowError):
             return cls()
-        return cls(min(7680, max(MIN_WINDOW_SIZE[0], width)), min(4320, max(MIN_WINDOW_SIZE[1], height)), payload.get('fullscreen') is True)
+        return cls(min(7680, max(MIN_WINDOW_SIZE[0], width)), min(4320, max(MIN_WINDOW_SIZE[1], height)), payload.get('fullscreen') is True, payload.get('reduce_motion') is True)
 
 
 def screen_work_area():
@@ -107,6 +108,10 @@ class DesktopDisplay:
             return
         window.toggle_fullscreen()
         self.preferences.fullscreen = not self.preferences.fullscreen
+        self._queue_save()
+
+    def set_reduce_motion(self, value):
+        self.preferences.reduce_motion = bool(value)
         self._queue_save()
 
     def bind(self):

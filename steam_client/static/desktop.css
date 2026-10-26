@@ -282,6 +282,19 @@ html, body, #app { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .mq-item-hover-floating, .mq-prof-tooltip-floating, .mq-stat-tooltip-floating { max-height: calc(100dvh - 24px); overflow-y: auto; }
 .mq-desktop :focus-visible { outline: 2px solid #e3cf8b; outline-offset: 3px; }
 
+html[data-mq-reduced-motion="true"] .mq-desktop *,
+html[data-mq-reduced-motion="true"] .mq-desktop *::before,
+html[data-mq-reduced-motion="true"] .mq-desktop *::after {
+  animation: none !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mq-desktop *, .mq-desktop *::before, .mq-desktop *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @media (max-height: 760px) {
   html { font-size: 12px; }
   .mq-desktop { padding: 8px !important; gap: 8px !important; }

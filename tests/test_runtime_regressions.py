@@ -3,18 +3,17 @@
 import ast
 import asyncio
 import copy
-from dataclasses import asdict
-from datetime import datetime, timedelta, timezone
 import os
-from pathlib import Path
 import random
 import sys
 import time
 import types
+from dataclasses import asdict
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'Deploy' / 'PrismQuest_RPG_v1.01.py'
@@ -27,9 +26,8 @@ def game(tmp_path_factory):
     tree = ast.parse(SOURCE.read_text(encoding='utf-8-sig'))
     kept = []
     for node in tree.body:
-        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
-            if ast.unparse(node.value.func).startswith('ui.'):
-                continue
+        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call) and ast.unparse(node.value.func).startswith('ui.'):
+            continue
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             node.decorator_list = [d for d in node.decorator_list if not ast.unparse(d).startswith(('ui.', 'app.'))]
         if isinstance(node, ast.Try) and 'os.chdir' in ast.unparse(node):
@@ -40,7 +38,7 @@ def game(tmp_path_factory):
     module.__file__ = str(tmp_path_factory.mktemp('game') / 'game.py')
     sys.modules[module.__name__] = module
     with patch.dict(os.environ, {'SUPABASE_URL': '', 'SUPABASE_PUBLISHABLE_KEY': ''}):
-        exec(compile(tree, str(SOURCE), 'exec'), module.__dict__)
+        exec(compile(tree, str(SOURCE), 'exec'), module.__dict__)  # noqa: S102 - trusted repository source, UI startup removed for tests
     return module
 
 
@@ -342,6 +340,6 @@ def test_async_lab_poll_does_not_block_and_rejects_stale_reads(game):
 
 def test_combat_deadline_retains_fractional_seconds(game):
     state = state_for(game)
-    before = datetime.now(timezone.utc)
+    before = datetime.now(UTC)
     deadline = game._labyrinth_parse_iso_timestamp(game._labyrinth_next_step_iso(state, 1.5))
     assert timedelta(seconds=1.49) <= deadline - before < timedelta(seconds=1.6)

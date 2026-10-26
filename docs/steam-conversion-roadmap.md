@@ -92,7 +92,15 @@ Exit gate: online functionality has a tested trust model and does not corrupt lo
 
 ## Immediate Next Development Slice
 
-Playtest the offline prototype end-to-end, then extract item ownership and save migrations before adding Steam SDK features. Decide whether release 1.0 must include multiplayer; this is the largest remaining scope and security decision.
+### Desktop Alpha 0.3.0
+
+Implemented the first extracted transactional economy boundary, version-1-to-2 save upgrade, structural item validation, external replacement detection, and unchanged-write suppression. Added failure-injection/ownership tests, an automated complete class-path check, all-class level/combat checks, and a full 7x7 Lab/boss/reward loop. These are automated model/integration tests, not a full player-driven balance playthrough.
+
+Fixed equal-stat saved-item deletion, final-class cross-chronicle resets, tied-timestamp party reorder, and competing state copies on desktop page reload. Profile-guided desktop HUD changes avoid repeated normalization/copying of saved Lab checkpoints without altering combat timing.
+
+Added reduced decorative motion, on-demand private diagnostics, native prerequisite detection, backend/UI performance tools, generated license/asset review inventories, and preview-only SteamPipe preparation. See `steam-release-gates.md`; unresolved rights, Steam account/integration, external-machine QA, and real-time soak gates still block release. Do not mistake generated inventories/configuration for completed legal/platform validation.
+
+Next: owner/platform gates and extended native playtesting. The working scope remains Windows offline solo plus companions; multiplayer requires a separate authoritative architecture. Continue incremental extraction rather than rewriting all legacy combat/UI code in one high-risk pass.
 
 ## Primary Technical References
 

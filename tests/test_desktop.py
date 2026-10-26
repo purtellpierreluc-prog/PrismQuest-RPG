@@ -32,7 +32,7 @@ def test_atomic_save_round_trip(tmp_path):
     assert store.load() is None
     store.save(slots(25))
     assert store.load() == slots(25)
-    assert json.loads(store.path.read_text())['format_version'] == 1
+    assert json.loads(store.path.read_text())['format_version'] == 2
 
 
 def test_corrupt_primary_recovers_backup_without_destroying_it(tmp_path):
@@ -93,7 +93,7 @@ def test_newer_save_never_silently_downgrades_to_backup(tmp_path):
     store.save(slots(25))
     store.save(slots(50))
     future = json.loads(store.path.read_text())
-    future['format_version'] = 2
+    future['format_version'] = 999
     store.path.write_text(json.dumps(future))
     with pytest.raises(UnsupportedSaveVersion):
         store.load()

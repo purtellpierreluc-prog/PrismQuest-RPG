@@ -1,4 +1,4 @@
-# PrismQuest: Standalone Desktop Alpha 0.2.0
+# PrismQuest: Standalone Desktop Alpha 0.3.0
 
 This is the Windows/offline development track of the Steam conversion. It is not a Steam release yet. Development is isolated on `codex/steam-standalone`, based on web release `10347d7`. Do not merge or deploy this branch over the hosted web game.
 
@@ -7,6 +7,16 @@ This is the Windows/offline development track of the Steam conversion. It is not
 Open `dist\PrismQuest\PrismQuest.exe`. Keep the whole `PrismQuest` folder, including `_internal`; the executable is not a single-file distribution. Python is bundled and is not required on the player's machine. Windows and Microsoft's Edge WebView2 Evergreen Runtime are required. A clean-machine prerequisite/install test is still outstanding.
 
 The 0.1.0 executable folder was preserved in `.build-backups\steam-0.1.0-8a317ae\PrismQuest` before rebuilding 0.2.0. This is a local rollback copy, not part of the Git repository.
+
+The verified 0.2.0 executable is also preserved in `.build-backups\steam-0.2.0-c180079\PrismQuest`, with Git rollback tag `steam-alpha-v0.2.0`. Format-2 saves require 0.3.0 or later; use the preserved older save backup when reverting the executable.
+
+## Release Hardening
+
+Desktop item mutations now stage changes and commit once; failure restores prior items/gold in memory. Transmutation rolls its result before consuming offerings, and companion equipment no longer deletes distinct saved items with identical stats. Tank updates preserve party order even when join timestamps tie.
+
+Save format 2 validates item/economy containers, reads format 1 losslessly, preserves the previous file in backups on upgrade, skips unchanged snapshots, and refuses to overwrite externally replaced/deleted saves. Native UI reloads share one live state instead of creating a second stale character writer. Final-class prestige records completion without resetting other local chronicles or erasing the current hero. There are no automatic server/calendar resets; local NPC Marketplace remains the trading alternative.
+
+Settings > Desktop adds reduced decorative motion and privacy-limited diagnostic export. The launcher checks WebView2 before opening a native window. `--diagnostics` writes a local report without starting gameplay, and `--verify-package` checks installed file hashes. These features do not upload telemetry or configure Steam Cloud.
 
 ## Display and Recovery Controls
 
@@ -72,6 +82,10 @@ The build uses PyInstaller in one-folder/windowed mode. `requirements-windows-de
 
 `tools\desktop_browser_smoke.py` drives a fresh profile on a running browser-mode server, blocking all non-loopback HTTP requests. It checks character creation, the introductory Arena fight, a guaranteed Rare item, browser reload, local records, and title-screen reopening. Use `--resume-only` after restarting the application with that profile to check disk persistence, and `--quit` to exit cleanly. It currently uses a locally installed Chrome; it is a developer test, not a runtime dependency. `--native-smoke` is a hidden developer check that creates a hidden WebView2 window, records `native-smoke.ok` in its test profile, and exits.
 
-See `docs\steam-prototype-verification.md` for validation results and `docs\steam-conversion-roadmap.md` for the remaining conversion milestones and release gates.
+See `docs\steam-alpha-0.3-verification.md` for current validation results and `docs\steam-conversion-roadmap.md` for the remaining conversion milestones and release gates. Earlier 0.2.0 evidence remains in `docs\steam-prototype-verification.md`.
+
+See `docs/desktop-player-guide.md` for controls/recovery and `docs/steam-release-gates.md` for the owner/platform handoff. Builds generate third-party notices and a 154-file asset-rights inventory; rights remain unapproved until reviewed. `tools/prepare_steampipe.py` requires real App/Depot IDs and generates preview-only VDF files, never an upload or automatic live deployment.
+
+`tools/desktop_benchmark.py` runs accelerated backend rounds in a fresh disposable profile; `--trace-memory` enables expensive allocation tracing. `tools/desktop_performance_smoke.py` records short renderer/local-WebSocket samples against a seeded profile. Neither is a substitute for a multi-hour native soak or a full player-driven progression playtest.
 
 `tools\desktop_layout_smoke.py` checks viewport fit and primary controls across several resolutions. `tools\seed_desktop_profile.py` creates disposable level-45 test fixtures only under `.local-test` and refuses to overwrite existing saves. `tools\desktop_advanced_smoke.py` exercises service panes, inventory/vault/saved sets, a five-member Labyrinth, tank toggling, and keyboard movement. None of these tools accesses the normal player profile.

@@ -16,8 +16,9 @@ a = Analysis(
         (str(root / 'PrismQuest_RPG_v1.01.py'), '.'),
         (str(root / 'Assets'), 'Assets'),
         (str(root / 'steam_client' / 'static'), 'steam_client/static'),
+        (str(root / 'docs' / 'desktop-player-guide.md'), '.'),
     ],
-    hiddenimports=nicegui_hidden + webview_hidden + ['PIL.Image', 'uvicorn.logging', 'clr_loader', 'steam_client.panels'],
+    hiddenimports=nicegui_hidden + webview_hidden + ['PIL.Image', 'uvicorn.logging', 'clr_loader', 'steam_client.panels', 'steam_client.transactions', 'steam_client.save_schema'],
     excludes=['pytest', 'playwright', 'ruff', 'supabase', 'nicegui.testing'],
     noarchive=False,
 )
