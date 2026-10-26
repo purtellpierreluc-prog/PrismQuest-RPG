@@ -6,6 +6,7 @@ import os
 import shutil
 import tempfile
 import threading
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -98,6 +99,25 @@ class AtomicSaveStore:
                     temporary.unlink()
             for old in sorted(self.backups.glob('chronicles-*.json'), reverse=True)[10:]:
                 old.unlink()
+
+    def create_manual_backup(self):
+        with self.lock:
+            self._read(self.path)
+            self.backups.mkdir(parents=True, exist_ok=True)
+            name = 'manual-' + datetime.now(UTC).strftime('%Y%m%d-%H%M%S') + '-' + uuid.uuid4().hex[:8] + '.json'
+            target = self.backups / name
+            created = False
+            try:
+                with target.open('xb') as stream:
+                    created = True
+                    stream.write(self.path.read_bytes())
+                    stream.flush()
+                    os.fsync(stream.fileno())
+            except OSError:
+                if created:
+                    target.unlink(missing_ok=True)
+                raise
+            return target
 
 
 class SingleInstance:

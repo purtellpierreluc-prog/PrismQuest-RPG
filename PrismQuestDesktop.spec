@@ -15,8 +15,9 @@ a = Analysis(
     datas=nicegui_data + webview_data + tls_data + [
         (str(root / 'PrismQuest_RPG_v1.01.py'), '.'),
         (str(root / 'Assets'), 'Assets'),
+        (str(root / 'steam_client' / 'static'), 'steam_client/static'),
     ],
-    hiddenimports=nicegui_hidden + webview_hidden + ['PIL.Image', 'uvicorn.logging', 'clr_loader'],
+    hiddenimports=nicegui_hidden + webview_hidden + ['PIL.Image', 'uvicorn.logging', 'clr_loader', 'steam_client.panels'],
     excludes=['pytest', 'playwright', 'ruff', 'supabase', 'nicegui.testing'],
     noarchive=False,
 )
@@ -24,6 +25,6 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz, a.scripts, [], exclude_binaries=True,
     name='PrismQuest', debug=False, bootloader_ignore_signals=False,
-    strip=False, upx=False, console=False,
+    strip=False, upx=False, console=False, version=str(root / 'steam_client' / 'windows_version.txt'),
 )
 collect = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='PrismQuest')

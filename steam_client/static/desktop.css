@@ -1,0 +1,343 @@
+/* The desktop client is a bounded workspace, not a document-sized web page. */
+html, body, #app { height: 100%; overflow: hidden; overscroll-behavior: none; }
+.nicegui-content { padding: 0 !important; gap: 0 !important; height: 100dvh; overflow: hidden; }
+.nicegui-content > .nicegui-refreshable { width: 100%; height: 100%; min-height: 0; }
+.mq-desktop {
+  height: calc(100dvh / var(--mq-desktop-scale, 1));
+  width: calc(100vw / var(--mq-desktop-scale, 1));
+  zoom: var(--mq-desktop-scale, 1);
+  min-height: 0 !important;
+  max-height: calc(100dvh / var(--mq-desktop-scale, 1));
+  padding: 12px !important;
+  gap: 10px !important;
+  overflow: hidden;
+}
+.mq-desktop *, .q-dialog * { min-width: 0; }
+.mq-desktop :is(.text-sm, .mq-detail-text, .mq-stat-block, .mq-inv-helper, .mq-inv-summary-line) { font-size: 13px !important; line-height: 1.45 !important; }
+.mq-desktop :is(.mq-panel-caption, .mq-section-title) { font-size: 11px !important; line-height: 1.3 !important; }
+.mq-desktop .text-lg { font-size: 16px !important; line-height: 1.3 !important; }
+.mq-desktop .text-xl { font-size: 19px !important; line-height: 1.3 !important; }
+.mq-desktop :is(.text-2xl, .mq-inv-title) { font-size: 24px !important; line-height: 1.15 !important; }
+.mq-desktop .text-3xl { font-size: 26px !important; line-height: 1.15 !important; }
+.mq-desktop :is(.q-field__native, input, .q-checkbox__label) { font-size: 13px !important; line-height: 1.3 !important; }
+.mq-desktop .mq-arena-shell { width: 100%; max-width: 1920px; height: 100%; min-height: 0; gap: 10px !important; align-items: stretch; }
+.mq-desktop .mq-desktop-scene-header { flex: 0 0 auto; flex-wrap: nowrap !important; }
+.mq-desktop .mq-desktop-scene-header > .row { flex-wrap: nowrap !important; width: auto !important; }
+.mq-desktop .mq-desktop-scene-header .text-3xl { font-size: 1.6rem; line-height: 1.2; }
+.mq-desktop .mq-desktop-scene-header .q-btn { padding: 6px 12px !important; min-height: 30px; width: auto !important; flex: 0 0 auto; }
+.mq-desktop .mq-arena-shell > :not(.mq-desktop-scene-header) { min-height: 0; }
+.mq-desktop.mq-screen-game:not(.mq-scene-arena) .mq-arena-shell > .nicegui-column {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-right: 4px;
+}
+.mq-desktop .mq-scene-stage { min-height: 0 !important; height: clamp(150px, 34vh, 340px); max-height: 100%; }
+.mq-desktop .mq-scene-image-wrap { min-height: 0 !important; height: 100%; }
+.mq-desktop .mq-scene-image-static { max-height: 100%; object-fit: contain; }
+
+/* Reset old vh minimums and nested HTML wrappers so the entire title art fits. */
+.mq-desktop:is(.mq-screen-title, .mq-screen-chronicle) > .mq-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(310px, 380px);
+  gap: 16px;
+  height: 100%;
+  max-width: 1920px;
+  min-height: 0;
+}
+.mq-desktop:is(.mq-screen-title, .mq-screen-chronicle) .mq-title-card {
+  width: 100%; height: 100%; min-height: 0; margin: 0; padding: 10px !important;
+}
+.mq-desktop:is(.mq-screen-title, .mq-screen-chronicle) .mq-title-stage {
+  width: 100%; height: 100%; min-height: 0 !important; max-height: 100%; padding: 0;
+}
+.mq-desktop:is(.mq-screen-title, .mq-screen-chronicle) .mq-title-image-wrap { inset: 12px 12px 65px; padding: 0; }
+.mq-desktop:is(.mq-screen-title, .mq-screen-chronicle) .mq-title-image-wrap > div,
+.mq-desktop:is(.mq-screen-title, .mq-screen-chronicle) .mq-title-image-fit {
+  width: 100%; height: 100%; max-width: 100%; max-height: 100%; aspect-ratio: auto;
+}
+.mq-desktop:is(.mq-screen-title, .mq-screen-chronicle) .mq-title-image-static {
+  width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; object-position: center;
+}
+.mq-desktop:is(.mq-screen-title, .mq-screen-chronicle) .mq-title-caption { bottom: 12px; padding: 8px 12px; font-size: 1rem; }
+.mq-desktop:is(.mq-screen-title, .mq-screen-chronicle) .mq-title-side-stack {
+  width: 100%; max-width: none; height: 100%; min-height: 0; margin: 0; overflow: auto; scrollbar-gutter: stable;
+}
+.mq-desktop.mq-screen-chronicle .mq-title-side-stack { gap: 8px !important; }
+.mq-desktop.mq-screen-chronicle .mq-title-side-stack .q-card { padding: 10px !important; gap: 5px; }
+.mq-desktop.mq-screen-chronicle .mq-title-side-stack .q-btn { padding: 6px 10px !important; }
+.mq-desktop.mq-screen-chronicle .mq-title-side-stack .mt-4 { margin-top: 6px; }
+
+/* The class catalog is a scrollable panel, with naming and navigation pinned. */
+.mq-desktop .mq-selection-shell { height: 100%; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; }
+.mq-desktop .mq-selection-hero { padding: 10px !important; gap: 6px; }
+.mq-desktop .mq-selection-hero > .row { flex-wrap: nowrap !important; gap: 10px; }
+.mq-desktop .mq-selection-hero .q-card { padding: 6px !important; gap: 3px; }
+.mq-desktop .mq-selection-hero .mt-3, .mq-desktop .mq-selection-hero .mt-2 { margin-top: 3px; }
+.mq-desktop .mq-selection-hero .my-3 { margin-block: 3px; }
+.mq-desktop .mq-selection-hero .q-btn { padding: 4px 10px !important; min-height: 29px; }
+.mq-desktop .mq-selection-grid { min-height: 0; overflow: auto; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); grid-auto-rows: max-content; overscroll-behavior: contain; gap: 10px; }
+.mq-desktop .mq-selection-shell ~ .mq-log { display: none; }
+.mq-desktop .mq-selection-shell:has(> .mq-selection-hero ~ .mq-selection-hero) > .mq-selection-grid { display: none; }
+.mq-desktop .mq-selection-shell > .mq-selection-hero:not(:first-child) { min-height: 0; height: 100%; overflow: auto; }
+.mq-desktop .mq-selection-card { display: grid; grid-template-columns: minmax(110px, .65fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; height: 220px; padding: 10px !important; gap: 8px; align-items: stretch; }
+.mq-desktop .mq-selection-hero-bubble { grid-column: 1; grid-row: 1 / -1; height: 100%; min-height: 0; max-height: none; }
+.mq-desktop .mq-selection-hero-bubble .q-img { height: 100%; width: 100%; }
+.mq-desktop .mq-selection-hero-bubble .q-img__image { object-fit: contain !important; }
+.mq-desktop .mq-selection-card > .row { grid-column: 2; grid-row: 1; margin-top: 0; }
+.mq-desktop .mq-selection-card > .nicegui-column { display: none; }
+.mq-desktop .mq-selection-card > .q-btn { grid-column: 2; grid-row: 2; margin-top: 0; padding: 6px !important; font-size: 12px !important; }
+
+/* Arena: keep the hero, target, meters, and actions visible together. */
+.mq-desktop.mq-scene-arena .mq-arena-shell { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; }
+.mq-desktop.mq-scene-arena .mq-arena-top { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; min-height: 0; height: 100%; }
+.mq-desktop.mq-scene-arena .mq-arena-card { padding: 12px !important; min-height: 0; }
+.mq-desktop.mq-scene-arena .mq-arena-top > .mq-arena-card:first-child {
+  display: grid; grid-template-rows: minmax(0, 1fr) auto auto; gap: 10px; align-items: stretch;
+}
+.mq-desktop.mq-scene-arena .mq-player-side-layout { display: grid; grid-template-columns: minmax(100px, .7fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); align-items: stretch; gap: 12px; min-height: 0; }
+.mq-desktop.mq-scene-arena .mq-player-side-layout > .nicegui-column { min-height: 0; }
+.mq-desktop.mq-scene-arena .mq-arena-avatar-frame { width: 100%; min-width: 0; max-width: none; min-height: 0; height: 100%; padding: 10px; }
+.mq-desktop.mq-scene-arena .mq-arena-avatar-frame > div { height: 100%; width: 100%; }
+.mq-desktop.mq-scene-arena .mq-arena-avatar-static { max-width: 100%; max-height: 100%; object-position: center; }
+.mq-desktop.mq-scene-arena .mq-core-stat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin-top: 0; }
+.mq-desktop.mq-scene-arena .mq-stat-card { padding: 5px !important; }
+.mq-desktop.mq-scene-arena .mq-stat-chip { min-height: 0; padding: 5px 7px; }
+.mq-desktop.mq-scene-arena .mq-stat-chip-label { font-size: 10px !important; line-height: 1.3 !important; margin-bottom: 2px; }
+.mq-desktop.mq-scene-arena .mq-stat-chip-value { font-size: 13px !important; line-height: 1.35 !important; margin-top: 0; }
+.mq-desktop.mq-scene-arena .mq-player-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 0; }
+.mq-desktop.mq-scene-arena .mq-player-summary-grid > * { padding: 0; }
+.mq-desktop.mq-scene-arena .mq-player-panels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 0; }
+.mq-desktop.mq-scene-arena .mq-player-panels > * { min-height: 0; padding: 8px !important; grid-column: auto; gap: 4px; }
+.mq-desktop.mq-scene-arena .mq-player-panels :is(.mq-detail-text, .mq-stat-block) { font-size: 12px; line-height: 1.5; }
+.mq-desktop.mq-scene-arena .mq-player-panels .mq-panel-caption { font-size: 10px; margin-bottom: 4px; }
+.mq-desktop.mq-scene-arena .mq-last-drop-meta { margin-top: 6px; }
+.mq-desktop.mq-scene-arena .mq-last-drop-pill { padding: 3px 7px; font-size: 9px; }
+.mq-desktop.mq-scene-arena .mq-last-drop-name { font-size: 12px; line-height: 1.4; }
+.mq-desktop.mq-scene-arena .mq-player-panels .text-sm { font-size: 12px !important; line-height: 1.4 !important; }
+.mq-desktop.mq-scene-arena .mq-player-panels :is(.mt-1, .mt-2) { margin-top: 0; }
+.mq-desktop.mq-scene-arena .mq-player-panels .mq-item-hover-panel { display: none !important; }
+.mq-desktop .mq-prof-tooltip-wrap-persist .mq-prof-tooltip-panel { display: none !important; }
+.mq-desktop.mq-scene-arena .mq-player-meters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 0; }
+.mq-desktop.mq-scene-arena .mq-player-meters .mq-meter-track { height: 20px; }
+.mq-desktop.mq-scene-arena .mq-player-meters .mq-meter-row { gap: 4px; font-size: 9px; }
+.mq-desktop.mq-scene-arena .mq-player-meters .mq-meter { margin-top: 0; }
+.mq-desktop.mq-scene-arena .mq-player-meters .mq-meter-row { margin-bottom: 3px; }
+.mq-desktop.mq-scene-arena .mq-monster-panel-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 10px; height: 100%; min-height: 0; align-items: stretch; }
+.mq-desktop.mq-scene-arena .mq-arena-top > .mq-arena-card:last-child { display: flex; flex-direction: column; gap: 8px; }
+.mq-desktop.mq-scene-arena .mq-monster-panel-grid > .nicegui-column { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; align-items: stretch; }
+.mq-desktop.mq-scene-arena .mq-monster-stage { height: 100%; min-height: 0 !important; max-height: 100%; }
+.mq-desktop.mq-scene-arena .mq-monster-image-wrap { width: 100%; height: 100%; min-height: 0; padding: 8px; }
+.mq-desktop.mq-scene-arena .mq-monster-image-wrap > div { height: 100%; width: 100%; }
+.mq-desktop.mq-scene-arena .mq-monster-image-static { max-height: 100%; max-width: 100%; object-fit: contain; }
+.mq-desktop.mq-scene-arena .mq-monster-quote { min-height: 0; padding: 8px; font-size: 12px !important; line-height: 1.4 !important; }
+.mq-desktop.mq-scene-arena .mq-monster-details { min-height: 0; gap: 8px; }
+.mq-desktop.mq-scene-arena .mq-monster-details .text-3xl { font-size: 1.6rem; line-height: 1.15; }
+.mq-desktop.mq-scene-arena .mq-monster-details .q-card { padding: 8px !important; gap: 4px; }
+.mq-desktop.mq-scene-arena .mq-monster-details .q-card :is(.mt-1, .mt-2) { margin-top: 0; }
+.mq-desktop.mq-scene-arena .mq-monster-details .text-sm { font-size: 11px !important; line-height: 1.4 !important; }
+.mq-desktop.mq-scene-arena .mq-arena-options { gap: 10px; flex-wrap: nowrap; }
+.mq-desktop.mq-scene-arena .mq-arena-options .q-field { width: 125px; flex: 0 0 125px; }
+.mq-desktop.mq-scene-arena .mq-arena-buttons { margin-top: 8px; gap: 8px; }
+.mq-desktop.mq-scene-arena .mq-arena-btn { min-height: 32px; padding: 5px 12px; }
+.mq-desktop.mq-scene-arena .mq-arena-btn-primary { width: 110px; min-height: 43px !important; }
+.mq-desktop .q-btn.q-btn.mq-arena-btn-primary { width: 110px; min-height: 43px !important; padding: 5px 12px !important; }
+.mq-desktop.mq-scene-arena .mq-arena-shell > .mq-arena-card { gap: 4px; }
+.mq-desktop.mq-scene-arena .mq-transition { padding: 0; margin-top: 4px; min-height: 0; font-size: 11px; }
+.mq-desktop.mq-scene-arena .mq-arena-shell > .mq-arena-card:last-child { padding: 6px 12px !important; }
+.mq-desktop.mq-scene-arena .mq-arena-shell > .mq-arena-card:last-child > .row { margin-bottom: 0; }
+.mq-desktop.mq-scene-arena .mq-arena-shell > .mq-arena-card:last-child > .text-sm { display: none; }
+.mq-desktop.mq-scene-arena #mq-combat-log { height: 100px; max-height: 100px; overflow: auto; }
+
+/* Town keeps routes pinned; artwork yields space instead of pushing them away. */
+.mq-desktop .mq-town-shell { height: 100%; min-height: 0; gap: 10px !important; max-width: 1920px; }
+.mq-desktop .mq-town-header { flex: 0 0 auto; }
+.mq-desktop .mq-town-dashboard { flex: 1 1 0; min-height: 0; align-items: stretch; grid-template-rows: minmax(0, 1.15fr) minmax(0, .85fr); grid-template-columns: minmax(220px, .8fr) minmax(0, 1.3fr) minmax(230px, .9fr); gap: 10px; }
+.mq-desktop .mq-town-dashboard > .q-card { min-height: 0; padding: 12px !important; }
+.mq-desktop .mq-town-overview-panel { grid-column: 1; grid-row: 1 / -1; }
+.mq-desktop .mq-town-map-panel { grid-column: 2; grid-row: 1 / -1; }
+.mq-desktop .mq-town-routes-panel { grid-column: 3; grid-row: 1; }
+.mq-desktop .mq-town-social-panel { grid-column: 3; grid-row: 2; min-height: 0; overflow: auto; gap: 6px; }
+.mq-desktop .mq-town-header > .row { flex-wrap: nowrap !important; align-items: center; }
+.mq-desktop .mq-town-header > .row > .nicegui-column { flex: 1 1 0; }
+.mq-desktop .mq-town-header > .row > .row { flex-wrap: nowrap; width: auto !important; flex: 0 0 auto; }
+.mq-desktop .mq-town-header .q-btn { width: auto !important; flex: 0 0 auto; }
+.mq-desktop .mq-town-whisper { padding: 7px 10px; font-size: 13px !important; line-height: 1.35 !important; }
+.mq-desktop .mq-town-overview-panel { display: flex; flex-direction: column; gap: 8px; }
+.mq-desktop .mq-town-overview-panel .mt-4 { margin-top: 0; }
+.mq-desktop .mq-town-overview-panel > div:not(.q-card):has(.mq-town-avatar-frame) { flex: 1 1 0; min-height: 0; }
+.mq-desktop .mq-town-overview-panel .mq-panel-frame { padding: 8px !important; }
+.mq-desktop .mq-town-avatar-frame { width: 100%; height: 100%; min-height: 0; max-height: 100%; max-width: none; padding: 8px; }
+.mq-desktop .mq-town-avatar-frame > div { height: 100%; }
+.mq-desktop .mq-town-hero-note { display: none; }
+.mq-desktop .mq-town-map-card { display: flex; flex-direction: column; gap: 6px; }
+.mq-desktop .mq-town-map-card .mq-town-scene-stage { flex: 1 1 0; min-height: 0 !important; height: auto; }
+.mq-desktop .mq-town-scene-image-wrap, .mq-desktop .mq-town-scene-image-wrap > div { height: 100%; }
+.mq-desktop .mq-town-scene-image-static { width: 100%; height: 100%; max-height: 100%; object-fit: contain; }
+.mq-desktop .mq-town-route-note, .mq-desktop .mq-town-map-card > .mq-panel-caption { display: none; }
+.mq-desktop .mq-town-routes-panel { overflow: auto; scrollbar-gutter: stable; }
+.mq-desktop .mq-town-routes-panel .mq-route-btn { min-height: 34px; padding: 7px 10px; }
+.mq-desktop .mq-town-route-groups { margin-top: 8px; gap: 8px; }
+.mq-desktop .mq-town-route-group { padding: 8px; }
+.mq-desktop .mq-town-route-group-copy { display: none; }
+.mq-desktop .mq-town-route-grid { gap: 6px; margin-top: 8px; }
+.mq-desktop .mq-town-social-panel .mq-route-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mq-desktop .mq-town-social-panel .mq-route-btn { padding: 6px 8px; min-height: 31px; }
+.mq-desktop .mq-town-social-panel .mq-town-route-group { padding: 5px; }
+.mq-desktop .mq-town-social-panel .mq-town-route-groups { margin-top: 0; }
+.mq-desktop .mq-town-map-card { height: 100%; }
+
+/* Inventory filters and actions stay pinned while each item/detail pane scrolls. */
+.mq-desktop .mq-inventory-workspace, .mq-inventory-popup-card .mq-inventory-workspace {
+  display: grid !important; grid-template-rows: auto minmax(0, 1fr) auto; height: 100%; min-height: 0; overflow: hidden !important; gap: 8px !important;
+}
+.mq-inventory-popup-card { height: calc(100dvh - 24px); min-height: 0 !important; overflow: hidden !important; resize: none; padding: 10px; }
+.mq-inventory-workspace .mq-inv-hero-card { padding: 10px !important; gap: 6px; }
+.mq-inventory-workspace .mq-inv-hero-card > .row { flex-wrap: nowrap !important; }
+.mq-inventory-workspace .mq-inv-top-card { padding: 6px !important; gap: 3px; }
+.mq-inventory-workspace .mq-inv-top-card .mt-2 { margin-top: 0; }
+.mq-inventory-workspace .mq-inv-top-card .mq-inv-summary-line { font-size: 11px !important; line-height: 1.35 !important; }
+.mq-inventory-workspace .mq-inventory-panes { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, .85fr) minmax(0, .85fr); grid-template-rows: minmax(0, 1fr); gap: 8px; min-height: 0; }
+.mq-inventory-workspace .mq-inventory-panes:not(:has(.mq-inv-detail-panel)) { grid-template-columns: minmax(0, 1fr); }
+.mq-inventory-workspace .mq-inventory-panes > .nicegui-column,
+.mq-inventory-workspace .mq-inventory-panes > .nicegui-refreshable > .nicegui-column { min-height: 0; height: 100%; }
+.mq-inventory-workspace .mq-inv-manifest-panel { height: 100%; min-height: 0; gap: 6px; padding: 10px !important; }
+.mq-inventory-workspace .mq-inv-manifest-panel > .row { margin-top: 4px; flex-wrap: nowrap; gap: 6px; }
+.mq-inventory-workspace #mq-pack-manifest-scroll { height: auto !important; min-height: 0 !important; flex: 1 1 0; margin-top: 4px; }
+.mq-inventory-workspace .mq-inv-detail-panel { height: 100%; min-height: 0; overflow: auto; overscroll-behavior: contain; gap: 6px; padding: 10px !important; }
+.mq-inventory-workspace .mq-inv-action-panel { min-height: 0 !important; padding: 8px !important; gap: 0; }
+.mq-inventory-workspace .mq-inv-action-panel > .mq-inv-section-title { display: none; }
+.mq-inventory-workspace .mq-inv-action-panel > .row { margin-top: 0; gap: 6px; }
+.mq-inventory-workspace .mq-inv-action-panel .q-btn { font-size: 12px !important; padding: 5px 9px; min-height: 30px; }
+
+/* Service screens use independent bounded panes, with their route header pinned. */
+.mq-desktop:is(.mq-scene-inn, .mq-scene-well, .mq-scene-transmute, .mq-scene-marketplace) .mq-arena-shell > .nicegui-column { overflow: hidden; }
+.mq-desktop:is(.mq-scene-inn, .mq-scene-well, .mq-scene-transmute, .mq-scene-marketplace) .mq-arena-shell > .nicegui-column > .q-card:first-child { flex: 0 1 auto; max-height: 40%; overflow: auto; gap: 6px; padding: 10px !important; }
+.mq-desktop:is(.mq-scene-inn, .mq-scene-well, .mq-scene-transmute, .mq-scene-marketplace) .mq-arena-shell > .nicegui-column > .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); align-items: stretch; flex: 1 1 0; min-height: 0; }
+.mq-desktop:is(.mq-scene-inn, .mq-scene-well, .mq-scene-transmute, .mq-scene-marketplace) .mq-arena-shell > .nicegui-column > .row > .nicegui-column { min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.mq-desktop:is(.mq-scene-inn, .mq-scene-well, .mq-scene-transmute, .mq-scene-marketplace) .mq-arena-shell > .nicegui-column > .q-card:first-child > .q-card { padding: 6px !important; margin-top: 0; }
+.mq-desktop.mq-scene-transmute .mq-arena-shell > .nicegui-column > .row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mq-desktop.mq-scene-inn .mq-arena-shell > .nicegui-column > .q-card:first-child { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mq-desktop.mq-scene-inn .mq-arena-shell > .nicegui-column > .q-card:first-child > :not(.q-card) { grid-column: 1 / -1; }
+
+/* Five-member expeditions get one bounded play area; management opens as a drawer. */
+.mq-desktop.mq-scene-labyrinth .mq-arena-shell > .nicegui-column:has(.mq-lab-layout) { overflow: hidden; }
+.mq-desktop.mq-scene-labyrinth .mq-arena-shell > .nicegui-column > .q-card:has(.mq-lab-layout) { height: 100%; min-height: 0; flex: 1 1 0; gap: 6px; padding: 10px !important; }
+.mq-desktop.mq-scene-labyrinth .q-card:has(> .mq-lab-layout) > .text-xl { display: none; }
+.mq-desktop.mq-scene-labyrinth .q-card:has(> .mq-lab-layout) > .mq-panel-frame { flex-direction: row; flex-wrap: wrap; gap: 8px; margin-top: 0; padding: 6px !important; }
+.mq-desktop.mq-scene-labyrinth .q-card:has(> .mq-lab-layout) > .mq-panel-frame > .mq-panel-caption { display: none; }
+.mq-desktop.mq-scene-labyrinth .q-card:has(> .mq-lab-layout) > .mq-panel-frame .mt-2 { margin-top: 0; }
+.mq-desktop.mq-scene-labyrinth .q-card:has(> .mq-lab-layout) > .row { margin-top: 0; gap: 6px; }
+.mq-desktop.mq-scene-labyrinth .q-card:has(> .mq-lab-layout) > .row .q-btn { min-height: 28px; padding: 4px 10px; font-size: 12px !important; }
+.mq-desktop .mq-lab-layout { flex: 1 1 0; min-height: 0; width: 100%; grid-template-columns: minmax(300px, .85fr) minmax(0, 1.15fr); grid-template-rows: minmax(0, 1fr); align-items: stretch; margin-top: 0; gap: 10px; }
+.mq-desktop .mq-lab-party-stack { display: flex; flex-direction: column; align-items: stretch; height: 100%; min-height: 0; gap: 6px; }
+.mq-desktop .mq-lab-member-card { flex: 1 1 0; min-height: 0; padding: 6px !important; gap: 4px; }
+.mq-desktop .mq-lab-member-top { height: 100%; min-height: 0; align-items: center; gap: 8px; }
+.mq-desktop .mq-lab-member-portrait { width: 64px; min-width: 64px; height: 70px; border-radius: 15px; }
+.mq-desktop .mq-lab-member-header > .mq-detail-text { display: none; }
+.mq-desktop .mq-lab-member-header > .row { gap: 4px; }
+.mq-desktop .mq-lab-member-header .text-lg { font-size: 13px !important; }
+.mq-desktop .mq-lab-member-header .text-sm { font-size: 12px !important; }
+.mq-desktop .mq-lab-member-card .mq-meter-track { height: 14px; }
+.mq-desktop .mq-lab-member-gear { padding: 3px 4px; margin-top: 0; gap: 3px; }
+.mq-desktop .mq-lab-member-body.mq-lab-member-body-gear { margin-top: 0; }
+.mq-desktop .q-btn.q-btn.mq-lab-tank-btn { min-height: 23px !important; padding: 2px 7px !important; font-size: 10px !important; }
+.mq-desktop .q-btn.q-btn.mq-lab-tank-btn[aria-pressed="false"] { border: 2px solid #cf7070 !important; background: #361f24 !important; }
+.mq-desktop .q-btn.q-btn.mq-lab-tank-btn[aria-pressed="true"] { border: 2px solid #80e4ac !important; background: #1c4937 !important; box-shadow: inset 0 2px 6px #0009, 0 0 10px #80e4ac44 !important; }
+.mq-desktop .mq-lab-side-stack { display: flex; flex-direction: column; min-height: 0; height: 100%; gap: 6px; }
+.mq-desktop .mq-lab-stage-card { display: flex; flex-direction: column; align-items: stretch; flex: 1 1 0; height: auto; min-height: 0 !important; max-height: none; padding: 8px !important; gap: 6px; }
+.mq-desktop .mq-lab-grid-shell { flex: 1 1 0; min-height: 0; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; container-type: size; gap: 6px; margin-top: 0; }
+.mq-desktop .mq-desktop-lab-map-toolbar { height: 28px; flex: 0 0 28px; gap: 4px; }
+.mq-desktop .mq-lab-grid-title { font-size: 18px !important; margin: 0; }
+.mq-desktop .q-btn.q-btn.mq-desktop-lab-move { width: 28px; min-height: 26px; padding: 2px; }
+.mq-desktop .mq-lab-grid { width: min(100cqw, calc(100cqh - 38px)); height: min(100cqw, calc(100cqh - 38px)); aspect-ratio: 1; grid-template-rows: repeat(7, minmax(0, 1fr)); grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.mq-desktop .mq-lab-tile { min-height: 0 !important; height: 100%; padding: 0; }
+.mq-desktop .mq-lab-side-stack > .mq-lab-grid-card:not(.mq-lab-stage-card) { flex: 0 0 auto; max-height: 90px; overflow: auto; padding: 6px 8px !important; gap: 3px; }
+.mq-desktop .mq-lab-side-stack > .mq-lab-grid-card:not(.mq-lab-stage-card) > .mq-detail-text { display: none; }
+.mq-desktop .mq-lab-side-stack > .mq-lab-grid-card:not(.mq-lab-stage-card) .text-2xl { font-size: 14px !important; }
+.mq-desktop .mq-lab-side-stack > .mq-lab-grid-card:not(.mq-lab-stage-card) .q-btn { padding: 3px 7px; min-height: 25px; font-size: 11px !important; }
+.mq-desktop-lab-controls, .mq-desktop-lab-details { flex: 0 0 auto; position: relative; }
+.mq-desktop-lab-controls .q-item, .mq-desktop-lab-details .q-item { min-height: 32px; padding: 4px 10px; }
+.mq-desktop-lab-controls .q-expansion-item__content, .mq-desktop-lab-details .q-expansion-item__content { position: absolute; bottom: calc(100% + 6px); left: 0; width: 100%; max-height: min(65dvh, 480px); overflow: auto; z-index: 60; padding: 12px; border: 1px solid #8a9baa; border-radius: 12px; background: #10151f; box-shadow: 0 12px 38px #000b; }
+.mq-desktop .mq-lab-pack-grid { flex: 1 1 0; min-height: 0; align-items: stretch; grid-template-rows: minmax(0, 1fr); }
+.mq-desktop .mq-lab-monster-card { min-height: 0; height: 100%; gap: 6px; padding: 6px !important; }
+.mq-desktop .mq-lab-monster-stage { min-height: 0 !important; height: auto; max-height: none; flex: 1 1 0; }
+.mq-desktop .mq-lab-monster-stage .mq-monster-image-wrap, .mq-desktop .mq-lab-monster-stage .mq-monster-image-wrap > div { height: 100%; min-height: 0; }
+.mq-desktop .mq-lab-monster-card .text-lg { font-size: 13px !important; }
+.mq-desktop .mq-lab-reward-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.mq-desktop .mq-lab-reward-card { padding: 8px !important; gap: 6px; }
+
+/* Dialogs own their scrolling; no dialog can extend beyond the client window. */
+.q-dialog__inner { padding: 12px !important; }
+.q-dialog__inner > .q-card { max-height: calc(100dvh - 24px) !important; max-width: calc(100vw - 24px) !important; overflow: auto; overscroll-behavior: contain; }
+.q-dialog :is(.text-4xl, .text-5xl) { font-size: 26px !important; line-height: 1.15 !important; }
+.q-dialog :is(.text-xl, .text-2xl) { font-size: 17px !important; line-height: 1.4 !important; }
+.q-dialog .text-lg { font-size: 14px !important; line-height: 1.4 !important; }
+.q-dialog :is(.p-7, .p-8) { padding: 18px !important; }
+.q-dialog :is(.mt-4, .mt-5, .mt-6, .mt-7) { margin-top: 8px !important; }
+.q-dialog__inner > .q-card[class*="max-w-"] > .row:last-child { position: sticky; bottom: -18px; z-index: 5; padding: 8px 0; width: 100%; background: #10141c; }
+.q-menu { max-height: min(420px, 70dvh) !important; overscroll-behavior: contain; }
+.mq-item-hover-floating, .mq-prof-tooltip-floating, .mq-stat-tooltip-floating { max-height: calc(100dvh - 24px); overflow-y: auto; }
+.mq-desktop :focus-visible { outline: 2px solid #e3cf8b; outline-offset: 3px; }
+
+@media (max-height: 760px) {
+  html { font-size: 12px; }
+  .mq-desktop { padding: 8px !important; gap: 8px !important; }
+  .mq-desktop .mq-arena-shell { gap: 8px !important; }
+  .mq-desktop.mq-scene-arena .mq-arena-card { padding: 8px !important; }
+  .mq-desktop.mq-scene-arena .mq-player-side-layout > .nicegui-column { gap: 4px !important; }
+  .mq-desktop.mq-scene-arena .mq-player-side-layout .text-2xl { font-size: 20px; line-height: 1.2; }
+  .mq-desktop.mq-scene-arena .mq-player-summary-grid { gap: 4px; }
+  .mq-desktop.mq-scene-arena .mq-player-panels { gap: 6px; }
+  .mq-desktop .mq-town-header { padding: 8px !important; }
+  .mq-desktop .mq-town-overline { display: none; }
+  .mq-desktop .mq-town-header .text-3xl { font-size: 20px; }
+  .mq-desktop .mq-town-header .q-btn { padding: 5px 10px !important; }
+  .mq-desktop .mq-town-header .mq-town-coffers-copy { font-size: 14px !important; line-height: 1.35 !important; }
+}
+@media (max-width: 1100px) {
+  .mq-desktop .mq-town-dashboard { grid-template-columns: minmax(180px, .75fr) minmax(0, 1fr) minmax(210px, .9fr); }
+  .mq-desktop.mq-scene-arena .mq-arena-top { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  .mq-desktop.mq-scene-arena .mq-player-side-layout { grid-template-columns: minmax(90px, .6fr) minmax(0, 1fr); }
+  .mq-desktop.mq-scene-arena .mq-monster-panel-grid { grid-template-columns: minmax(0, .85fr) minmax(0, 1fr); }
+  .mq-desktop.mq-scene-arena .mq-arena-buttons-utility { flex-wrap: nowrap; }
+  .mq-desktop.mq-scene-arena .mq-arena-buttons-utility .mq-arena-btn { padding: 5px 8px; font-size: 11px; }
+}
+@media (max-height: 680px) {
+  .mq-desktop .mq-lab-member-card { padding: 4px !important; }
+  .mq-desktop .mq-lab-member-portrait { width: 48px; min-width: 48px; height: 50px; }
+  .mq-desktop .mq-lab-member-header .mq-lab-pill { display: none; }
+  .mq-desktop .mq-lab-member-header > .text-lg { display: none; }
+  .mq-desktop .mq-lab-member-header .text-lg { font-size: 12px !important; }
+  .mq-desktop .mq-lab-member-card .mq-meter-track { height: 12px; }
+  .mq-desktop .mq-lab-member-top { gap: 6px; }
+  .mq-desktop.mq-scene-arena .mq-player-side-layout { grid-template-columns: 90px minmax(0, 1fr); grid-template-rows: auto auto auto minmax(0, 1fr); gap: 3px 8px; }
+  .mq-desktop.mq-scene-arena .mq-player-side-layout > .nicegui-column { display: contents; }
+  .mq-desktop.mq-scene-arena .mq-player-side-layout > .mq-arena-avatar-frame { grid-column: 1; grid-row: 1 / 4; }
+  .mq-desktop.mq-scene-arena .mq-player-side-layout > .nicegui-column > :nth-child(1) { grid-column: 2; grid-row: 1; }
+  .mq-desktop.mq-scene-arena .mq-player-side-layout > .nicegui-column > :nth-child(2) { grid-column: 2; grid-row: 2; }
+  .mq-desktop.mq-scene-arena .mq-core-stat-grid { grid-column: 2; grid-row: 3; }
+  .mq-desktop.mq-scene-arena .mq-player-summary-grid { grid-column: 1 / -1; grid-row: 4; }
+  .mq-desktop.mq-scene-arena .mq-player-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mq-desktop.mq-scene-arena .mq-stat-chip-value { font-size: 11px !important; }
+  .mq-desktop.mq-scene-arena .mq-stat-chip-label { font-size: 9px !important; }
+  .mq-desktop.mq-scene-arena .mq-player-side-layout .text-2xl { font-size: 18px !important; }
+  .mq-desktop.mq-scene-arena .mq-core-stat-grid .mq-stat-chip { display: flex; flex-direction: row; align-items: center; gap: 3px; padding: 3px; }
+  .mq-desktop.mq-scene-arena .mq-core-stat-grid .mq-stat-chip-label { margin: 0; }
+  .mq-desktop.mq-scene-arena .mq-player-summary-grid .mq-stat-chip { padding: 3px; }
+  .mq-desktop.mq-scene-arena .mq-monster-details .text-3xl { font-size: 18px !important; }
+  .mq-desktop.mq-scene-arena .mq-monster-details { gap: 4px; }
+  .mq-desktop.mq-scene-arena .mq-player-panels { gap: 5px; }
+  .mq-desktop.mq-scene-arena .mq-player-panels > * { padding: 6px !important; }
+  .mq-desktop.mq-scene-arena .mq-player-panels .text-sm { font-size: 11px !important; }
+  .mq-desktop.mq-scene-arena .mq-monster-quote { font-size: 11px !important; }
+  .mq-desktop .mq-town-dashboard > .q-card { padding: 8px !important; }
+  .mq-desktop .mq-town-routes-panel { gap: 5px; }
+  .mq-desktop .mq-town-routes-panel .mq-route-btn { min-height: 29px; padding: 5px 6px; }
+  .mq-desktop .mq-town-dashboard .mq-route-btn { font-size: 12px !important; min-height: 28px; padding: 4px 5px; }
+  .mq-desktop .mq-town-dashboard .mq-route-btn .q-btn__content { white-space: nowrap; }
+  .mq-desktop .mq-town-dashboard .mq-town-route-group { padding: 5px; }
+  .mq-desktop .mq-town-dashboard .mq-route-grid { gap: 5px; }
+}

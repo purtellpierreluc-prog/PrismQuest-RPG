@@ -24,6 +24,17 @@ Implemented in this branch:
 
 This milestone preserves existing combat and progression rules rather than attempting a risky simultaneous game-engine rewrite. The large legacy module remains behind a desktop runtime boundary and is still technical debt.
 
+### Desktop Alpha 0.2.0
+
+- Added a desktop-only bounded viewport stylesheet, contained title art, compact Arena/town layouts, pinned inventory actions, and an active Labyrinth layout sized for five party members.
+- Moved Labyrinth management/details into drawers while keeping movement buttons beside the map. No continuous layout polling was added; small-window scaling only reacts to resize events.
+- Added persisted native window size/fullscreen settings, F11, manual backups, and save-folder access in Settings > Desktop.
+- Fixed Item-object serialization in Labyrinth checkpoints and preserved zero HP/mana during member normalization. Added actual disk round-trip coverage with companions and inventory.
+- Added an idempotent desktop WebSocket close path for the pinned Uvicorn peer-close/shutdown race. Live connections still use the normal transport shutdown path.
+- Added a resolved Windows build lock, Windows executable version metadata, and a generated hash inventory. Preserved the first executable build locally before replacement.
+
+These complete parts of milestones 2, 3, and 6 below, not the entire Steam release checklist. In particular, no Steamworks identity, overlay, achievements, Cloud, signing, controller, or clean-machine compatibility claim is made.
+
 ## Milestone 2: Architecture and Economy
 
 1. Separate pure game models, random rolls, combat resolution, item ownership, progression, and saves from NiceGUI rendering and cloud functions.

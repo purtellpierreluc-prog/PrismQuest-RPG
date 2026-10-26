@@ -3,7 +3,7 @@ import json
 from unittest.mock import patch
 
 import pytest
-from test_runtime_regressions import start_encounter, state_for
+from test_runtime_regressions import sample_item, start_encounter, state_for
 
 from steam_client.paths import DesktopPaths
 from steam_client.storage import (
@@ -194,6 +194,31 @@ def test_explicit_leave_clears_checkpoint(game, monkeypatch):
     assert state.slots[0]['desktop_labyrinth_run']
     state.leave_labyrinth_session()
     assert not state.slots[0]['desktop_labyrinth_run']
+
+
+def test_lab_checkpoint_round_trip_serializes_item_views_and_companions(game, monkeypatch, tmp_path):
+    monkeypatch.setattr(game, 'DESKTOP_MODE', True)
+    state = state_for(game)
+    state.player.inventory = [sample_item(game)]
+    assert state.create_labyrinth_solo_session()
+    assert state.labyrinth_hire_companion('Shadow Mage')
+    assert state.labyrinth_start_floor()
+    state.sync_active_slot()
+    before = state.player.to_dict()
+    store = AtomicSaveStore(tmp_path / 'chronicles.json')
+    store.save(state.slots)
+    reloaded = state_for(game)
+    reloaded.slots = store.load()
+    reloaded.open_slot(0)
+    assert reloaded.player.to_dict() == before
+    assert len(reloaded.labyrinth_member_rows) == 2
+    assert len(reloaded.player.inventory) == 1
+    assert isinstance(reloaded.labyrinth_member_rows[0]['profile_snapshot']['inventory_items'][0], game.Item)
+
+
+def test_lab_member_normalization_preserves_empty_resources(game):
+    row = game._labyrinth_normalize_member_row({'max_hp': 5000, 'current_hp': 0, 'max_mana': 2000, 'current_mana': 0, 'is_downed': True})
+    assert row['current_hp'] == 0 and row['current_mana'] == 0 and row['is_downed']
 
 
 def test_desktop_refuses_online_only_scenes(game, monkeypatch):

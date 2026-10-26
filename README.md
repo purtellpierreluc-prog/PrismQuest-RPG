@@ -1,10 +1,20 @@
-# PrismQuest: Standalone Desktop Prototype
+# PrismQuest: Standalone Desktop Alpha 0.2.0
 
-This is the first Windows/offline milestone of the Steam conversion. It is not a Steam release yet. Development is isolated on `codex/steam-standalone`, based on web release `10347d7`. Do not merge or deploy this branch over the hosted web game.
+This is the Windows/offline development track of the Steam conversion. It is not a Steam release yet. Development is isolated on `codex/steam-standalone`, based on web release `10347d7`. Do not merge or deploy this branch over the hosted web game.
 
 ## Play the Windows Build
 
 Open `dist\PrismQuest\PrismQuest.exe`. Keep the whole `PrismQuest` folder, including `_internal`; the executable is not a single-file distribution. Python is bundled and is not required on the player's machine. Windows and Microsoft's Edge WebView2 Evergreen Runtime are required. A clean-machine prerequisite/install test is still outstanding.
+
+The 0.1.0 executable folder was preserved in `.build-backups\steam-0.1.0-8a317ae\PrismQuest` before rebuilding 0.2.0. This is a local rollback copy, not part of the Git repository.
+
+## Display and Recovery Controls
+
+The desktop uses a window-sized workspace rather than a vertically scrolling web page. Arena, town, and active Labyrinth layouts keep their primary controls visible. Long inventories, saved sets, references, and companion-management drawers scroll inside bounded panels. Title artwork uses a contained image rather than a cropped cover image.
+
+The native window has a 1000x660 minimum outer size. Layout checks include 960x600 client viewports, 720p, laptop, Full HD, and ultrawide sizes. Smaller/DPI-constrained viewports use a resize-event-only scale fallback; this is not a claim of Steam Deck or controller support.
+
+In town, open Settings > Desktop to toggle fullscreen, create a manual save backup, or open the save folder. F11 also toggles native fullscreen. Window size/fullscreen preferences are saved in `display.json`, independently of character saves. Manual backups use `manual-*.json` names and are not removed by the rotating-backup cleanup.
 
 The default launch opens a native desktop window and a loopback-only local game server. It does not connect to Render or Supabase. An internet connection or web account is not required for the core game.
 
@@ -33,7 +43,7 @@ Use Python 3.12 on Windows:
 
 ```powershell
 py -3.12 -m venv .venv
-& .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+& .\.venv\Scripts\python.exe -m pip install -r requirements-windows-dev.lock.txt
 & .\.venv\Scripts\python.exe launch_desktop.py
 ```
 
@@ -58,8 +68,10 @@ For local browser diagnostics only:
 & .\build_desktop.ps1
 ```
 
-The build uses PyInstaller in one-folder/windowed mode. Top-level dependencies are pinned; a fully transitive, independently reproduced release lock and supply-chain audit remain release tasks. Native mode uses `multiprocessing.freeze_support()` before GUI imports, which is required for packaged Windows child processes.
+The build uses PyInstaller in one-folder/windowed mode. `requirements-windows-dev.lock.txt` records the resolved Windows/Python 3.12 build environment; clean-machine reproduction and the supply-chain/license audit remain release gates. The executable contains Windows product/version metadata. `build-info.json` records the build environment and SHA-256 hashes of bundled files; it is an integrity inventory, not code signing. Native mode uses `multiprocessing.freeze_support()` before GUI imports, which is required for packaged Windows child processes.
 
 `tools\desktop_browser_smoke.py` drives a fresh profile on a running browser-mode server, blocking all non-loopback HTTP requests. It checks character creation, the introductory Arena fight, a guaranteed Rare item, browser reload, local records, and title-screen reopening. Use `--resume-only` after restarting the application with that profile to check disk persistence, and `--quit` to exit cleanly. It currently uses a locally installed Chrome; it is a developer test, not a runtime dependency. `--native-smoke` is a hidden developer check that creates a hidden WebView2 window, records `native-smoke.ok` in its test profile, and exits.
 
 See `docs\steam-prototype-verification.md` for validation results and `docs\steam-conversion-roadmap.md` for the remaining conversion milestones and release gates.
+
+`tools\desktop_layout_smoke.py` checks viewport fit and primary controls across several resolutions. `tools\seed_desktop_profile.py` creates disposable level-45 test fixtures only under `.local-test` and refuses to overwrite existing saves. `tools\desktop_advanced_smoke.py` exercises service panes, inventory/vault/saved sets, a five-member Labyrinth, tank toggling, and keyboard movement. None of these tools accesses the normal player profile.

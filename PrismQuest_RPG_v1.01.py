@@ -26,6 +26,7 @@ if DESKTOP_PATHS is not None:
     DESKTOP_PATHS.prepare()
 DESKTOP_SAVE_STORE = AtomicSaveStore(DESKTOP_PATHS.save_file, DESKTOP_PATHS.backups) if DESKTOP_PATHS else None
 DESKTOP_ACTIVE_STATE = None
+DESKTOP_DISPLAY = None
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 try:
@@ -11743,6 +11744,9 @@ class SessionState:
         self.global_ladder_reset_count: int = 0
         self.restore_ui_preferences()
         self.restore_auth_session()
+        if DESKTOP_MODE:
+            self.auth_status = 'Local chronicle saves are active.'
+            self.auth_status_tone = 'success'
         if self.is_authenticated():
             self.auth_email = self.auth_user_email or self.auth_email
             self.auth_status = f'Signed in as {self.auth_user_email or "connected adventurer"}. Cloud saves are active.'
@@ -15843,6 +15847,8 @@ def town_crier_status_html(self) -> str:
     source = str(getattr(self, 'town_coffers_source', 'local') or 'local')
     total_gold = int(getattr(self, 'town_coffers_total', 0) or 0)
     by_service = dict(getattr(self, 'town_coffers_by_service', {}) or {})
+    if DESKTOP_MODE:
+        return f"<div class='mq-town-whisper'><strong>Town Crier</strong><br>{html.escape(town_crier_status_text(self))}</div>"
     if source == 'cloud_unavailable':
         body = 'The Town Crier slaps a sealed municipal ledger and grumbles that the shared town coffers cannot be read just now.'
     elif source == 'local':
@@ -18468,8 +18474,10 @@ def _labyrinth_normalize_member_row(raw_row: object) -> Dict[str, object]:
     player_class = normalize_player_class_name(raw_row.get('player_class'), snapshot.get('highest_class') if isinstance(snapshot, dict) else 'Black Guard')
     max_hp = max(1, int(raw_row.get('max_hp', 1) or 1))
     max_mana = max(0, int(raw_row.get('max_mana', 0) or 0))
-    current_hp = max(0, min(max_hp, int(raw_row.get('current_hp', max_hp) or max_hp)))
-    current_mana = max(0, min(max_mana, int(raw_row.get('current_mana', max_mana) or max_mana)))
+    raw_hp = raw_row.get('current_hp')
+    raw_mana = raw_row.get('current_mana')
+    current_hp = max(0, min(max_hp, int(max_hp if raw_hp is None else raw_hp)))
+    current_mana = max(0, min(max_mana, int(max_mana if raw_mana is None else raw_mana)))
     return {
         'id': str(raw_row.get('id') or '').strip(),
         'session_id': str(raw_row.get('session_id') or '').strip(),
@@ -23381,6 +23389,8 @@ def rarity_badge_html(rarity: str) -> str:
 @ui.page('/')
 def main_page(request: Request) -> None:
     state = SessionState()
+    if DESKTOP_MODE and DESKTOP_DISPLAY is not None and DESKTOP_DISPLAY.available:
+        ui.button('', on_click=DESKTOP_DISPLAY.toggle_fullscreen).props('id=mq-desktop-fullscreen').style('display:none;')
     oauth_error = str(request.query_params.get('error_description') or request.query_params.get('error') or '')
     oauth_access_token = str(request.query_params.get('access_token') or '')
     oauth_refresh_token = str(request.query_params.get('refresh_token') or '')
@@ -23733,6 +23743,15 @@ def main_page(request: Request) -> None:
             if preserve_scroll:
                 restore_manifest_scroll()
 
+        def refresh_inventory_preview() -> None:
+            if state.player is None or (not popup and state.game_tab != 'inventory'):
+                return
+            if popup and not inventory_dialog.value:
+                return
+            invalidate_inventory_state_cache()
+            if refresh_detail is not None:
+                refresh_detail.refresh()
+
         def select_manifest_entry_by_position(position: int, preferred_source: Optional[str] = None) -> None:
             try:
                 entries = state.inventory_entries()
@@ -23983,13 +24002,13 @@ def main_page(request: Request) -> None:
                 if getattr(state, 'hovered_inventory_key', '') == token_value:
                     return
                 state.hovered_inventory_key = token_value
-                refresh_inventory_views(refresh_manifest_view=False)
+                refresh_inventory_preview()
 
             def clear_preview() -> None:
                 if not getattr(state, 'hovered_inventory_key', ''):
                     return
                 state.hovered_inventory_key = ''
-                refresh_inventory_views(refresh_manifest_view=False)
+                refresh_inventory_preview()
 
             card.on('click', lambda _e: select_entry())
             card.on('mouseenter', lambda _e: start_preview())
@@ -24045,7 +24064,7 @@ def main_page(request: Request) -> None:
                 ui.label('Affixes').classes('mq-inv-block-title mb-2')
                 ui.html(inventory_affix_detail_html(item))
 
-        with ui.column().classes('w-full gap-4'):
+        with ui.column().classes('mq-inventory-workspace w-full gap-4'):
             with ui.card().classes('mq-card mq-inv-hero-card w-full p-4'):
                 with ui.row().classes('w-full items-start justify-between gap-4 max-[1100px]:flex-wrap'):
                     with ui.column().classes('gap-1 flex-grow'):
@@ -24081,7 +24100,7 @@ def main_page(request: Request) -> None:
                 render_inventory_top_summary()
                 refresh_top = render_inventory_top_summary
 
-            with ui.row().classes('w-full items-stretch gap-4 max-[1250px]:flex-wrap'):
+            with ui.row().classes('mq-inventory-panes w-full items-stretch gap-4 max-[1250px]:flex-wrap'):
                 with ui.column().classes('w-full gap-4' if state.inventory_view == 'Saved Sets' else 'flex-[1.88] min-w-[480px] gap-4'):
                     with ui.card().classes('mq-card mq-inv-manifest-panel w-full p-4'):
                         ui.label('Pack Manifest').classes('mq-inv-section-title')
@@ -25034,6 +25053,8 @@ def main_page(request: Request) -> None:
             f'mq-lang-{language_code}',
             'w-full', 'items-center', 'px-4', 'py-5', 'md:px-6', 'lg:px-8',
         ]
+        if DESKTOP_MODE:
+            page_classes.append('mq-desktop')
         if getattr(state, 'accessibility_large_text', False):
             page_classes.append('mq-a11y-large-text')
         if getattr(state, 'accessibility_high_contrast', False):
@@ -25058,7 +25079,7 @@ def main_page(request: Request) -> None:
                                 with ui.column().classes('absolute inset-0 items-center justify-center gap-4'):
                                     ui.label(t('fallback_title')).classes('text-5xl font-bold text-slate-100 tracking-[0.18em]')
                                     ui.label(t('restore_title_art_hint')).classes('text-slate-400')
-                            ui.label(t('title_caption')).classes('mq-title-caption')
+                            ui.label('Your chronicle. Your machine. Begin the climb.' if DESKTOP_MODE else t('title_caption')).classes('mq-title-caption')
                     with ui.column().classes('mq-title-side-stack w-full gap-4'):
                         with ui.card().classes('mq-side-card mq-title-side-card-rich p-5'):
                             ui.label('Your Local Chronicles' if DESKTOP_MODE else t('account_cloud_saves')).classes('text-2xl font-semibold text-slate-100')
@@ -25127,7 +25148,7 @@ def main_page(request: Request) -> None:
                                 with ui.column().classes('absolute inset-0 items-center justify-center gap-4'):
                                     ui.label(t('fallback_title')).classes('text-5xl font-bold text-slate-100 tracking-[0.18em]')
                                     ui.label(t('restore_title_art_hint')).classes('text-slate-400')
-                            ui.label(t('chronicle_caption')).classes('mq-title-caption')
+                            ui.label('Three local chronicles. Choose your path.' if DESKTOP_MODE else t('chronicle_caption')).classes('mq-title-caption')
                     with ui.column().classes('mq-title-side-stack w-full gap-4'):
                         with ui.card().classes('mq-side-card mq-title-side-card-rich p-5'):
                             ui.label('Chronicle Slots').classes('text-2xl font-semibold text-slate-100')
@@ -25682,7 +25703,7 @@ def main_page(request: Request) -> None:
                 state.log_status()
                 request_render_refresh()
             with ui.column().classes('mq-arena-shell w-full gap-4'):
-                with ui.row().classes('w-full items-center justify-between gap-3 max-[900px]:flex-wrap'):
+                with ui.row().classes('mq-desktop-scene-header w-full items-center justify-between gap-3 max-[900px]:flex-wrap'):
                     with ui.column().classes('gap-1'):
                         slot_label = state.current_slot_title()
                         ui.label(slot_label).classes('mq-section-title')
@@ -25958,7 +25979,7 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                                                 if bool(row.get('is_downed', False)) and session_status not in {'encounter', 'boss'}:
                                                                     ui.label('Downed').classes('mq-lab-pill')
                                                                 tank_active = bool(row.get('tank', False))
-                                                                tank_btn = ui.button('T ON' if tank_active else 'T OFF', on_click=lambda target_id=member_id, current_value=tank_active: (state.labyrinth_set_tank_role(target_id, not current_value), request_render_refresh())).classes('mq-btn-secondary mq-lab-tank-btn')
+                                                                tank_btn = ui.button('T ON' if tank_active else 'T OFF', color=None, on_click=lambda target_id=member_id, current_value=tank_active: (state.labyrinth_set_tank_role(target_id, not current_value), request_render_refresh())).classes('mq-btn-secondary mq-lab-tank-btn')
                                                                 tank_btn._props['aria-pressed'] = 'true' if tank_active else 'false'
                                                                 if bool(row.get('tank', False)):
                                                                     tank_btn.classes('mq-lab-tank-btn-active')
@@ -25994,7 +26015,7 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                                                     ui.html(labyrinth_companion_token_html(weapon_item, 'W', persist_key=hover_key_base + '-weapon'))
                                                                     ui.html(labyrinth_companion_token_html(armor_item, 'A', persist_key=hover_key_base + '-armor'))
                                                                     ui.html(labyrinth_companion_token_html(charm_item, 'C', persist_key=hover_key_base + '-charm'))
-                                        with ui.card().classes('mq-panel-frame mq-lab-grid-card p-4'):
+                                        with (ui.expansion('Movement & Companions', value=labyrinth_panel_view == 'roster').classes('mq-panel-frame mq-desktop-lab-controls w-full') if DESKTOP_MODE else ui.card().classes('mq-panel-frame mq-lab-grid-card p-4')):
                                             ui.label('Expedition Controls').classes('text-slate-100 text-2xl font-semibold')
                                             modifier_titles = [str(entry.get('title') or '').strip() for entry in modifier_stack if isinstance(entry, dict) and str(entry.get('title') or '').strip()]
                                             if modifier_titles:
@@ -26107,11 +26128,11 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                                 ui.label('Use arrow keys or WASD, or click the direction pad below.').classes('mq-detail-text mt-3')
                                                 with ui.element('div').classes('mq-lab-direction-pad mt-4'):
                                                     ui.element('div').classes('mq-lab-dir-spacer')
-                                                    ui.button('↑', on_click=lambda: (state.labyrinth_move_party('up'), request_render_refresh())).props('id=mq-lab-move-up').classes('mq-btn-gold mq-lab-dir-btn')
+                                                    ui.button('↑', on_click=lambda: (state.labyrinth_move_party('up'), request_render_refresh())).props('id=mq-lab-control-up' if DESKTOP_MODE else 'id=mq-lab-move-up').classes('mq-btn-gold mq-lab-dir-btn')
                                                     ui.element('div').classes('mq-lab-dir-spacer')
-                                                    ui.button('←', on_click=lambda: (state.labyrinth_move_party('left'), request_render_refresh())).props('id=mq-lab-move-left').classes('mq-btn-secondary mq-lab-dir-btn')
-                                                    ui.button('↓', on_click=lambda: (state.labyrinth_move_party('down'), request_render_refresh())).props('id=mq-lab-move-down').classes('mq-btn-gold mq-lab-dir-btn')
-                                                    ui.button('→', on_click=lambda: (state.labyrinth_move_party('right'), request_render_refresh())).props('id=mq-lab-move-right').classes('mq-btn-secondary mq-lab-dir-btn')
+                                                    ui.button('←', on_click=lambda: (state.labyrinth_move_party('left'), request_render_refresh())).props('id=mq-lab-control-left' if DESKTOP_MODE else 'id=mq-lab-move-left').classes('mq-btn-secondary mq-lab-dir-btn')
+                                                    ui.button('↓', on_click=lambda: (state.labyrinth_move_party('down'), request_render_refresh())).props('id=mq-lab-control-down' if DESKTOP_MODE else 'id=mq-lab-move-down').classes('mq-btn-gold mq-lab-dir-btn')
+                                                    ui.button('→', on_click=lambda: (state.labyrinth_move_party('right'), request_render_refresh())).props('id=mq-lab-control-right' if DESKTOP_MODE else 'id=mq-lab-move-right').classes('mq-btn-secondary mq-lab-dir-btn')
                                             else:
                                                 ui.label('Movement belongs to the current controller, or the expedition is paused between events.').classes('mq-detail-text mt-3')
                                             with ui.row().classes('gap-2 mt-4 flex-wrap'):
@@ -26204,7 +26225,16 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                                                             ui.html(monster_popup_html)
                                             else:
                                                 with ui.element('div').classes('mq-lab-grid-shell mt-1'):
-                                                    ui.label('Labyrinth of Light').classes('mq-lab-grid-title')
+                                                    if DESKTOP_MODE:
+                                                        with ui.row().classes('mq-desktop-lab-map-toolbar w-full items-center justify-between'):
+                                                            ui.label('Labyrinth of Light').classes('mq-lab-grid-title')
+                                                            with ui.row().classes('gap-1'):
+                                                                for direction, arrow in [('up', '↑'), ('left', '←'), ('down', '↓'), ('right', '→')]:
+                                                                    move_button = ui.button(arrow, on_click=lambda d=direction: (state.labyrinth_move_party(d), request_render_refresh())).props(f'id=mq-lab-move-{direction} aria-label="Move {direction}"').classes('mq-btn-secondary mq-desktop-lab-move')
+                                                                    if not can_move_labyrinth:
+                                                                        move_button.disable()
+                                                    else:
+                                                        ui.label('Labyrinth of Light').classes('mq-lab-grid-title')
                                                     with ui.element('div').classes('mq-lab-grid'):
                                                         grid_size = max(3, int(session_row.get('grid_size', LABYRINTH_GRID_SIZE) or LABYRINTH_GRID_SIZE))
                                                         current_x = int(session_row.get('current_x', 0) or 0)
@@ -26235,7 +26265,7 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                                                     tile_classes.append('current')
                                                                     tile_label = 'P'
                                                                 ui.html(f"<div class='{' '.join(tile_classes)}'>{html.escape(tile_label)}</div>")
-                                        with ui.card().classes('mq-panel-frame mq-lab-grid-card p-4'):
+                                        with (ui.expansion('Prism Rewards' if session_status == 'reward' else 'Encounter Details', value=session_status == 'reward').classes('mq-panel-frame mq-desktop-lab-details w-full') if DESKTOP_MODE else ui.card().classes('mq-panel-frame mq-lab-grid-card p-4')):
                                             encounter = pending_encounter
                                             if session_status in {'encounter', 'boss'} and encounter_monster_snapshots:
                                                 alive_monster_indices = _labyrinth_alive_monster_indices(encounter_monster_snapshots)
@@ -27812,7 +27842,8 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                     ui.html(build_glossary_table_html(secondary_headers, secondary_rows))
                             return
                     elif state.game_tab == 'settings':
-                        active_settings_tab = getattr(state, 'settings_tab', 'audio') if getattr(state, 'settings_tab', 'audio') in {'audio', 'hotkeys'} else 'audio'
+                        valid_settings_tabs = {'audio', 'hotkeys', 'desktop'} if DESKTOP_MODE else {'audio', 'hotkeys'}
+                        active_settings_tab = getattr(state, 'settings_tab', 'audio') if getattr(state, 'settings_tab', 'audio') in valid_settings_tabs else 'audio'
                         state.settings_tab = active_settings_tab
                         with ui.column().classes('w-full gap-4'):
                             with ui.card().classes('mq-card w-full p-5'):
@@ -27823,7 +27854,13 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                     audio_tab_btn.classes(('mq-btn-gold' if state.settings_tab == 'audio' else 'mq-btn-secondary') + ' rounded-xl px-5 py-3 font-semibold')
                                     hotkeys_tab_btn = ui.button('Hotkeys', on_click=lambda: (setattr(state, 'settings_tab', 'hotkeys'), request_render_refresh()))
                                     hotkeys_tab_btn.classes(('mq-btn-gold' if state.settings_tab == 'hotkeys' else 'mq-btn-secondary') + ' rounded-xl px-5 py-3 font-semibold')
-                            if state.settings_tab == 'audio':
+                                    if DESKTOP_MODE:
+                                        desktop_tab_btn = ui.button('Desktop', on_click=lambda: (setattr(state, 'settings_tab', 'desktop'), request_render_refresh()))
+                                        desktop_tab_btn.classes(('mq-btn-gold' if state.settings_tab == 'desktop' else 'mq-btn-secondary') + ' rounded-xl px-5 py-3 font-semibold')
+                            if state.settings_tab == 'desktop':
+                                from steam_client.panels import render_desktop_settings
+                                render_desktop_settings(DESKTOP_DISPLAY, DESKTOP_PATHS, DESKTOP_SAVE_STORE, flush_desktop_save)
+                            elif state.settings_tab == 'audio':
                                 with ui.row().classes('w-full gap-4 items-stretch flex-wrap'):
                                     with ui.card().classes('mq-card flex-1 min-w-[320px] p-5'):
                                         ui.label('Sound Effects').classes('mq-inv-section-title mb-2')
@@ -28019,9 +28056,9 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                         with ui.element('div').classes('mq-player-panels'):
                             with ui.card().classes('mq-panel-frame p-4 h-full'):
                                 ui.label('LOADOUT').classes('mq-panel-caption')
-                                ui.html(f"<div class='text-slate-300 text-sm mt-2'>Weapon&nbsp;&nbsp;{persistent_hoverable_item_name_html(player.equipped.get('weapon'), persist_key='arena-loadout-weapon')}</div>")
-                                ui.html(f"<div class='text-slate-300 text-sm mt-1'>Armor&nbsp;&nbsp;&nbsp;{persistent_hoverable_item_name_html(player.equipped.get('armor'), persist_key='arena-loadout-armor')}</div>")
-                                ui.html(f"<div class='text-slate-300 text-sm mt-1'>Charm&nbsp;&nbsp;&nbsp;{persistent_hoverable_item_name_html(player.equipped.get('charm'), persist_key='arena-loadout-charm')}</div>")
+                                ui.html(f"<div class='text-slate-300 text-sm mt-2'><span title='Weapon'>{'W' if DESKTOP_MODE else 'Weapon'}</span>&nbsp;&nbsp;{persistent_hoverable_item_name_html(player.equipped.get('weapon'), persist_key='arena-loadout-weapon')}</div>")
+                                ui.html(f"<div class='text-slate-300 text-sm mt-1'><span title='Armor'>{'A' if DESKTOP_MODE else 'Armor'}</span>&nbsp;&nbsp;{persistent_hoverable_item_name_html(player.equipped.get('armor'), persist_key='arena-loadout-armor')}</div>")
+                                ui.html(f"<div class='text-slate-300 text-sm mt-1'><span title='Charm'>{'C' if DESKTOP_MODE else 'Charm'}</span>&nbsp;&nbsp;{persistent_hoverable_item_name_html(player.equipped.get('charm'), persist_key='arena-loadout-charm')}</div>")
                             with ui.card().classes('mq-panel-frame p-4 h-full'):
                                 ui.label('ADVENTURER').classes('mq-panel-caption')
                                 chain_bonus_pct = int(round(get_monster_chain_bonus_fraction(int(getattr(state, 'monster_chain_combo', 0) or 0)) * 100))
@@ -28543,23 +28580,36 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
 
     ui.timer(1.0, maybe_refresh_for_passive_regen)
     ui.timer(0.75, maybe_refresh_labyrinth_session)
-    ui.timer(2.0, maybe_retry_auth_reconnect)
-    normalize_oauth_hash_once()
+    if not DESKTOP_MODE:
+        ui.timer(2.0, maybe_retry_auth_reconnect)
+        normalize_oauth_hash_once()
     render()
     if oauth_consumed:
         ui.run_javascript("if (window.location.search) { window.history.replaceState({}, document.title, window.location.pathname); }")
+def desktop_checkpoint_value(value):
+    if isinstance(value, Item):
+        return value.to_dict()
+    if isinstance(value, dict):
+        return {key: desktop_checkpoint_value(child) for key, child in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [desktop_checkpoint_value(child) for child in value]
+    if isinstance(value, (str, int, float, bool, type(None))):
+        return value
+    raise TypeError(f'Unsupported desktop checkpoint value: {type(value).__name__}')
+
+
 def capture_desktop_labyrinth(state) -> Dict[str, object]:
     row = getattr(state, 'labyrinth_session_row', {})
     if not getattr(state, 'labyrinth_is_local', False) or not isinstance(row, dict) or not row:
         return {}
-    return {
+    return desktop_checkpoint_value({
         'version': 1,
-        'session': copy.deepcopy(row),
-        'members': copy.deepcopy(state.labyrinth_member_rows),
-        'votes': copy.deepcopy(state.labyrinth_vote_rows),
+        'session': row,
+        'members': state.labyrinth_member_rows,
+        'votes': state.labyrinth_vote_rows,
         'acknowledged_floor': int(state.labyrinth_acknowledged_floor),
         'claimed_reward_ids': sorted(state.labyrinth_claimed_reward_ids),
-    }
+    })
 
 
 def restore_desktop_labyrinth(state, checkpoint: object) -> bool:

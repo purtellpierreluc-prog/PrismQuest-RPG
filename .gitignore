@@ -6,6 +6,7 @@ __pycache__/
 .ruff_cache/
 build/
 dist/
+.build-backups/
 .local-test/
 .native-test/
 .mq_runtime_static/
