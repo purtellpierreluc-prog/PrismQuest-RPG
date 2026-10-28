@@ -1,6 +1,10 @@
-# PrismQuest: Standalone Desktop Alpha 0.3.0
+# PrismQuest: Nocturne Visual Edition 0.4.0
 
-This is the Windows/offline development track of the Steam conversion. It is not a Steam release yet. Development is isolated on `codex/steam-standalone`, based on web release `10347d7`. Do not merge or deploy this branch over the hosted web game.
+This is a visual-design fork of the Windows/offline Steam conversion, isolated on `codex/steam-visual-overhaul`. It is not a Steam release yet. The preserved 0.3.0 edition remains in the sibling `SteamEdition` folder, on `codex/steam-standalone`, with rollback tag `steam-alpha-v0.3.0` at `eeaa938`. Do not merge or deploy this branch over the hosted web game.
+
+Nocturne keeps the existing artwork and gameplay while replacing the presentation with local Cinzel/Barlow typography, ink-and-ivory surfaces, antique-gold controls, consistent scene identities, a reworked title/chronicle menu, readable combat telemetry, a lit town map, and a prismatic Labyrinth. See `docs/nocturne-visual-edition.md` for the design and rollback notes.
+
+![Nocturne title screen](docs/previews/nocturne-title.png)
 
 ## Play the Windows Build
 
@@ -34,7 +38,7 @@ Online Bazaar, direct vault courier, guilds, shared ladder, multiplayer matchmak
 
 ## Local Data
 
-The default Windows profile is `%LOCALAPPDATA%\PrismQuest\SteamEdition`:
+The default Windows profile is `%LOCALAPPDATA%\PrismQuest\SteamEditionVisual`. It deliberately does not open or modify the preserved edition's `SteamEdition` profile:
 
 - `saves\chronicles.json`: the three local slots, including solo Labyrinth checkpoints.
 - `backups\chronicles-*.json`: ten previous valid save revisions.
@@ -82,7 +86,7 @@ The build uses PyInstaller in one-folder/windowed mode. `requirements-windows-de
 
 `tools\desktop_browser_smoke.py` drives a fresh profile on a running browser-mode server, blocking all non-loopback HTTP requests. It checks character creation, the introductory Arena fight, a guaranteed Rare item, browser reload, local records, and title-screen reopening. Use `--resume-only` after restarting the application with that profile to check disk persistence, and `--quit` to exit cleanly. It currently uses a locally installed Chrome; it is a developer test, not a runtime dependency. `--native-smoke` is a hidden developer check that creates a hidden WebView2 window, records `native-smoke.ok` in its test profile, and exits.
 
-See `docs\steam-alpha-0.3-verification.md` for current validation results and `docs\steam-conversion-roadmap.md` for the remaining conversion milestones and release gates. Earlier 0.2.0 evidence remains in `docs\steam-prototype-verification.md`.
+See `docs/nocturne-visual-edition.md` for this fork's validation and `docs\steam-conversion-roadmap.md` for remaining Steam release gates. Earlier baseline evidence remains in `docs\steam-alpha-0.3-verification.md` and `docs\steam-prototype-verification.md`.
 
 See `docs/desktop-player-guide.md` for controls/recovery and `docs/steam-release-gates.md` for the owner/platform handoff. Builds generate third-party notices and a 154-file asset-rights inventory; rights remain unapproved until reviewed. `tools/prepare_steampipe.py` requires real App/Depot IDs and generates preview-only VDF files, never an upload or automatic live deployment.
 

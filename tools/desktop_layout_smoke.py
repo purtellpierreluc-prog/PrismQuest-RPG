@@ -63,6 +63,18 @@ with sync_playwright() as p:
     page.route('**/*', local_only)
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.goto(f'http://127.0.0.1:{args.port}', wait_until='networkidle')
+    page.evaluate('() => document.fonts.ready')
+    assert page.evaluate('document.documentElement.dataset.pqNocturne === "true"')
+    assert page.evaluate('document.fonts.check("16px Cinzel") && document.fonts.check("16px Barlow")')
+    play = page.get_by_role('button', name='Play', exact=True)
+    assert play.evaluate('e => getComputedStyle(e).color') == 'rgb(27, 25, 20)'
+    assert play.get_attribute('data-mq-paint-theme') is None
+    assert play.get_attribute('style') is None
+    font = page.request.get(f'http://127.0.0.1:{args.port}/desktop-ui/fonts/Cinzel.ttf')
+    assert font.status == 200 and 'max-age=31536000' in font.headers.get('cache-control', '')
+    page.emulate_media(reduced_motion='reduce')
+    assert page.locator('.mq-title-side-stack').evaluate('e => getComputedStyle(e).animationName') == 'none'
+    page.emulate_media(reduced_motion='no-preference')
     if args.live_css:
         page.add_style_tag(path=str(Path(__file__).resolve().parents[1] / 'steam_client' / 'static' / 'desktop.css'))
     sizes = [(1280, 720), (1366, 768), (1920, 1080), (960, 600), (2560, 1080), (800, 500)]

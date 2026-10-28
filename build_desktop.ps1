@@ -9,7 +9,9 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Dependency validation failed.' }
     & $python -m ruff check steam_client launch_desktop.py tests/test_*.py tests/conftest.py tools
     if ($LASTEXITCODE -ne 0) { throw 'Desktop lint checks failed.' }
-    & $python -m pytest tests -q
+    $testRoot = Join-Path $PSScriptRoot ('.local-test\pytest-build-' + [guid]::NewGuid().ToString('N'))
+    if (-not ([System.IO.Path]::GetFullPath($testRoot)).StartsWith($PSScriptRoot + [System.IO.Path]::DirectorySeparatorChar)) { throw 'Test path escaped the workspace.' }
+    & $python -m pytest tests -q --basetemp $testRoot
     if ($LASTEXITCODE -ne 0) { throw 'Regression tests failed.' }
     & $python -m PyInstaller --noconfirm PrismQuestDesktop.spec
     if ($LASTEXITCODE -ne 0) { throw 'Desktop packaging failed.' }

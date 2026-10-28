@@ -1035,6 +1035,10 @@ ui.add_head_html('''
   }
 
   const boot = () => {
+    if (document.documentElement.dataset.pqNocturne === 'true') {
+      window.mqRepaintButtons = () => {};
+      return;
+    }
     repaintAll(document);
     const observer = new MutationObserver(mutations => {
       for (const mutation of mutations){
@@ -23414,6 +23418,7 @@ def rarity_badge_html(rarity: str) -> str:
     color = RARITY_COLORS.get(rarity, '#cbd5e1')
     return f'<span style="display:inline-block;padding:4px 8px;border-radius:999px;background:{color}22;border:1px solid {color}66;color:{color};font-size:12px;font-weight:700;">{rarity}</span>'
 from steam_client.transactions import install_item_transactions
+from steam_client.visuals import scene_heading
 install_item_transactions(SessionState, enabled=lambda: DESKTOP_MODE)
 
 
@@ -25093,6 +25098,8 @@ def main_page(request: Request) -> None:
                     with ui.card().classes('mq-title-card w-full flex-1 p-4 lg:p-5'):
                         with ui.element('div').classes('mq-title-stage w-full'):
                             ui.html("<div class='mq-title-stage-runes'></div>")
+                            if DESKTOP_MODE:
+                                ui.html('<div class="pq-title-inscription">A CHRONICLE OF LIGHT &amp; SHADOW</div>')
                             if title_art_url:
                                 with ui.element('div').classes('mq-title-image-wrap'):
                                     ui.html(
@@ -25105,13 +25112,15 @@ def main_page(request: Request) -> None:
                             ui.label('Your chronicle. Your machine. Begin the climb.' if DESKTOP_MODE else t('title_caption')).classes('mq-title-caption')
                     with ui.column().classes('mq-title-side-stack w-full gap-4'):
                         with ui.card().classes('mq-side-card mq-title-side-card-rich p-5'):
-                            ui.label('Your Local Chronicles' if DESKTOP_MODE else t('account_cloud_saves')).classes('text-2xl font-semibold text-slate-100')
+                            if not DESKTOP_MODE:
+                                ui.label(t('account_cloud_saves')).classes('text-2xl font-semibold text-slate-100')
                             if DESKTOP_MODE:
-                                ui.label('Steam Edition - Offline Prototype').classes('mq-panel-caption mt-2')
-                                ui.label('Your adventure runs entirely on this computer. No account or internet connection is required.').classes('text-slate-300 mt-3 leading-7')
-                                ui.button('Play', on_click=lambda: (state.go_to_chronicles(), request_render_refresh())).classes('w-full mq-btn-gold rounded-xl py-3 font-semibold mt-4')
-                                ui.label('Three local chronicles, protected saves, and solo Labyrinth expeditions with companions.').classes('mq-detail-text mt-3')
-                                ui.button('Quit Game', on_click=app.shutdown).classes('w-full mq-btn-secondary rounded-xl py-3 mt-4')
+                                ui.label('PRISMQUEST / NOCTURNE').classes('pq-menu-edition')
+                                ui.label('Every light\ncasts a legend.').classes('pq-menu-title')
+                                ui.label('Choose your champion. Claim the prism. Begin a chronicle that belongs to you.').classes('pq-menu-description')
+                                ui.button('Play', on_click=lambda: (state.go_to_chronicles(), request_render_refresh())).props('aria-label=Play').classes('pq-menu-play mq-btn-gold')
+                                ui.button('Quit Game', on_click=app.shutdown).classes('pq-menu-quit mq-btn-secondary w-full')
+                                ui.label('An offline adventure. Three chronicles. A labyrinth without end.').classes('pq-menu-footnote')
                             elif SUPABASE_ENABLED:
                                 if state.is_authenticated():
                                     ui.label(t('signed_in_as', email=state.auth_user_email or state.auth_email)).classes('text-slate-200 mt-2 leading-6')
@@ -25445,8 +25454,11 @@ def main_page(request: Request) -> None:
                     with ui.card().classes('mq-town-header w-full p-3 md:p-4'):
                         with ui.row().classes('w-full items-start justify-between gap-3 max-[900px]:flex-wrap'):
                             with ui.column().classes('gap-1 max-w-[860px]'):
-                                ui.label('Chronicle in Progress').classes('mq-town-overline')
-                                ui.label('Town Square').classes('text-2xl md:text-3xl font-semibold text-slate-100')
+                                if DESKTOP_MODE:
+                                    ui.html(scene_heading('town_square', player.player_class, player.level, slot_label))
+                                else:
+                                    ui.label('Chronicle in Progress').classes('mq-town-overline')
+                                    ui.label('Town Square').classes('text-2xl md:text-3xl font-semibold text-slate-100')
                                 ui.html(state.town_crier_status_html())
                             with ui.row().classes('gap-2 max-[900px]:w-full'):
                                 ui.button('Return to Chronicle Slots', on_click=lambda: (state.go_to_chronicles(), request_render_refresh())).classes('font-semibold tracking-wide rounded-xl py-3 px-5 mq-btn-gold max-[900px]:w-full')
@@ -25729,8 +25741,11 @@ def main_page(request: Request) -> None:
                 with ui.row().classes('mq-desktop-scene-header w-full items-center justify-between gap-3 max-[900px]:flex-wrap'):
                     with ui.column().classes('gap-1'):
                         slot_label = state.current_slot_title()
-                        ui.label(slot_label).classes('mq-section-title')
-                        ui.label(f'{player.player_class} • Level {player.level}').classes('text-3xl font-semibold text-slate-100')
+                        if DESKTOP_MODE:
+                            ui.html(scene_heading(state.game_tab, player.player_class, player.level, slot_label))
+                        else:
+                            ui.label(slot_label).classes('mq-section-title')
+                            ui.label(f'{player.player_class} • Level {player.level}').classes('text-3xl font-semibold text-slate-100')
                     with ui.row().classes('gap-2 max-[700px]:w-full'):
                         town_btn = ui.button('Return to Town', on_click=lambda: (state.enter_town('You return to town to choose your next route.'), request_render_refresh()))
                         town_btn.classes('font-semibold tracking-wide rounded-xl py-3 px-5 mq-btn-gold max-[700px]:w-full')

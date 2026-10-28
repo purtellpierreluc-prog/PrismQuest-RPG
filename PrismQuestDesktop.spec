@@ -4,6 +4,7 @@ from PyInstaller.utils.hooks import collect_all
 
 root = Path(SPECPATH)
 nicegui_data, nicegui_binaries, nicegui_hidden = collect_all('nicegui', include_py_files=False)
+nicegui_hidden = [module for module in nicegui_hidden if not module.startswith('nicegui.testing')]
 webview_data, webview_binaries, webview_hidden = collect_all('webview', include_py_files=False)
 # Some Python distributions provide TLS policy resources alongside ssl.py.
 tls_data = [(str(path), '.') for path in Path(sysconfig.get_path('stdlib')).glob('*.pem')]
@@ -18,7 +19,7 @@ a = Analysis(
         (str(root / 'steam_client' / 'static'), 'steam_client/static'),
         (str(root / 'docs' / 'desktop-player-guide.md'), '.'),
     ],
-    hiddenimports=nicegui_hidden + webview_hidden + ['PIL.Image', 'uvicorn.logging', 'clr_loader', 'steam_client.panels', 'steam_client.transactions', 'steam_client.save_schema'],
+    hiddenimports=nicegui_hidden + webview_hidden + ['PIL.Image', 'uvicorn.logging', 'clr_loader', 'steam_client.panels', 'steam_client.transactions', 'steam_client.save_schema', 'steam_client.visuals'],
     excludes=['pytest', 'playwright', 'ruff', 'supabase', 'nicegui.testing'],
     noarchive=False,
 )

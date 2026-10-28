@@ -16,9 +16,9 @@ class DesktopPaths:
         if override:
             data = Path(override).expanduser().resolve()
         elif sys.platform == 'win32':
-            data = Path(os.environ.get('LOCALAPPDATA', Path.home() / 'AppData' / 'Local')) / 'PrismQuest' / 'SteamEdition'
+            data = Path(os.environ.get('LOCALAPPDATA', Path.home() / 'AppData' / 'Local')) / 'PrismQuest' / 'SteamEditionVisual'
         else:
-            data = Path(os.environ.get('XDG_DATA_HOME', Path.home() / '.local' / 'share')) / 'prismquest-steam'
+            data = Path(os.environ.get('XDG_DATA_HOME', Path.home() / '.local' / 'share')) / 'prismquest-steam-visual'
         return cls(resources, data.resolve())
 
     def prepare(self):

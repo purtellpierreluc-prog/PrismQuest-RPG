@@ -53,6 +53,17 @@ def generate(directory, assets, distributions=None):
         notices.extend([f'## {name} {distribution.version}', license_label or '; '.join(classifiers) or 'License metadata unavailable: review required.',
                         'License text files: ' + (', '.join(copied) if copied else 'not found automatically; manual review required.'), ''])
     rows = inventory_assets(assets)
+    fonts = []
+    for name in ('Cinzel', 'Barlow'):
+        source = ROOT / 'steam_client' / 'static' / 'fonts' / f'{name}-OFL.txt'
+        target = directory / 'third-party' / 'licenses' / 'fonts' / source.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+        fonts.append({'name': name, 'license': 'SIL Open Font License 1.1',
+                      'source': f'https://github.com/google/fonts/tree/main/ofl/{name.lower()}',
+                      'license_file': target.relative_to(directory).as_posix()})
+        notices.extend([f'## Bundled font: {name}', 'SIL Open Font License 1.1.',
+                        f'Source: {fonts[-1]["source"]}', f'License: {fonts[-1]["license_file"]}', ''])
     with (directory / 'asset-rights-review.csv').open('w', newline='', encoding='utf-8') as stream:
         writer = csv.DictWriter(stream, fieldnames=['path', 'sha256', 'rights_status', 'source_or_license', 'ai_status'])
         writer.writeheader()
@@ -60,6 +71,7 @@ def generate(directory, assets, distributions=None):
     report = {
         'scope': 'Inventory of installed build environment and game assets; not complete release approval.',
         'packages': sorted(packages, key=lambda item: item['name'].lower()), 'asset_count': len(rows),
+        'bundled_fonts': fonts,
         'blockers': ['Asset rights and AI/content disclosures need owner review.',
                      'Vendored JavaScript/fonts and native/Python/Microsoft runtime redistribution review is outstanding.',
                      'Steam account/configuration, clean-machine QA, and external playtest gates are not satisfied.'],

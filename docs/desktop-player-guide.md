@@ -1,4 +1,4 @@
-# PrismQuest Desktop Alpha
+# PrismQuest Nocturne Visual Edition
 
 This build is an offline Windows solo RPG with hireable and permanent companions.
 It is not connected to your web-game account, purchases, ladder, or characters.
@@ -32,7 +32,10 @@ Mouse and keyboard are the supported inputs; controller/Deck support is not clai
 
 ## Saves and Recovery
 
-Saves live in `%LOCALAPPDATA%\PrismQuest\SteamEdition`, outside the installation.
+This visual fork saves to `%LOCALAPPDATA%\PrismQuest\SteamEditionVisual`, outside
+the installation. The earlier edition's `SteamEdition` profile is left untouched.
+The two editions do not share automatic progress. To return to the preserved
+version, launch PrismQuest.exe from the original SteamEdition folder.
 Settings > Desktop can create a manual backup and open the save folder.
 Do not delete this profile when replacing or uninstalling an alpha build.
 Local save format 2 reads earlier format 1 saves without discarding fields; the
