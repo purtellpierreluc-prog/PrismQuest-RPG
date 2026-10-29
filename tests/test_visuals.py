@@ -33,7 +33,7 @@ def test_visual_fork_default_profile_cannot_overwrite_preserved_edition(tmp_path
     monkeypatch.delenv('PRISMQUEST_DATA_DIR', raising=False)
     monkeypatch.setenv('LOCALAPPDATA', str(tmp_path))
     monkeypatch.setattr('steam_client.paths.sys.platform', 'win32')
-    assert DesktopPaths.from_environment().data == tmp_path / 'PrismQuest' / 'SteamEditionVisual'
+    assert DesktopPaths.from_environment().data == tmp_path / 'PrismQuest' / 'SteamEditionReimagined'
 
 
 def test_local_fonts_are_included_in_package_inventory(tmp_path):

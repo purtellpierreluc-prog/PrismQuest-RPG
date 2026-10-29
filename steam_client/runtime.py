@@ -50,7 +50,7 @@ def launch(argv=None):
     parser.add_argument('--native-smoke', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--diagnostics', action='store_true', help='Write a privacy-limited local diagnostic report without starting the game.')
     parser.add_argument('--verify-package', action='store_true', help='Verify the packaged file inventory without starting the game.')
-    parser.add_argument('--version', action='version', version=f'PrismQuest Nocturne Desktop Alpha {__version__}')
+    parser.add_argument('--version', action='version', version=f'PrismQuest Reimagined Desktop Alpha {__version__}')
     args = parser.parse_args(argv)
     if args.data_dir:
         os.environ['PRISMQUEST_DATA_DIR'] = args.data_dir
@@ -143,7 +143,7 @@ def launch(argv=None):
                     app.shutdown()
                 app.on_startup(lambda: asyncio.create_task(native_timeout()))
         ui.run(
-            title=f'PrismQuest - Nocturne Alpha {__version__}',
+            title=f'PrismQuest - Reimagined Alpha {__version__}',
             host='127.0.0.1', port=args.port or native.find_open_port(),
             native=not args.browser,
             window_size=None if args.browser else display.size,

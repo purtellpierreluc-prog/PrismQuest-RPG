@@ -9,4 +9,5 @@ def install_desktop_styles(paths):
     ui.add_head_html('<script>document.documentElement.dataset.pqNocturne="true";</script>', shared=True)
     ui.add_head_html('<style>' + (assets / 'desktop.css').read_text(encoding='utf-8') + '</style>', shared=True)
     ui.add_body_html('<style>' + (assets / 'nocturne.css').read_text(encoding='utf-8') + '</style>', shared=True)
+    ui.add_body_html('<style>' + (assets / 'experience.css').read_text(encoding='utf-8') + '</style>', shared=True)
     ui.add_head_html('<script>' + (assets / 'desktop.js').read_text(encoding='utf-8') + '</script>', shared=True)

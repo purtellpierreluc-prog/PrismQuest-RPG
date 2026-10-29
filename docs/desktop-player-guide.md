@@ -1,4 +1,4 @@
-# PrismQuest Nocturne Visual Edition
+# PrismQuest Reimagined
 
 This build is an offline Windows solo RPG with hireable and permanent companions.
 It is not connected to your web-game account, purchases, ladder, or characters.
@@ -32,10 +32,28 @@ Mouse and keyboard are the supported inputs; controller/Deck support is not clai
 
 ## Saves and Recovery
 
-This visual fork saves to `%LOCALAPPDATA%\PrismQuest\SteamEditionVisual`, outside
-the installation. The earlier edition's `SteamEdition` profile is left untouched.
+This experience fork saves to `%LOCALAPPDATA%\PrismQuest\SteamEditionReimagined`,
+outside the installation. Both earlier editions' save profiles are left untouched.
 The two editions do not share automatic progress. To return to the preserved
-version, launch PrismQuest.exe from the original SteamEdition folder.
+version, launch PrismQuest.exe from SteamEditionVisual (Nocturne) or SteamEdition.
+
+## Decide, Fight, Improve
+
+Town recommends a next step based on your health, unspent points and progression.
+The other roads remain your choice. In the Arena, Target controls difficulty;
+Call Challenger starts automatic rounds. Victory shows earned XP progress and
+the actual new item, if one dropped. Inspect This Find opens that exact owned
+item in the workbench. It does not grant a second item or auto-equip it.
+
+Click a pack entry to lock the selection. Hovering other entries does not replace
+your comparison. The green/red changes show actual character stat deltas from
+equipping the selection, including proficiency; weapon/spell figures are averages
+before target defenses, not guaranteed damage. Rarity alone is not an upgrade.
+
+Character & Stats moves allocation and proficiency away from the combat stage.
+The Chronicle menu holds settings, records, class management and optional scene
+help. First-fight, first-death and level-5 community prompts remain; optional
+service tutorials no longer interrupt every first visit.
 Settings > Desktop can create a manual backup and open the save folder.
 Do not delete this profile when replacing or uninstalling an alpha build.
 Local save format 2 reads earlier format 1 saves without discarding fields; the

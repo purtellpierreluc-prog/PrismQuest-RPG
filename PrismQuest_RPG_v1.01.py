@@ -13,6 +13,7 @@ import logging
 import math
 import os
 import random
+import sys
 import time
 import uuid
 from logging.handlers import RotatingFileHandler
@@ -23419,7 +23420,10 @@ def rarity_badge_html(rarity: str) -> str:
     return f'<span style="display:inline-block;padding:4px 8px;border-radius:999px;background:{color}22;border:1px solid {color}66;color:{color};font-size:12px;font-weight:700;">{rarity}</span>'
 from steam_client.transactions import install_item_transactions
 from steam_client.visuals import scene_heading
+from steam_client import experience_ui
+from steam_client.experience import install_battle_feedback, owned_item_index
 install_item_transactions(SessionState, enabled=lambda: DESKTOP_MODE)
+install_battle_feedback(SessionState, enabled=lambda: DESKTOP_MODE, xp_threshold=xp_to_next_for_level)
 
 
 def page_session_state():
@@ -23477,6 +23481,7 @@ def main_page(request: Request) -> None:
     town_tutorial_dialog = ui.dialog().props('persistent')
     scene_tutorial_dialog = ui.dialog().props('persistent')
     _scene_tutorial_dialog_render_key = {'value': None}
+    _scene_tutorial_manual = {'key': ''}
 
     async def run_guided_intro_arena() -> None:
         state.begin_guided_arena_intro()
@@ -23497,6 +23502,7 @@ def main_page(request: Request) -> None:
 
     def handle_scene_tutorial_primary() -> None:
         scene_key = str(getattr(state, 'scene_tutorial_open_key', '') or '')
+        _scene_tutorial_manual['key'] = ''
         if scene_key == 'first_death_inn':
             state.scene_tutorial_open_key = ''
             scene_tutorial_dialog.close()
@@ -23539,6 +23545,9 @@ def main_page(request: Request) -> None:
 
     def sync_scene_tutorial_dialog(force: bool = False) -> None:
         scene_key = state.scene_tutorial_open_key if state.scene_tutorial_open_key in SCENE_TUTORIAL_CONTENT else ''
+        if DESKTOP_MODE and scene_key in SCENE_TUTORIAL_KEYS and _scene_tutorial_manual['key'] != scene_key:
+            state.dismiss_scene_tutorial()
+            scene_key = ''
         if force or _scene_tutorial_dialog_render_key['value'] != scene_key:
             _scene_tutorial_dialog_render_key['value'] = scene_key
             info = SCENE_TUTORIAL_CONTENT.get(scene_key, {}) if scene_key else {}
@@ -23569,6 +23578,7 @@ def main_page(request: Request) -> None:
         if not scene_key:
             return
         state.open_scene_tutorial(scene_key)
+        _scene_tutorial_manual['key'] = scene_key
         sync_scene_tutorial_dialog(True)
 
     masterquest_result_dialog = ui.dialog()
@@ -24039,8 +24049,9 @@ def main_page(request: Request) -> None:
                 refresh_inventory_preview()
 
             card.on('click', lambda _e: select_entry())
-            card.on('mouseenter', lambda _e: start_preview())
-            card.on('mouseleave', lambda _e: clear_preview())
+            if not DESKTOP_MODE:
+                card.on('mouseenter', lambda _e: start_preview())
+                card.on('mouseleave', lambda _e: clear_preview())
             with card:
                 if source == 'saved':
                     saved_slot, saved_bucket = key if isinstance(key, tuple) and len(key) == 2 else (get_saved_item_category(item), item_required_level(item))
@@ -24096,7 +24107,7 @@ def main_page(request: Request) -> None:
             with ui.card().classes('mq-card mq-inv-hero-card w-full p-4'):
                 with ui.row().classes('w-full items-start justify-between gap-4 max-[1100px]:flex-wrap'):
                     with ui.column().classes('gap-1 flex-grow'):
-                        ui.label('Inventory & Equipment').classes('mq-inv-title')
+                        ui.label('Build Workbench' if DESKTOP_MODE else 'Inventory & Equipment').classes('mq-inv-title')
                         
                     with ui.row().classes('gap-2 flex-wrap'):
                         inventory_view_btn = ui.button('Inventory', on_click=lambda: switch_inventory_view('Inventory')).classes('mq-btn-secondary rounded-lg')
@@ -24112,6 +24123,16 @@ def main_page(request: Request) -> None:
                     view = current_inventory_state()
                     entries = view['entries']
                     selected_item = view['selected_item']
+                    if DESKTOP_MODE:
+                        with ui.element('div').classes('pd-equipped-rack'):
+                            for slot, caption in [('weapon', 'WEAPON'), ('armor', 'ARMOR'), ('charm', 'CHARM')]:
+                                with ui.element('div').classes('pd-equipped-slot'):
+                                    ui.label(caption).classes('pd-eyebrow')
+                                    ui.html(equipped_item_inline_html(player.equipped.get(slot), 'Empty'))
+                            with ui.element('div').classes('pd-pack-context'):
+                                ui.label(f'{len(player.inventory)} in pack / {len(entries)} shown').classes('pd-subtle')
+                                ui.label('Click to lock a find. Compare the trade-offs, then equip.').classes('pd-comparison-note')
+                        return
                     with ui.row().classes('w-full gap-4 mt-4 max-[1200px]:flex-wrap'):
                         with ui.card().classes('mq-panel-frame mq-inv-top-card mq-inv-equip-card p-4 flex-[0.68] min-w-[200px]'):
                             ui.label('EQUIPPED GEAR').classes('mq-panel-caption')
@@ -24250,6 +24271,13 @@ def main_page(request: Request) -> None:
                         selected_item = view['selected_item']
                         comparison_item = view['comparison_item']
                         selected_slot = view['selected_slot']
+                        if DESKTOP_MODE:
+                            with ui.element('div').classes('pd-equipment-inspector'):
+                                experience_ui.render_equipment_decision(player, selected_item, sys.modules[__name__])
+                                with ui.element('div').classes('pd-compare-sheets'):
+                                    render_item_pane('Selected Find', selected_item, 'Select an item from your pack.')
+                                    render_item_pane('Currently Equipped', comparison_item, 'Nothing equipped in this slot.')
+                            return
                         with ui.column().classes('flex-[0.76] min-w-[250px] gap-3'):
                             render_item_pane('Selected Item', selected_item, 'No item selected.')
                         with ui.column().classes('flex-[0.76] min-w-[250px] gap-3'):
@@ -24276,6 +24304,14 @@ def main_page(request: Request) -> None:
                         restore_saved_btn = ui.button('Restore Saved', on_click=restore_selected_saved).classes('mq-btn-secondary rounded-lg')
                         delete_saved_btn = ui.button('Delete Saved', on_click=delete_selected_saved).classes('mq-btn-danger rounded-lg')
                         close_btn = ui.button('Close', on_click=lambda: (inventory_dialog.close() if popup else close_inventory_scene(), request_render_refresh())).classes('mq-btn-secondary rounded-lg')
+
+                        if DESKTOP_MODE:
+                            for button in (equip_selected_btn, sell_selected_btn, sell_all_btn, save_selected_btn):
+                                button.set_visibility(inventory_mode)
+                            for button in (equip_saved_btn, restore_saved_btn, delete_saved_btn):
+                                button.set_visibility(not inventory_mode)
+                            if inventory_mode and has_selected_inventory_item:
+                                equip_selected_btn.set_enabled(can_player_equip_item(player, view['selected_item'])[0])
 
                         if state.fight_in_progress or not inventory_mode or not has_selected_inventory_item:
                             equip_selected_btn.disable()
@@ -24937,6 +24973,37 @@ def main_page(request: Request) -> None:
             state.screen = 'game'
         request_render_refresh()
 
+    def experience_route(destination: str) -> None:
+        if state.player is None or state.fight_in_progress:
+            return
+        if destination == 'inventory':
+            open_inventory_scene()
+        elif destination == 'masterquest':
+            state.begin_masterquest()
+        else:
+            state.open_game_tab(destination)
+        request_render_refresh()
+
+    def review_experience_item(item) -> None:
+        if state.player is None or state.fight_in_progress:
+            return
+        index = owned_item_index(state.player, item)
+        open_inventory_scene()
+        if index is not None:
+            state.select_inventory_entry('inventory', index)
+        request_render_refresh(force=True)
+
+    def experience_actions(tutorial=None):
+        return {
+            'route': experience_route, 'refresh': request_render_refresh,
+            'inventory': open_inventory_scene, 'review': review_experience_item,
+            'town': lambda: (state.enter_town(), request_render_refresh()),
+            'slots': lambda: (state.go_to_chronicles(), request_render_refresh()),
+            'classes': open_class_select_warning,
+            'title': lambda: (state.return_to_title(), request_render_refresh()),
+            'tutorial': tutorial,
+        }
+
 
     def render_hotkey_action_buttons() -> None:
         if state.player is None:
@@ -25115,7 +25182,7 @@ def main_page(request: Request) -> None:
                             if not DESKTOP_MODE:
                                 ui.label(t('account_cloud_saves')).classes('text-2xl font-semibold text-slate-100')
                             if DESKTOP_MODE:
-                                ui.label('PRISMQUEST / NOCTURNE').classes('pq-menu-edition')
+                                ui.label('PRISMQUEST / REIMAGINED').classes('pq-menu-edition')
                                 ui.label('Every light\ncasts a legend.').classes('pq-menu-title')
                                 ui.label('Choose your champion. Claim the prism. Begin a chronicle that belongs to you.').classes('pq-menu-description')
                                 ui.button('Play', on_click=lambda: (state.go_to_chronicles(), request_render_refresh())).props('aria-label=Play').classes('pq-menu-play mq-btn-gold')
@@ -25441,6 +25508,9 @@ def main_page(request: Request) -> None:
                 sync_scene_tutorial_dialog()
                 player = state.player
                 assert player is not None
+                if DESKTOP_MODE:
+                    experience_ui.render_town(state, sys.modules[__name__], experience_actions(lambda: (state.open_town_tutorial(), request_render_refresh())))
+                    return
                 slot_label = state.current_slot_title()
                 primary_html = (
                     f"<span class='mq-status-identity'>{html.escape(player.name)} the {html.escape(player.player_class)}</span> <span class='mq-status-sep'>•</span> Level {player.level}<br>"
@@ -25738,28 +25808,28 @@ def main_page(request: Request) -> None:
                 state.log_status()
                 request_render_refresh()
             with ui.column().classes('mq-arena-shell w-full gap-4'):
-                with ui.row().classes('mq-desktop-scene-header w-full items-center justify-between gap-3 max-[900px]:flex-wrap'):
-                    with ui.column().classes('gap-1'):
-                        slot_label = state.current_slot_title()
-                        if DESKTOP_MODE:
-                            ui.html(scene_heading(state.game_tab, player.player_class, player.level, slot_label))
-                        else:
+                if DESKTOP_MODE:
+                    experience_ui.render_navigation(state, experience_actions((lambda key=current_scene_tutorial_key: open_scene_tutorial_now(key)) if current_scene_tutorial_key else None), state.game_tab)
+                else:
+                    with ui.row().classes('mq-desktop-scene-header w-full items-center justify-between gap-3 max-[900px]:flex-wrap'):
+                        with ui.column().classes('gap-1'):
+                            slot_label = state.current_slot_title()
                             ui.label(slot_label).classes('mq-section-title')
                             ui.label(f'{player.player_class} • Level {player.level}').classes('text-3xl font-semibold text-slate-100')
-                    with ui.row().classes('gap-2 max-[700px]:w-full'):
-                        town_btn = ui.button('Return to Town', on_click=lambda: (state.enter_town('You return to town to choose your next route.'), request_render_refresh()))
-                        town_btn.classes('font-semibold tracking-wide rounded-xl py-3 px-5 mq-btn-gold max-[700px]:w-full')
-                        back_to_slots = ui.button('Return to Chronicle Slots', on_click=lambda: (state.go_to_chronicles(), request_render_refresh()))
-                        back_to_slots.classes('font-semibold tracking-wide rounded-xl py-3 px-5 mq-btn-gold max-[700px]:w-full')
-                        reroll = ui.button('Class Selection', on_click=open_class_select_warning)
-                        reroll.classes('font-semibold tracking-wide rounded-xl py-3 px-5 mq-btn-gold max-[700px]:w-full')
-                        if current_scene_tutorial_key:
-                            scene_tutorial_btn = ui.button('Tutorial', on_click=lambda key=current_scene_tutorial_key: open_scene_tutorial_now(key))
-                            scene_tutorial_btn.classes('font-semibold tracking-wide rounded-xl py-3 px-5 mq-btn-gold max-[700px]:w-full')
+                        with ui.row().classes('gap-2 max-[700px]:w-full'):
+                            town_btn = ui.button('Return to Town', on_click=lambda: (state.enter_town('You return to town to choose your next route.'), request_render_refresh()))
+                            town_btn.classes('font-semibold tracking-wide rounded-xl py-3 px-5 mq-btn-gold max-[700px]:w-full')
+                            back_to_slots = ui.button('Return to Chronicle Slots', on_click=lambda: (state.go_to_chronicles(), request_render_refresh()))
+                            back_to_slots.classes('font-semibold tracking-wide rounded-xl py-3 px-5 mq-btn-gold max-[700px]:w-full')
+                            reroll = ui.button('Class Selection', on_click=open_class_select_warning)
+                            reroll.classes('font-semibold tracking-wide rounded-xl py-3 px-5 mq-btn-gold max-[700px]:w-full')
+                            if current_scene_tutorial_key:
+                                scene_tutorial_btn = ui.button('Tutorial', on_click=lambda key=current_scene_tutorial_key: open_scene_tutorial_now(key))
+                                scene_tutorial_btn.classes('font-semibold tracking-wide rounded-xl py-3 px-5 mq-btn-gold max-[700px]:w-full')
                 sync_scene_tutorial_dialog()
                 ui.run_javascript("window.mqSetLabyrinthKeysEnabled && window.mqSetLabyrinthKeysEnabled(false);")
                 if state.game_tab != 'arena':
-                    if state.game_tab not in ('inventory', 'masterquest'):
+                    if state.game_tab not in ('inventory', 'masterquest') and not DESKTOP_MODE:
                         with ui.row().classes('w-full items-center gap-2 flex-wrap'):
                             arena_back = ui.button('Return to Arena', on_click=lambda: (state.open_game_tab('arena'), request_render_refresh()))
                             arena_back.classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
@@ -25848,9 +25918,12 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                             ui.run_javascript("window.clearTimeout(window.__mqLabAdvanceTimer); window.__mqLabAdvanceTimer = null;")
                         with ui.column().classes('w-full gap-4'):
                             with ui.card().classes('mq-card w-full p-5'):
-                                ui.label('Labyrinth of Light').classes('mq-inv-title')
-                                ui.label('A prismatic endgame maze for late-chronicle parties. Explore every tile, survive what the light casts back, then vote on unstable prism offers after the boss falls.').classes('text-slate-100 text-xl leading-9 mt-2')
-                                with ui.card().classes('mq-panel-frame p-4 mt-4'):
+                                if DESKTOP_MODE and session_row:
+                                    experience_ui.render_expedition_brief(session_row)
+                                else:
+                                    ui.label('Labyrinth of Light').classes('mq-inv-title')
+                                    ui.label('Explore every tile, survive the guardian, then choose a benefit and a sacrifice for the next floor.').classes('text-slate-100 text-xl leading-9 mt-2')
+                                with ui.card().classes('mq-panel-frame pd-lab-legacy-status p-4 mt-4'):
                                     ui.label('LABYRINTH STATUS').classes('mq-panel-caption')
                                     if session_row:
                                         ui.html(
@@ -27986,6 +28059,9 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                         ui.button('Return to Arena', on_click=lambda: (state.open_game_tab('arena'), request_render_refresh())).classes('mq-btn-secondary rounded-xl px-5 py-3 font-semibold')
                             return
                     elif state.game_tab == 'stats':
+                        if DESKTOP_MODE:
+                            experience_ui.render_character(state, sys.modules[__name__], experience_actions())
+                            return
                         with ui.card().classes('mq-card w-full p-5'):
                             ui.label('Core Stats').classes('text-xl font-semibold text-slate-100 mb-3')
                             stats = [
@@ -28018,6 +28094,11 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                 import_save.classes('max-[700px]:w-full')
                     return
                 sync_scene_tutorial_dialog()
+                if DESKTOP_MODE:
+                    arena_actions = experience_actions(lambda: open_scene_tutorial_now('arena'))
+                    arena_actions['fight'] = handle_fight
+                    experience_ui.render_arena(state, sys.modules[__name__], arena_actions)
+                    return
                 display_monster = state.arena_display_monster()
                 stage_monster = state.current_monster if state.monster_page_turn_active and state.current_monster is not None else display_monster
                 stage_theme_monster = state.current_monster if state.monster_page_turn_active and state.current_monster is not None else stage_monster

@@ -1,10 +1,10 @@
-# PrismQuest: Nocturne Visual Edition 0.4.0
+# PrismQuest Reimagined 0.5.0
 
-This is a visual-design fork of the Windows/offline Steam conversion, isolated on `codex/steam-visual-overhaul`. It is not a Steam release yet. The preserved 0.3.0 edition remains in the sibling `SteamEdition` folder, on `codex/steam-standalone`, with rollback tag `steam-alpha-v0.3.0` at `eeaa938`. Do not merge or deploy this branch over the hosted web game.
+This is an experience-design fork of the Windows/offline Steam conversion, isolated on `codex/steam-experience-redesign`. It is not a Steam release yet. Nocturne 0.4.0 remains in `SteamEditionVisual`, with rollback tag `steam-nocturne-v0.4.0` at `af00de2`. The original 0.3.0 edition remains in `SteamEdition`. Neither preserved executable nor the hosted web game is replaced.
 
-Nocturne keeps the existing artwork and gameplay while replacing the presentation with local Cinzel/Barlow typography, ink-and-ivory surfaces, antique-gold controls, consistent scene identities, a reworked title/chronicle menu, readable combat telemetry, a lit town map, and a prismatic Labyrinth. See `docs/nocturne-visual-edition.md` for the design and rollback notes.
+Reimagined changes the information architecture, not just the skin: a battle-first Arena with live rounds and a dedicated reward phase, contextual town goals, an equipment workbench with real recalculated stat trade-offs, click-locked selection, a separate character-build workspace, global navigation, and expedition objectives. Artwork, combat rolls, item ownership, economy and save-format rules are preserved. See `docs/experience-redesign.md` for design, verification and rollback notes.
 
-![Nocturne title screen](docs/previews/nocturne-title.png)
+Screenshots of the new decision loop are included in `docs/experience-redesign.md`.
 
 ## Play the Windows Build
 
@@ -38,7 +38,7 @@ Online Bazaar, direct vault courier, guilds, shared ladder, multiplayer matchmak
 
 ## Local Data
 
-The default Windows profile is `%LOCALAPPDATA%\PrismQuest\SteamEditionVisual`. It deliberately does not open or modify the preserved edition's `SteamEdition` profile:
+The default Windows profile is `%LOCALAPPDATA%\PrismQuest\SteamEditionReimagined`. It deliberately does not open or modify either preserved edition's profile:
 
 - `saves\chronicles.json`: the three local slots, including solo Labyrinth checkpoints.
 - `backups\chronicles-*.json`: ten previous valid save revisions.
@@ -77,6 +77,8 @@ For local browser diagnostics only:
 
 ## Verify and Package
 
+For this redesigned interface, use `tools/desktop_experience_smoke.py --port PORT --output .local-test/NAME` against a fresh disposable profile. Add `--seeded` for a profile created by `tools/seed_desktop_profile.py`. Earlier browser/layout drivers below document the older editions' interfaces and are not the current UI acceptance driver.
+
 ```powershell
 & .\.venv\Scripts\python.exe -m pytest tests -q
 & .\build_desktop.ps1
@@ -86,7 +88,7 @@ The build uses PyInstaller in one-folder/windowed mode. `requirements-windows-de
 
 `tools\desktop_browser_smoke.py` drives a fresh profile on a running browser-mode server, blocking all non-loopback HTTP requests. It checks character creation, the introductory Arena fight, a guaranteed Rare item, browser reload, local records, and title-screen reopening. Use `--resume-only` after restarting the application with that profile to check disk persistence, and `--quit` to exit cleanly. It currently uses a locally installed Chrome; it is a developer test, not a runtime dependency. `--native-smoke` is a hidden developer check that creates a hidden WebView2 window, records `native-smoke.ok` in its test profile, and exits.
 
-See `docs/nocturne-visual-edition.md` for this fork's validation and `docs\steam-conversion-roadmap.md` for remaining Steam release gates. Earlier baseline evidence remains in `docs\steam-alpha-0.3-verification.md` and `docs\steam-prototype-verification.md`.
+See `docs/experience-redesign.md` for this fork's validation and `docs\steam-conversion-roadmap.md` for remaining Steam release gates. Nocturne's earlier evidence remains in `docs/nocturne-visual-edition.md`.
 
 See `docs/desktop-player-guide.md` for controls/recovery and `docs/steam-release-gates.md` for the owner/platform handoff. Builds generate third-party notices and a 154-file asset-rights inventory; rights remain unapproved until reviewed. `tools/prepare_steampipe.py` requires real App/Depot IDs and generates preview-only VDF files, never an upload or automatic live deployment.
 
