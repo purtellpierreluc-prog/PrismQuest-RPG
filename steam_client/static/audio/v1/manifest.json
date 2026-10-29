@@ -1,0 +1,83 @@
+{
+  "files": {
+    "ambient": {
+      "peak": 0.09086652100086212,
+      "rms": 0.023831919533451786,
+      "sample_rate": 22050,
+      "seconds": 48.0,
+      "sha256": "cd58bfb8222a2c348b097d7e80baaca04c8bfd83ef7d81191d4d7823e0a2c45e"
+    },
+    "critical": {
+      "peak": 0.30369865894317627,
+      "rms": 0.046764123010948816,
+      "sample_rate": 22050,
+      "seconds": 0.38,
+      "sha256": "ea2f1fac47052bc3e5fb65e466a1e4565eef43e018f55a3b607327447f5ca8fb"
+    },
+    "encounter": {
+      "peak": 0.11728030443191528,
+      "rms": 0.021644444466737633,
+      "sample_rate": 22050,
+      "seconds": 0.6499773242630386,
+      "sha256": "1bd71ee69caf7800987d0315be4f32bc17aea730e8407d9092a3f0a54873a2a4"
+    },
+    "find_prismatic": {
+      "peak": 0.26210787892341614,
+      "rms": 0.05465768788302455,
+      "sample_rate": 22050,
+      "seconds": 2.7,
+      "sha256": "545088c6e781aa06e6836007eb1d897452eef9dc65ba779ed63509bad6a20a10"
+    },
+    "find_rare": {
+      "peak": 0.2479027658700943,
+      "rms": 0.05909984845833581,
+      "sample_rate": 22050,
+      "seconds": 1.8,
+      "sha256": "8df1267581c5efcd09e6cd435c585b5493d76d439ac6948fe49a4484d5b9eed5"
+    },
+    "find_soft": {
+      "peak": 0.1428467482328415,
+      "rms": 0.03989338459206195,
+      "sample_rate": 22050,
+      "seconds": 1.1,
+      "sha256": "9612abe6ed6fcd00ca030d2d17e70580714eee342fc9e64d7d102c7781bdf24f"
+    },
+    "impact": {
+      "peak": 0.34523898363113403,
+      "rms": 0.04460679231916911,
+      "sample_rate": 22050,
+      "seconds": 0.24997732426303854,
+      "sha256": "ceea04d6f5929fb0b80176493f57afec9f830213ad61dbf69f753b478ea1e02b"
+    },
+    "level": {
+      "peak": 0.3220837712287903,
+      "rms": 0.06829127421002129,
+      "sample_rate": 22050,
+      "seconds": 2.3,
+      "sha256": "f5fcaa5145a069e07f9c8d26beb2b38d5eafa5e9179135a5885bcbaef1045953"
+    },
+    "spell": {
+      "peak": 0.15549336373806,
+      "rms": 0.03258146538770005,
+      "sample_rate": 22050,
+      "seconds": 0.5,
+      "sha256": "ecf3b3b58af672e02fe99f885e9e3fc4082fce0d30daece9dc02c4096ddba8be"
+    },
+    "undertone": {
+      "peak": 0.11183501034975052,
+      "rms": 0.03988175021244104,
+      "sample_rate": 22050,
+      "seconds": 8.0,
+      "sha256": "d51450f28f3c199952d8603d02c25c4af1e0cbfa7ad09e7f90f44d2d4e4996ef"
+    },
+    "victory": {
+      "peak": 0.18425743281841278,
+      "rms": 0.04688244996819868,
+      "sample_rate": 22050,
+      "seconds": 1.1,
+      "sha256": "284f17bd743f99c696c02594461f9491d52a0f522472b2f2959c0122a3249eb5"
+    }
+  },
+  "origin": "Original procedural PrismQuest synthesis; no external recordings or samples.",
+  "version": 1
+}

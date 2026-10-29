@@ -1,10 +1,57 @@
 """Desktop controls live outside the legacy game's renderer."""
 
+import json
 import os
 
 from nicegui import ui
 
 from . import __version__
+
+
+def render_audio_settings(audio, refresh):
+    prefs = audio.preferences
+
+    def changed(key, value):
+        audio.set(key, value)
+        ui.run_javascript('window.PrismAudio && window.PrismAudio.configure(' + json.dumps(audio.payload()) + ');')
+
+    with ui.card().classes('mq-card pd-audio-panel w-full p-5'):
+        with ui.row().classes('w-full items-center justify-between gap-4'):
+            with ui.column().classes('gap-1'):
+                ui.label('A Quiet Soundscape').classes('mq-inv-title')
+                ui.label('Soft combat textures. Crystalline discoveries. Space to think.').classes('mq-detail-text')
+            ui.checkbox('Mute all audio', value=prefs.muted, on_change=lambda e: changed('muted', e.value))
+        with ui.element('div').classes('pd-audio-mix'):
+            for key, title, description in [
+                ('effects_volume', 'Sound Effects', 'Combat is sparse and softer than level-up and discovery chimes.'),
+                ('music_volume', 'Background Music', 'A slowly moving, original ambient score. No busy percussion.')]:
+                with ui.element('section').classes('pd-audio-channel'):
+                    with ui.row().classes('w-full items-center justify-between'):
+                        ui.label(title).classes('mq-inv-section-title')
+                        value_label = ui.label(f'{getattr(prefs, key)}%').classes('pd-audio-value')
+
+                    def volume_changed(event, field=key, label=value_label):
+                        changed(field, event.value)
+                        label.set_text(f'{audio.payload()[field]}%')
+
+                    ui.slider(min=0, max=100, step=1, value=getattr(prefs, key), on_change=volume_changed).props(f'aria-label="{title} Volume"').classes('w-full')
+                    ui.label(description).classes('mq-detail-text')
+        with ui.element('div').classes('pd-audio-toggles'):
+            for key, caption in [('music_enabled', 'Enable ambient music'), ('combat_enabled', 'Enable combat effects'),
+                                 ('rewards_enabled', 'Enable reward chimes'), ('mute_unfocused', 'Mute when unfocused')]:
+                ui.checkbox(caption, value=getattr(prefs, key), on_change=lambda e, field=key: changed(field, e.value))
+        with ui.row().classes('gap-2 flex-wrap'):
+            for name, caption in [('level', 'Test Level-up'), ('find_rare', 'Test Rare Find'), ('impact', 'Test Combat')]:
+                ui.button(caption).classes('mq-btn-secondary').on('click', js_handler=f'() => window.PrismAudio && window.PrismAudio.preview({json.dumps(name)})')
+
+            def reset():
+                audio.reset()
+                ui.run_javascript('window.PrismAudio && window.PrismAudio.configure(' + json.dumps(audio.payload()) + ');')
+                refresh()
+
+            ui.button('Restore Quiet Defaults', on_click=reset).classes('mq-btn-secondary')
+        ui.html('<output id="pq-audio-status" role="status" aria-live="polite"></output>')
+        ui.label('Plays locally after your first interaction. Settings are saved per desktop profile, not per character.').classes('pd-comparison-note')
 
 
 def render_desktop_settings(display, paths, save_store, flush_save):

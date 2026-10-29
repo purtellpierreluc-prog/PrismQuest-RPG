@@ -78,6 +78,13 @@ def generate(directory, assets, distributions=None):
         'packages_missing_copied_license_text': [item['name'] for item in packages if item['review_required']],
         'release_approved': False,
     }
+    audio_manifest = ROOT / 'steam_client/static/audio/v1/manifest.json'
+    if audio_manifest.is_file():
+        audio = json.loads(audio_manifest.read_text(encoding='utf-8'))
+        report['original_audio'] = {'version': audio['version'], 'file_count': len(audio['files']),
+                                    'origin': audio['origin'], 'generator': 'tools/generate_audio.py'}
+        notices.extend(['## Original PrismQuest Audio', audio['origin'],
+                        'Reproducible synthesis source: tools/generate_audio.py. No third-party recordings or sample libraries are bundled.', ''])
     (directory / 'third-party-inventory.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
     (directory / 'THIRD_PARTY_NOTICES.md').write_text('\n'.join(notices), encoding='utf-8')
     return report

@@ -30,6 +30,18 @@ Settings > Desktop remembers window size/fullscreen and offers reduced decorativ
 motion without slowing combat. System reduced-motion preference is respected.
 Mouse and keyboard are the supported inputs; controller/Deck support is not claimed.
 
+## Audio
+
+Settings > Audio has separate effects/music volume sliders, master mute and
+switches for music, combat textures, reward chimes and background muting.
+The quiet defaults are 35% effects and 18% music; Restore Quiet Defaults restores
+only these audio settings, not your character or combat preferences.
+Test Level-up, Test Rare Find and Test Combat let you hear the balance immediately.
+Audio starts after your first click or keypress. It fades out while the window is
+unfocused by default, without a backlog of sounds when you return. Common item
+drops have no chime. Audio is entirely local and needs no internet connection.
+Your choices are saved in `audio.json` alongside, but separately from, your saves.
+
 ## Saves and Recovery
 
 This experience fork saves to `%LOCALAPPDATA%\PrismQuest\SteamEditionReimagined`,

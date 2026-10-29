@@ -94,9 +94,12 @@ def launch(argv=None):
         game = load_game(paths)
         from nicegui import app, native, ui
 
+        from .audio import DesktopAudio
         from .transport import install_desktop_transport
         from .viewport import install_desktop_styles
-        install_desktop_styles(paths)
+        audio = DesktopAudio(paths.data / 'audio.json')
+        game.DESKTOP_AUDIO = audio
+        install_desktop_styles(paths, audio.payload())
         install_desktop_transport()
         display = DesktopDisplay(paths.data / 'display.json', native=None if args.browser else app.native)
         game.DESKTOP_DISPLAY = display
@@ -109,6 +112,7 @@ def launch(argv=None):
         app.on_exception(handle_error)
         app.on_shutdown(game.flush_desktop_save)
         app.on_shutdown(display.flush)
+        app.on_shutdown(audio.flush)
         if not args.browser:
             display.bind()
             app.native.start_args.update(gui='edgechromium', private_mode=False, storage_path=str(paths.browser))

@@ -1,10 +1,18 @@
-# PrismQuest Reimagined 0.5.0
+# PrismQuest Reimagined 0.6.0
 
 This is an experience-design fork of the Windows/offline Steam conversion, isolated on `codex/steam-experience-redesign`. It is not a Steam release yet. Nocturne 0.4.0 remains in `SteamEditionVisual`, with rollback tag `steam-nocturne-v0.4.0` at `af00de2`. The original 0.3.0 edition remains in `SteamEdition`. Neither preserved executable nor the hosted web game is replaced.
 
 Reimagined changes the information architecture, not just the skin: a battle-first Arena with live rounds and a dedicated reward phase, contextual town goals, an equipment workbench with real recalculated stat trade-offs, click-locked selection, a separate character-build workspace, global navigation, and expedition objectives. Artwork, combat rolls, item ownership, economy and save-format rules are preserved. See `docs/experience-redesign.md` for design, verification and rollback notes.
 
 Screenshots of the new decision loop are included in `docs/experience-redesign.md`.
+
+## Quiet Soundscape
+
+Settings > Audio controls original, locally generated ambient music, restrained combat textures, level-up chimes and rarity-weighted item finds. Defaults are 35% effects and 18% music. Separate music, combat and reward switches, a master mute, preview buttons and Restore Quiet Defaults are included. Audio begins after the first click/key, fades out when the game loses focus by default, and does not replay missed rewards on return. Common finds stay silent.
+
+Sounds use one local audio graph with cached buffers, limited simultaneous voices and no audio polling or new combat messages. Audio preferences live in `audio.json`, separately from character saves. See `docs/soundscape-0.6.md` for implementation and validation notes. A short demonstration is in `steam_client/static/audio/soundscape-preview.wav`.
+
+The previous 0.5.0 executable is preserved in `.build-backups\reimagined-0.5.0-c11fc95\PrismQuest`, with Git rollback tag `steam-reimagined-v0.5.0`. The hosted game and both earlier editions are unchanged.
 
 ## Play the Windows Build
 
@@ -46,6 +54,7 @@ The default Windows profile is `%LOCALAPPDATA%\PrismQuest\SteamEditionReimagined
 - `logs\desktop.log`: rotating diagnostic log; `startup-error.log` records startup failures.
 - `browser\`, `ui\`, and `cache\`: desktop browser preferences and disposable presentation data.
 - `session.key`: a local UI session secret, not a Steam/API credential.
+- `audio.json`: independent music/effects volume and quiet-mode preferences.
 
 Writes use a same-directory temporary file, flush/fsync, and atomic replace. A checksum detects corruption, not cheating. A valid backup is loaded if the primary is damaged. If all existing saves are invalid, startup stops rather than resetting progress. Saves from a newer game version are never silently downgraded to an older backup. A per-profile process lock prevents two game instances writing the same saves simultaneously.
 

@@ -267,3 +267,9 @@
   .pd-expedition-note { font-size: 11px; }
 }
 @media (prefers-reduced-motion:reduce) { .pd-result-arrive { animation: none !important; } }
+
+.pd-audio-mix { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; width: 100%; }
+.pd-audio-channel { background: #0c171d; padding: 15px; border: 1px solid #3e5258; border-radius: 6px; display: flex; flex-direction: column; gap: 14px; }
+.pd-audio-value { font: 500 26px/1 var(--pq-serif); color: #ddca99; font-variant-numeric: tabular-nums; }
+.pd-audio-toggles { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px 20px; width: 100%; }
+#pq-audio-status { color: #adc5c2; font: 400 13px/1.4 var(--pq-sans); }

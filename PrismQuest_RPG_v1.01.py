@@ -20,6 +20,7 @@ from logging.handlers import RotatingFileHandler
 from urllib.parse import urlencode
 from steam_client.paths import DesktopPaths
 from steam_client.storage import AtomicSaveStore
+from steam_client.audio import audio_signal
 
 DESKTOP_MODE = os.environ.get('PRISMQUEST_DESKTOP') == '1'
 DESKTOP_PATHS = DesktopPaths.from_environment() if DESKTOP_MODE else None
@@ -28,6 +29,7 @@ if DESKTOP_PATHS is not None:
 DESKTOP_SAVE_STORE = AtomicSaveStore(DESKTOP_PATHS.save_file, DESKTOP_PATHS.backups) if DESKTOP_PATHS else None
 DESKTOP_ACTIVE_STATE = None
 DESKTOP_DISPLAY = None
+DESKTOP_AUDIO = None
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 try:
@@ -5817,6 +5819,7 @@ window.mqScheduleLabRound = function(delayMs) {
   }, Math.max(120, Number(delayMs) || 120));
 };
 window.mqUpdateLabCombat = function(payload) {
+  if (window.PrismAudio) window.PrismAudio.combatStep(payload);
   function updateMeter(id, current, maximum, duration, popup) {
     window.mqSetMeterValue(id, current, maximum, duration, null, false);
     const meter = document.getElementById(id);
@@ -23437,6 +23440,8 @@ def page_session_state():
 @ui.page('/')
 def main_page(request: Request) -> None:
     state = page_session_state()
+    if DESKTOP_MODE and DESKTOP_AUDIO is not None:
+        ui.run_javascript('window.PrismAudio && window.PrismAudio.configure(' + json.dumps(DESKTOP_AUDIO.payload()) + ');')
     if DESKTOP_MODE and DESKTOP_DISPLAY is not None:
         ui.run_javascript(f'document.documentElement.dataset.mqReducedMotion = {str(DESKTOP_DISPLAY.preferences.reduce_motion).lower()!r}')
     if DESKTOP_MODE and DESKTOP_SAVE_STORE is not None and DESKTOP_SAVE_STORE.recovery_source:
@@ -25156,7 +25161,9 @@ def main_page(request: Request) -> None:
             page_classes.append('mq-a11y-high-contrast')
         if getattr(state, 'accessibility_reduce_motion', False):
             page_classes.append('mq-a11y-reduce-motion')
-        with ui.column().classes(' '.join(page_classes)):
+        with ui.column().classes(' '.join(page_classes)) as page_root:
+            if DESKTOP_MODE:
+                page_root._props['data-pq-audio'] = json.dumps(audio_signal(state), separators=(',', ':'))
             if state.screen == 'title':
                 title_lang = normalize_ui_language(getattr(state, 'ui_language', DEFAULT_UI_LANGUAGE))
                 t = lambda key, **kwargs: localized_title_text(title_lang, key, **kwargs)
@@ -27972,19 +27979,17 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                 from steam_client.panels import render_desktop_settings
                                 render_desktop_settings(DESKTOP_DISPLAY, DESKTOP_PATHS, DESKTOP_SAVE_STORE, flush_desktop_save)
                             elif state.settings_tab == 'audio':
+                                if DESKTOP_MODE and DESKTOP_AUDIO is not None:
+                                    from steam_client.panels import render_audio_settings
+                                    render_audio_settings(DESKTOP_AUDIO, request_render_refresh)
                                 with ui.row().classes('w-full gap-4 items-stretch flex-wrap'):
-                                    with ui.card().classes('mq-card flex-1 min-w-[320px] p-5'):
-                                        ui.label('Sound Effects').classes('mq-inv-section-title mb-2')
-                                        ui.label('Weapon strikes, UI clicks, ritual sparks, and encounter cues.').classes('mq-detail-text mb-4')
-                                        ui.label(f"{int(getattr(state, 'sound_effects_volume', 70) or 0)}%").classes('text-2xl font-semibold text-slate-100 mb-3')
-                                        ui.slider(min=0, max=100, step=1, value=int(getattr(state, 'sound_effects_volume', 70) or 0), on_change=lambda e: (setattr(state, 'sound_effects_volume', int(float(e.value or 0))), request_render_refresh())).classes('w-full')
-                                        ui.label('0 disables effects completely.').classes('text-slate-400 text-sm mt-3')
-                                    with ui.card().classes('mq-card flex-1 min-w-[320px] p-5'):
-                                        ui.label('Background Music').classes('mq-inv-section-title mb-2')
-                                        ui.label('Town ambience, route mood, and longer scene underscoring.').classes('mq-detail-text mb-4')
-                                        ui.label(f"{int(getattr(state, 'background_music_volume', 55) or 0)}%").classes('text-2xl font-semibold text-slate-100 mb-3')
-                                        ui.slider(min=0, max=100, step=1, value=int(getattr(state, 'background_music_volume', 55) or 0), on_change=lambda e: (setattr(state, 'background_music_volume', int(float(e.value or 0))), request_render_refresh())).classes('w-full')
-                                        ui.label('0 mutes the ambient score completely.').classes('text-slate-400 text-sm mt-3')
+                                    if not DESKTOP_MODE:
+                                        with ui.card().classes('mq-card flex-1 min-w-[320px] p-5'):
+                                            ui.label('Sound Effects').classes('mq-inv-section-title mb-2')
+                                            ui.slider(min=0, max=100, step=1, value=int(getattr(state, 'sound_effects_volume', 70) or 0), on_change=lambda e: (setattr(state, 'sound_effects_volume', int(float(e.value or 0))), request_render_refresh())).classes('w-full')
+                                        with ui.card().classes('mq-card flex-1 min-w-[320px] p-5'):
+                                            ui.label('Background Music').classes('mq-inv-section-title mb-2')
+                                            ui.slider(min=0, max=100, step=1, value=int(getattr(state, 'background_music_volume', 55) or 0), on_change=lambda e: (setattr(state, 'background_music_volume', int(float(e.value or 0))), request_render_refresh())).classes('w-full')
                                     with ui.card().classes('mq-card flex-1 min-w-[320px] p-5'):
                                         ui.label('Combat Preferences').classes('mq-inv-section-title mb-2')
                                         ui.label('Tune combat presentation and optional Labyrinth performance safeguards without changing the underlying rules.').classes('mq-detail-text mb-4')

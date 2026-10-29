@@ -72,9 +72,11 @@ def main():
             page.locator('.pd-result-title.victory').wait_for()
             assert 'XP progress' in page.locator('.pd-reward-totals').inner_text()
             assert 'RARE' in page.locator('.pd-found-item').inner_text()
+            page.wait_for_function('window.PrismAudio.inspect().played.find_rare === 1')
             for width, height in sizes:
                 page.set_viewport_size({'width': width, 'height': height})
                 check('victory', ['Fight', 'Inspect This Find', 'Inventory'], ['.pd-actor-resources', '.pd-command-deck'])
+            assert page.evaluate('window.PrismAudio.inspect().played.find_rare') == 1
             page.set_viewport_size({'width': 1280, 'height': 720})
             page.get_by_role('button', name='Inspect This Find', exact=True).click()
             page.locator('.pd-equipment-decision').wait_for()
