@@ -250,6 +250,11 @@
     lastCombatAt = -Infinity; lastRewardAt = -Infinity;
     play(name, {reward: ['level', 'find_soft', 'find_rare', 'find_prismatic', 'victory'].includes(name), gain: .75});
   }
+  async function ritual(rarity, key) {
+    if (!interacted || !effectsAllowed(true)) return false;
+    await (boot || Promise.resolve());
+    return play(lootSound(rarity) || 'find_soft', {reward:true, gain:.65, key:'ritual:' + key});
+  }
   function close() {
     disposed = true;
     cancelRewards();
@@ -257,7 +262,7 @@
     stopVoices(); stopLoops();
     if (context && context.state !== 'closed') context.close().catch(() => {});
   }
-  const api = {sync, combatStep, configure, preview,
+  const api = {sync, combatStep, configure, preview, ritual,
     inspect: () => ({preferences: {...config}, context: context?.state || 'locked', focused, allowed: allowed(),
       decoded: buffers.size, failed: [...failed], voices: voices.size, loops: loops.size, dedupKeys: seen.size, played: {...counts}})};
   window.PrismAudio = api;

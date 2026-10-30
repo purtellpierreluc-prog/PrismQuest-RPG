@@ -25,6 +25,22 @@ are locked during a shared expedition. Bazaar purchases and courier deliveries
 arrive in your realm vault. **Refresh Realm** updates chat/market views without
 background polling while you type or inspect items.
 
+## The Crucible
+
+From Town, open **Transmutation**. Pick a **Form** from your pack, then a different
+Fine-or-better **Sacrifice** of the same tier. The form's item type/tier survive;
+the rarity and affixes are newly rolled. Check the real probabilities and gold
+fee, choose **Review Transmutation**, then confirm. Both offerings are consumed.
+
+Your result is saved into the pack before the reveal. Skip with Escape or the
+on-screen button; reduced-motion/item-animation settings bypass it. **Inspect
+in Inventory** opens the real item. **Use as Next Form** starts another deliberate
+pair. **Last Result** is only a record, not an extra item to claim.
+
+The fee is still 2 gold plus one gold per affix across both offerings. There is
+no promise that the result will be stronger. Equipped, saved and vaulted items
+are not consumed by the workbench.
+
 ## Install and Launch
 
 Keep the complete PrismQuest folder together, including `_internal`.
@@ -40,8 +56,8 @@ death still applies the existing equipped-gear loss rules.
 Completing the final class path records the victory but does not automatically
 erase any local chronicle. Keep that hero and continue into the Labyrinth.
 There are no server-driven/calendar resets in this offline alpha.
-The local NPC Marketplace remains available; online Bazaar, courier, guilds,
-shared ladder, and multiplayer are not included.
+The local NPC Marketplace remains available. Concourse trading, courier, guilds,
+realm ladder and shared Labyrinth are a separate opt-in network preview.
 
 ## Controls and Display
 

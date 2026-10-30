@@ -26943,6 +26943,10 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                     render_marketplace_offer_list()
                             return
                     elif state.game_tab == 'transmute':
+                        if DESKTOP_MODE:
+                            from steam_client.crucible_ui import render_crucible
+                            render_crucible(state, sys.modules[__name__], experience_actions())
+                            return
                         state.ensure_transmute_scene_state(False)
                         first_ref, second_ref = state.selected_transmute_refs()
                         first_item = first_ref[2] if first_ref else None
@@ -28685,7 +28689,7 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
             return True
         if state.screen != 'game':
             return False
-        quiet_tabs = {'ladder', 'guild_hall', 'glossary', 'settings', 'donate', 'profile', 'labyrinth', 'network'}
+        quiet_tabs = {'ladder', 'guild_hall', 'glossary', 'settings', 'donate', 'profile', 'labyrinth', 'network', 'transmute'}
         return str(getattr(state, 'game_tab', '') or '') not in quiet_tabs
 
     def maybe_refresh_for_passive_regen() -> None:
