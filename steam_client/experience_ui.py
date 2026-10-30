@@ -1,18 +1,22 @@
 """Decision-first desktop scenes, separate from the authoritative game rules."""
 
 import html
+import json
 
 from nicegui import ui
 
 from .experience import (
     ITEM_TYPE_COLORS,
+    arena_opponent,
     chronicle_preview,
     current_result,
+    encounter_signal,
     equipment_changes,
     item_visual_style,
     journey_for,
     labyrinth_progress,
     monster_defense_cue,
+    monster_signature,
     owned_item_index,
     saved_archive_marks,
 )
@@ -75,6 +79,23 @@ def inspect_item_html(item, game, *, key, caption):
             f'aria-label="Inspect equipped {text(caption)}" style="{text(item_visual_style(item, game))}">'
             f'<span class="pd-inspect-caption">{text(caption)}</span><span class="pd-inspect-name">{text(name)}</span>'
             f'<span class="pd-inspect-tier">{("T" + str(game.item_required_level(item))) if item else "--"}</span>'
+            f'<span class="pd-inspect-content" hidden>{content}</span></button>')
+
+
+def last_find_html(state, game):
+    item = getattr(state, 'last_monster_drop_item', None)
+    name = game.equipped_item_display_name(item) if item else 'No find yet'
+    icon = game.item_icon_uri(item) if item else ''
+    art = (f'<img src="{text(icon)}" alt="" decoding="async" draggable="false">' if icon else
+           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 8 8-5 8 5v10l-8 4-8-4Zm0 0 8 5 8-5M12 13v9"/></svg>')
+    source = {'arena': 'Arena', 'well': 'Well of Evil', 'labyrinth': 'Labyrinth'}.get(getattr(state, 'last_monster_drop_source', ''), 'Monster')
+    content = game.build_item_hover_tooltip_html(item) if item else '<div class="pd-subtle">Your latest monster drop will stay here during subsequent fights.</div>'
+    if item:
+        content += f'<div class="pd-last-find-note">Last drop / {text(source)}. Read-only record, even if the item has since moved.</div>'
+    return (f'<button type="button" class="pd-last-find" data-pd-inspect-key="arena-last-find" '
+            f'aria-label="Inspect last dropped item" style="{text(item_visual_style(item, game))}">'
+            f'<span class="pd-last-find-icon">{art}</span><span class="pd-last-find-copy"><small>LAST DROP</small>'
+            f'<b>{text(name)}</b></span><span class="pd-last-find-tier">{("T" + str(game.item_required_level(item))) if item else "--"}</span>'
             f'<span class="pd-inspect-content" hidden>{content}</span></button>')
 
 
@@ -297,14 +318,19 @@ def _reveal_once(element_id, key, disabled):
 
 def render_arena(state, game, actions):
     p = state.player
-    monster = state.arena_display_monster()
+    monster = arena_opponent(state)
     active = state.fight_in_progress
     result = current_result(state)
     with ui.element('div').classes('pd-arena-workspace'):
         with ui.element('div').classes('pd-duel-heading'):
             eyebrow('AUTOMATIC COMBAT / YOUR BUILD MAKES THE DIFFERENCE')
-            ui.label(f'CHAIN x{state.monster_chain_combo}  /  +{game.get_monster_chain_bonus_fraction(state.monster_chain_combo):.0%} XP').classes('pd-chain')
-        with ui.element('section').classes('pd-battle-theatre' + (' is-fighting' if active else '')):
+            with ui.element('div').classes('pd-encounter-tools'):
+                ui.label(f'CHAIN x{state.monster_chain_combo}  /  +{game.get_monster_chain_bonus_fraction(state.monster_chain_combo):.0%} XP').classes('pd-chain')
+                ui.html(last_find_html(state, game))
+        signal = encounter_signal(state, monster)
+        with ui.element('section').classes('pd-battle-theatre' + (' is-fighting' if active else '')).props(f'data-pd-phase={signal["phase"]}') as theatre:
+            theatre._props['data-pd-encounter'] = json.dumps(signal, separators=(',', ':'))
+            ui.element('div').classes('pd-encounter-trace').props('aria-hidden=true')
             with ui.element('article').classes('pd-combatant pd-hero'):
                 with ui.element('div').classes('pd-actor-heading'):
                     eyebrow(f'YOUR CHAMPION / LEVEL {p.level}')
@@ -369,11 +395,16 @@ def render_arena(state, game, actions):
                     ui.html('<div class="pd-versus-mark" aria-hidden="true"><span>VS</span></div>')
                     ui.label('Choose your difficulty, call a challenger, and let your build speak.').classes('pd-focus-note')
             cue = monster_defense_cue(monster, game.monster_late_game_scale)
-            with ui.element('article').classes('pd-combatant pd-enemy').style(game.monster_theme_style(monster.monster_type if monster else '')).props(f'data-defense={cue.kind}'):
+            signature, texture = monster_signature(monster.monster_type if monster else '')
+            with ui.element('article').classes('pd-combatant pd-enemy').style(game.monster_theme_style(monster.monster_type if monster else '')).props(f'data-defense={cue.kind} data-species-texture={texture}'):
+                if monster:
+                    ui.element('div').classes('pd-species-texture').props('aria-hidden=true')
                 with ui.element('div').classes('pd-actor-heading'):
                     eyebrow(('LAST CHALLENGER' if not active else 'YOUR OPPONENT') + (f' / LEVEL {monster.level}' if monster else ''))
                     ui.label(game.monster_species_name(monster.monster_type) if monster else 'The unknown').classes('pd-actor-name')
                     ui.label(getattr(monster, 'monster_personal_name', '') or 'Beyond the next gate').classes('pd-actor-subtitle')
+                    if monster:
+                        ui.label(signature).classes('pd-monster-signature').props('title="Species atmosphere only. Armor and resistance are identified separately."')
                     if cue.label:
                         ui.label(cue.label).classes('pd-defense-cue').props(f'title="{text(cue.description)}"')
                 image_plate(state.arena_monster_uri(monster) if monster else '', monster.monster_type if monster else 'Call a challenger', 'pd-enemy-art')

@@ -1,10 +1,20 @@
-# PrismQuest Reimagined 0.8.0
+# PrismQuest Reimagined 0.9.0
 
 This is an experience-design fork of the Windows/offline Steam conversion, isolated on `codex/steam-experience-redesign`. It is not a Steam release yet. Nocturne 0.4.0 remains in `SteamEditionVisual`, with rollback tag `steam-nocturne-v0.4.0` at `af00de2`. The original 0.3.0 edition remains in `SteamEdition`. Neither preserved executable nor the hosted web game is replaced.
 
 Reimagined changes the information architecture, not just the skin: a battle-first Arena with live rounds and a dedicated reward phase, contextual town goals, an equipment workbench with real recalculated stat trade-offs, click-locked selection, a separate character-build workspace, global navigation, and expedition objectives. Artwork, combat rolls, item ownership, economy and save-format rules are preserved. See `docs/experience-redesign.md` for design, verification and rollback notes.
 
 Screenshots of the new decision loop are included in `docs/experience-redesign.md`.
+
+## Arena Rhythm and Monster Identity
+
+A compact Last Drop control beside the chain counter keeps the latest monster find inspectable during subsequent fights. It uses the existing read-only snapshot, shows full stats on hover/focus, and only changes when a newer item drops or the run changes. It is not a second owned item or an equip action.
+
+Short local arrival and resolution transitions use only art/decorative opacity and transforms. Existing combat timing, rolls and rewards are unchanged. Effects resume at their elapsed position across round/page-turn renders instead of replaying, and reduced-motion preferences suppress them. The command row reserves space for Flee so the stage does not jump between combat and results.
+
+Species identity now lives in quiet edge tint, static texture and a short atmospheric signature. These are flavor only; the central blue/silver defense halo and its explicit labels still represent real resistance/armor. No looping particle effects or extra server animation messages are added.
+
+The previous executable folder is preserved in `.build-backups\reimagined-0.8.0-91f3f8c\PrismQuest`, with source tag `steam-reimagined-v0.8.0`. See `docs/arena-rhythm-0.9.md` for design and verification.
 
 ## Chronicle and Equipment Workspaces
 

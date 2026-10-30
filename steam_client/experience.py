@@ -15,6 +15,53 @@ ITEM_TYPE_COLORS = {
 }
 
 
+MONSTER_SIGNATURES = {
+    'Cultist': ('Candlelit rite', 'veil'), 'Wraith': ('Faded haunting', 'veil'),
+    'Mire Witch': ('Marsh hex', 'thorn'), 'Succubus': ('Velvet temptation', 'veil'),
+    'Lamia': ('Prism crown', 'prism'), 'Radiant Lamia': ('Prism crown', 'prism'),
+    'Harpy': ('Jade updraft', 'tide'), 'Dark Wolf': ('Midnight hunger', 'veil'),
+    'Cave Spider': ('Venom silk', 'thorn'), 'Bandit': ('Rust and blood', 'iron'),
+    'Fallen': ('Cinder oath', 'ember'), 'Ghoul': ('Grave moss', 'thorn'),
+    'Bogling': ('Sunken roots', 'thorn'), 'Murloc': ('Brackish tide', 'tide'),
+    'Templar': ('Gilded vigil', 'iron'), 'Hollow Knight': ('Weathered oath', 'iron'),
+    'Ravager': ('Scorched iron', 'ember'), 'Shade Archer': ('Dusk fletching', 'veil'),
+    'Salamander': ('Living ember', 'ember'), 'Skeleton': ('Bone and dust', 'iron'),
+    'Ashen Revenant': ('Ashen memory', 'ember'), 'Blood Hound': ('Crimson trail', 'thorn'),
+    'Iron Penitent': ('Penitent steel', 'iron'), 'Moonfang Stalker': ('Moonlit hunt', 'veil'),
+    'Plague Doctor': ('Bitter tincture', 'thorn'), 'Rot Priest': ('Verdant decay', 'thorn'),
+    'Black Joker': ('Ivory mischief', 'prism'), 'Black Knight': ('Obsidian verdict', 'iron'),
+    'Fairy': ('Wild light', 'prism'), 'Pixie': ('Glade shimmer', 'tide'),
+    'Snekers': ('Venom coil', 'thorn'), 'Blackiron Templar': ('Blackiron vow', 'iron'),
+    'Blackscale Drakekin': ('Stormscale', 'prism'), 'Dread Marionette': ('Violet strings', 'veil'),
+    'Null Hound': ('Hollow pulse', 'veil'), 'Runebound Sentinel': ('Runic bastion', 'prism'),
+    'Spell Eater': ('Arcane hunger', 'tide'), 'Thorn Maiden': ('Briar promise', 'thorn'),
+    'Void Carapace': ('Abyssal facets', 'prism'),
+}
+
+
+def monster_signature(monster_type):
+    species = str(monster_type or '').split(' Lv ')[0].strip()
+    return MONSTER_SIGNATURES.get(species, ('Shadowed presence', 'veil'))
+
+
+def arena_opponent(state):
+    if state.fight_in_progress and state.current_monster is not None:
+        return state.current_monster
+    return state.arena_display_monster()
+
+
+def encounter_signal(state, monster):
+    """Only encounter changes matter; HP, rounds and page-turn frames do not."""
+    p = state.player
+    outcome = str(state.last_fight_outcome)
+    return {
+        'p': f'{state.active_slot_index}:{p.name}:{p.player_class}:{getattr(state, "current_run_start_wall_time", 0)}',
+        'e': f'{monster.monster_type}:{monster.name}:{monster.level}' if monster else '',
+        'phase': 'combat' if state.fight_in_progress else outcome if outcome in {'victory', 'defeat', 'fled'} else 'idle',
+        'reduced': bool(getattr(state, 'accessibility_reduce_motion', False)),
+    }
+
+
 def item_visual_style(item, game):
     category = game.get_saved_item_category(item) if item is not None else None
     type_color = ITEM_TYPE_COLORS.get(category, '#91a5ab')

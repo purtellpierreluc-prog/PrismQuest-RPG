@@ -14,5 +14,6 @@ def install_desktop_styles(paths, audio_preferences=None):
     ui.add_body_html('<style>' + (assets / 'experience.css').read_text(encoding='utf-8') + '</style>', shared=True)
     ui.add_head_html('<script>' + (assets / 'desktop.js').read_text(encoding='utf-8') + '</script>', shared=True)
     ui.add_head_html('<script>' + (assets / 'inspections.js').read_text(encoding='utf-8') + '</script>', shared=True)
+    ui.add_head_html('<script>' + (assets / 'encounters.js').read_text(encoding='utf-8') + '</script>', shared=True)
     ui.add_head_html('<script>window.pqAudioInitial=' + json.dumps(audio_preferences or {}) + ';</script>', shared=True)
     ui.add_head_html('<script>' + (assets / 'audio.js').read_text(encoding='utf-8') + '</script>', shared=True)

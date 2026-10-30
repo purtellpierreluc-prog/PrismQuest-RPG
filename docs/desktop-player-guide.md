@@ -62,6 +62,14 @@ your comparison. The green/red changes show actual character stat deltas from
 equipping the selection, including proficiency; weapon/spell figures are averages
 before target defenses, not guaranteed damage. Rarity alone is not an upgrade.
 
+The Arena's Last Drop control beside the chain counter remains available during
+the next fight. Hover or focus it to inspect the full latest-drop record, even
+if you already moved or sold that item. It is read-only and resets for a new run;
+it is not a second inventory item. A newer drop replaces the record.
+Quick arrival/result effects do not delay combat and respect reduced motion.
+Colored species edges and atmospheric signatures are flavor; the separately
+labeled blue/silver portrait halo still identifies actual defensive strength.
+
 Character & Stats moves allocation and proficiency away from the combat stage.
 The Chronicle menu holds settings, records, class management and optional scene
 help. First-fight, first-death and level-5 community prompts remain; optional
