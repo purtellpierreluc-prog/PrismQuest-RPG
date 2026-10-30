@@ -5,12 +5,16 @@ import html
 from nicegui import ui
 
 from .experience import (
+    ITEM_TYPE_COLORS,
     chronicle_preview,
     current_result,
     equipment_changes,
+    item_visual_style,
     journey_for,
     labyrinth_progress,
+    monster_defense_cue,
     owned_item_index,
+    saved_archive_marks,
 )
 from .visuals import scene_heading
 
@@ -66,17 +70,16 @@ def render_chronicles(state, game, refresh):
 
 def inspect_item_html(item, game, *, key, caption):
     name = game.safe_item_name(item) if item else 'Empty slot'
-    color = game.RARITY_COLORS.get(getattr(item, 'rarity', ''), '#8fa4ae')
     content = game.build_item_hover_tooltip_html(item) if item else '<div class="pd-subtle">Nothing equipped in this slot.</div>'
     return (f'<button type="button" class="pd-inspect-trigger" data-pd-inspect-key="{text(key)}" '
-            f'aria-label="Inspect equipped {text(caption)}" style="--pd-rarity:{text(color)}">'
+            f'aria-label="Inspect equipped {text(caption)}" style="{text(item_visual_style(item, game))}">'
             f'<span class="pd-inspect-caption">{text(caption)}</span><span class="pd-inspect-name">{text(name)}</span>'
             f'<span class="pd-inspect-tier">{("T" + str(game.item_required_level(item))) if item else "--"}</span>'
             f'<span class="pd-inspect-content" hidden>{content}</span></button>')
 
 
 def render_item_sheet(title, item, game, empty_text):
-    with ui.card().classes('mq-card mq-inv-detail-panel pd-item-sheet w-full'):
+    with ui.card().classes('mq-card mq-inv-detail-panel pd-item-sheet pd-item-surface w-full').style(item_visual_style(item, game)):
         eyebrow(title)
         if item is None:
             ui.label(empty_text).classes('pd-item-empty')
@@ -94,7 +97,14 @@ def render_item_sheet(title, item, game, empty_text):
         ui.label(f'Merchant value / {game.safe_item_sell_value(item)} gold').classes('pd-item-value')
 
 
-def render_manifest_contents(item, game, *, selected=False, saved=False):
+def render_manifest_contents(item, game, *, selected=False, saved=False, archive=False):
+    if archive:
+        with ui.element('div').classes('pd-archive-item-copy'):
+            ui.label(item.rarity.upper()).classes('pd-item-rarity')
+            ui.label(game.equipped_item_display_name(item)).classes('mq-inv-entry-title')
+            ui.label(game.safe_item_base_stat_text(item)).classes('pd-pack-base')
+            ui.html('<span class="mq-manifest-flag selected">Selected</span>' if selected else '<span class="pd-archive-inspect-hint">Hover for full stats</span>')
+        return
     color = game.RARITY_COLORS.get(item.rarity, '#bdc9c9')
     with ui.element('div').classes('pd-pack-entry').style(f'--pd-rarity:{color}'):
         image_plate(game.item_icon_uri(item), item.subtype, 'pd-pack-icon')
@@ -107,6 +117,48 @@ def render_manifest_contents(item, game, *, selected=False, saved=False):
         with ui.element('div').classes('pd-pack-entry-end'):
             ui.label(f'{game.safe_item_sell_value(item)}g').classes('pd-item-value')
             ui.html('<span class="mq-manifest-flag selected">Selected</span>' if selected else '<span class="pd-selection-mark" aria-hidden="true">+</span>')
+
+
+def render_saved_archive(state, view, game, render_entry, toggle):
+    tiers = list(reversed(game.ITEM_BUCKETS)) if state.tier_filter == 'All tiers' else [int(state.tier_filter.replace('Tier', '').strip())]
+    categories = [key for key in game.SAVED_ITEM_SET_ORDER if state.type_filter == 'All types' or game.SAVED_ITEM_SET_LABELS[key] == state.type_filter]
+    if not any(state.saved_item_sets.get(category) for category in game.SAVED_ITEM_SET_ORDER):
+        with ui.element('div').classes('pd-collection-empty pd-archive-empty-message'):
+            ui.label('Your next run starts with what you save.').classes('pd-subtle')
+            ui.label('Save a piece from Inventory to fill its type and tier mark.').classes('pd-comparison-note')
+    with ui.element('div').classes('pd-saved-archive'):
+        for category in categories:
+            label = game.SAVED_ITEM_SET_LABELS[category]
+            marks = saved_archive_marks(category, tiers, view['entries'], state.saved_item_sets)
+            shown = sum(mark.item is not None for mark in marks)
+            stored = sum(mark.occupied for mark in marks)
+            collapsed = bool(state.saved_set_collapsed.get(category, False))
+            with ui.element('section').classes('pd-saved-family').style(f'--pd-type:{ITEM_TYPE_COLORS[category]}'):
+                with ui.element('div').classes('pd-saved-family-heading'):
+                    ui.button(label, icon='chevron_right' if collapsed else 'expand_more',
+                              on_click=lambda family=category: toggle(family)).classes('mq-btn-secondary pd-saved-family-toggle').props(f'aria-label="Toggle {label} saved marks" aria-expanded={str(not collapsed).lower()}')
+                    ui.label(f'{stored} SAVED / {len(marks)} MARKS' + (f' / {shown} SHOWN' if shown != stored else '')).classes('pd-comparison-note')
+                if collapsed:
+                    continue
+                with ui.element('div').classes('pd-saved-tier-grid').props(f'role=listbox aria-label="{label} saved tiers"'):
+                    for mark in marks:
+                        with ui.element('div').classes('pd-saved-mark').props(f'data-saved-category={category} data-saved-tier={mark.tier}'):
+                            ui.label(f'TIER {mark.tier:02}').classes('pd-saved-tier-label')
+                            if mark.item is not None:
+                                render_entry('saved', (category, mark.tier), mark.item, archive=True)
+                            else:
+                                with ui.element('div').classes('pd-saved-empty-mark' + (' filtered' if mark.occupied else '')):
+                                    ui.label('Filtered item' if mark.occupied else 'Empty mark')
+                                    ui.label('Change filters to inspect' if mark.occupied else f'Keep a Tier {mark.tier} {label} here').classes('pd-comparison-note')
+
+
+def render_item_legend(game):
+    types = ''.join(f'<span style="--pd-type:{ITEM_TYPE_COLORS[key]}">{text(label)}</span>' for key, label in game.SAVED_ITEM_SET_LABELS.items())
+    rarities = ''.join(f'<span style="--pd-rarity:{text(color)}">{text(rarity)}</span>' for rarity, color in game.RARITY_COLORS.items() if rarity != 'Unspawnable')
+    ui.html('<details class="pd-item-key"><summary>Border = type / wash = rarity</summary><div class="pd-item-key-popover">'
+            '<b>ITEM TYPE / BORDER</b><div class="pd-item-key-types">' + types + '</div>'
+            '<b>RARITY / BACKGROUND</b><div class="pd-item-key-rarities">' + rarities + '</div>'
+            '<p>Names and icons repeat the color cues. Gold selection markers are separate.</p></div></details>')
 
 
 def render_combat_stats(player):
@@ -292,7 +344,7 @@ def render_arena(state, game, actions):
                                 ui.html(f'<span class="pd-level-earned"><b>+{result.levels}</b>LEVEL</span>')
                         if result.item is not None:
                             item = result.item
-                            with ui.element('div').classes(f'pd-found-item pd-find-tier-{game.item_rarity_sort_key(item)}').style(f'--pd-rarity:{game.RARITY_COLORS.get(item.rarity, "#bec9c9")}'):
+                            with ui.element('div').classes(f'pd-found-item pd-item-surface pd-find-tier-{game.item_rarity_sort_key(item)}').style(item_visual_style(item, game)):
                                 eyebrow('NEW DISCOVERY / ' + item.rarity.upper())
                                 ui.label(game.safe_item_name(item)).classes('pd-found-name')
                                 ui.label(f'Tier {game.item_required_level(item)} / {game.safe_item_base_stat_text(item)}').classes('pd-found-base')
@@ -316,11 +368,14 @@ def render_arena(state, game, actions):
                     ui.label('Test your\nresolve.').classes('pd-idle-title')
                     ui.html('<div class="pd-versus-mark" aria-hidden="true"><span>VS</span></div>')
                     ui.label('Choose your difficulty, call a challenger, and let your build speak.').classes('pd-focus-note')
-            with ui.element('article').classes('pd-combatant pd-enemy'):
+            cue = monster_defense_cue(monster, game.monster_late_game_scale)
+            with ui.element('article').classes('pd-combatant pd-enemy').style(game.monster_theme_style(monster.monster_type if monster else '')).props(f'data-defense={cue.kind}'):
                 with ui.element('div').classes('pd-actor-heading'):
                     eyebrow(('LAST CHALLENGER' if not active else 'YOUR OPPONENT') + (f' / LEVEL {monster.level}' if monster else ''))
                     ui.label(game.monster_species_name(monster.monster_type) if monster else 'The unknown').classes('pd-actor-name')
                     ui.label(getattr(monster, 'monster_personal_name', '') or 'Beyond the next gate').classes('pd-actor-subtitle')
+                    if cue.label:
+                        ui.label(cue.label).classes('pd-defense-cue').props(f'title="{text(cue.description)}"')
                 image_plate(state.arena_monster_uri(monster) if monster else '', monster.monster_type if monster else 'Call a challenger', 'pd-enemy-art')
                 with ui.element('div').classes('pd-actor-resources'):
                     if monster:

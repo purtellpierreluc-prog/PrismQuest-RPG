@@ -15,6 +15,7 @@ from steam_client.storage import AtomicSaveStore
 
 parser = argparse.ArgumentParser()
 parser.add_argument('directory')
+parser.add_argument('--visual-cues', action='store_true', help='Include multiple item families and protected tier marks for UI checks.')
 args = parser.parse_args()
 directory = Path(args.directory).resolve()
 if not directory.is_relative_to(ROOT / '.local-test'):
@@ -38,6 +39,16 @@ for index, slot in enumerate(slots):
                 scene_tutorials_seen={key: True for key in slot['scene_tutorials_seen']},
                 guided_discord_prompt_seen=True, first_death_inn_tutorial_seen=True, vault_capacity=30)
     slot['vault_items'] = [item.to_dict() for item in player.inventory[:15]]
+    if args.visual_cues and index == 0:
+        families = [('weapon', 'Axe'), ('weapon', 'Dagger'), ('weapon', 'Staff'),
+                    ('armor', 'Light'), ('armor', 'Medium'), ('armor', 'Heavy'),
+                    ('charm', 'Fire'), ('charm', 'Ice'), ('charm', 'Lightning')]
+        slot['player']['inventory'] = [game.generate_specific_item(45, family, subtype, rarity).to_dict()
+                                       for family, subtype in families for rarity in ('Common', 'Rare', 'Epic')]
+        for n, (family, subtype) in enumerate(families):
+            tier = game.ITEM_BUCKETS[n]
+            item = game.generate_specific_item(tier, family, subtype, 'Epic' if n % 2 else 'Rare')
+            slot['saved_item_sets'][game.get_saved_item_category(item)] = {str(tier): item.to_dict()}
 store = AtomicSaveStore(paths.save_file, paths.backups)
 store.save(slots)
 state = game.SessionState()

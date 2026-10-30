@@ -66,6 +66,19 @@ Character & Stats moves allocation and proficiency away from the combat stage.
 The Chronicle menu holds settings, records, class management and optional scene
 help. First-fight, first-death and level-5 community prompts remain; optional
 service tutorials no longer interrupt every first visit.
+
+Saved Sets is a separate archive for later runs, grouped by item type and tier.
+Expand/collapse a family to see its marks. Empty marks help plan a future climb;
+"Filtered item" means gear is stored there but does not match your current filters.
+Hover a saved piece for full stats, click to select, then Equip Saved or Restore
+Saved to move it back to your pack. Saving into an occupied type/tier returns the
+previous saved piece to your inventory. Protected gear persists through Prismatic
+Quest into the next run; it is not a duplicate inventory copy.
+
+Item borders identify type; background shading identifies rarity. The small visual
+key explains the colors. Names/icons/text repeat the same information. In Arena,
+silver monster auras indicate high armor and blue high magic resistance for that
+level; labels and exact stats remain visible, and both cues can appear together.
 Settings > Desktop can create a manual backup and open the save folder.
 Do not delete this profile when replacing or uninstalling an alpha build.
 Local save format 2 reads earlier format 1 saves without discarding fields; the

@@ -74,7 +74,9 @@ def main():
         expect(cards).to_have_count(30)
         page.get_by_role('button', name='Saved Sets', exact=True).click()
         page.locator('.pd-collection-empty').wait_for()
-        assert page.locator('.pd-collection-empty').bounding_box()['height'] > 100
+        expect(page.locator('.pd-saved-family')).to_have_count(9)
+        expect(page.locator('.pd-saved-empty-mark')).to_have_count(90)
+        assert not page.locator('.pd-equipment-inspector').count()
         fit('protected-empty')
         page.get_by_role('button', name='Inventory', exact=True).last.click()
         cards.nth(2).click()
@@ -95,7 +97,10 @@ def main():
         page.get_by_role('button', name='Saved Sets', exact=True).click()
         expect(cards).to_have_count(1)
         expect(page.get_by_role('button', name='Equip Saved', exact=True)).to_be_enabled()
-        assert page.locator('.mq-inv-detail-panel').first.inner_text().lower().startswith('protected find')
+        expect(page.locator('.pd-saved-item')).to_have_count(1)
+        page.locator('.pd-saved-item').hover()
+        expect(page.locator('#pd-item-inspection')).to_be_visible()
+        page.mouse.move(600, 100)
         assert page.locator('#mq-pack-manifest-scroll').bounding_box()['height'] > 100
         fit('protected-item')
         page.get_by_role('button', name='Restore Saved', exact=True).click()

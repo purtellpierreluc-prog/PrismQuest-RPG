@@ -8,6 +8,56 @@ from dataclasses import dataclass, field, replace
 LOGGER = logging.getLogger(__name__)
 
 
+ITEM_TYPE_COLORS = {
+    'axe': '#bd947b', 'dagger': '#8eb5a0', 'staff': '#a6a5c2',
+    'light_armor': '#b5b79b', 'medium_armor': '#b59f83', 'heavy_armor': '#bdcbd2',
+    'fire_charm': '#cb977e', 'ice_charm': '#8bbacb', 'lightning_charm': '#bcb17f',
+}
+
+
+def item_visual_style(item, game):
+    category = game.get_saved_item_category(item) if item is not None else None
+    type_color = ITEM_TYPE_COLORS.get(category, '#91a5ab')
+    rarity_color = game.RARITY_COLORS.get(getattr(item, 'rarity', ''), '#9ca3af')
+    return f'--pd-type:{type_color};--pd-rarity:{rarity_color};'
+
+
+@dataclass(frozen=True)
+class SavedMark:
+    tier: int
+    item: object = field(default=None, repr=False, compare=False)
+    occupied: bool = False
+
+
+def saved_archive_marks(category, tiers, entries, saved_sets):
+    """Keep real empty marks distinct from occupied marks hidden by a filter."""
+    matches = {int(key[1]): item for source, key, item in entries if source == 'saved' and key[0] == category}
+    stored = saved_sets.get(category, {})
+    return tuple(SavedMark(tier, matches.get(tier), stored.get(tier, stored.get(str(tier))) is not None) for tier in tiers)
+
+
+@dataclass(frozen=True)
+class DefenseCue:
+    kind: str
+    label: str
+    description: str
+
+
+def monster_defense_cue(monster, level_scale):
+    """Compare actual defenses with this level's normal pre-archetype baseline."""
+    if monster is None:
+        return DefenseCue('none', '', '')
+    level = max(1, int(monster.level))
+    scale = level_scale(level)
+    base_armor = max(1, round(level * scale))
+    base_resist = max(1, round((1 + (level-1)//2 + (monster.damage_school == 'magic')) * scale))
+    armor = monster.physical_armor >= base_armor * 1.3
+    ward = monster.magic_resistance >= base_resist * 1.3
+    kind = 'both' if armor and ward else 'armor' if armor else 'ward' if ward else 'species'
+    label = 'High armor + MR' if armor and ward else 'High armor' if armor else 'High magic resist' if ward else ''
+    return DefenseCue(kind, label, 'Silver marks high physical armor; blue marks high magic resistance, relative to normal defenses at this level. Exact values are below the health bar.')
+
+
 @dataclass(frozen=True)
 class ChroniclePreview:
     occupied: bool

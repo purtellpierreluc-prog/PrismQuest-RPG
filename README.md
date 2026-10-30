@@ -1,4 +1,4 @@
-# PrismQuest Reimagined 0.7.0
+# PrismQuest Reimagined 0.8.0
 
 This is an experience-design fork of the Windows/offline Steam conversion, isolated on `codex/steam-experience-redesign`. It is not a Steam release yet. Nocturne 0.4.0 remains in `SteamEditionVisual`, with rollback tag `steam-nocturne-v0.4.0` at `af00de2`. The original 0.3.0 edition remains in `SteamEdition`. Neither preserved executable nor the hosted web game is replaced.
 
@@ -10,11 +10,19 @@ Screenshots of the new decision loop are included in `docs/experience-redesign.m
 
 The save selector now presents three complete chronicle cards, including the hero, level, gold, victories, pack count and expedition-resume status. All three Open controls fit in the window, including empty chronicles.
 
-Inventory and Saved Sets share a pinned-header/pinned-actions workspace, illustrated item rows, full affix sheets and actual recalculated equipment comparisons. Empty protected collections explain how to start; occupied collections have the same inspection tools as the pack. Lists and details scroll independently rather than extending behind the action bar. Saving, restoring and equipping use the existing item transaction paths.
+Inventory keeps illustrated item rows, full affix sheets and actual recalculated equipment comparisons. Saved Sets is again a dedicated archive, organized into nine collapsible item families with ten visible tier marks apiece, including empty marks for planning future runs. Both keep pinned controls and internal scrolling. Saving, restoring and equipping use the existing item transaction paths.
 
 Arena displays six compact combat numbers: weapon damage, spell damage, critical chance, physical armor, magic resistance and evasion. Equipped slots can be inspected with mouse or keyboard during fights without changing equipment or issuing server requests. The hover stays outside combat's refreshable panels.
 
 The complete previous 0.6.0 build is preserved in `.build-backups\reimagined-0.6.0-e2ced9f\PrismQuest`, with source tag `steam-reimagined-v0.6.0`. See `docs/equipment-workspaces-0.7.md` for validation and screenshots.
+
+## Type, Rarity and Monster Cues
+
+Item frames identify their type; a quiet background wash identifies rarity. This applies to pack/archive items, equipped inspection, detail sheets, discoveries, vault and Marketplace item cards. Names, icons and rarity text remain available without relying on color. Open the small visual key in the workbench/archive for the mapping.
+
+Arena monsters regain subtle aura styling. Ordinary backdrops stay neutral; silver marks high physical armor and blue high magic resistance relative to normal defenses at that monster's level. Both can appear together, with a matching text label; actual combat values remain visible. These are static gradients, not extra animation or polling.
+
+The complete previous 0.7.0 build is preserved in `.build-backups\reimagined-0.7.0-4700146\PrismQuest`, with source tag `steam-reimagined-v0.7.0`. See `docs/archive-visual-language-0.8.md` for implementation and verification.
 
 ## Quiet Soundscape
 

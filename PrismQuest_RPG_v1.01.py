@@ -9147,6 +9147,9 @@ def _hex_to_rgb(color: str) -> Tuple[int, int, int]:
         return (156, 163, 175)
 
 def rarity_edge_style(item: Optional[Item]) -> str:
+    if DESKTOP_MODE:
+        from steam_client.experience import item_visual_style
+        return item_visual_style(item, sys.modules[__name__])
     rarity = str(getattr(item, 'rarity', 'Common') or 'Common') if item is not None else 'Common'
     color = RARITY_COLORS.get(rarity, '#9ca3af')
     r, g, b = _hex_to_rgb(color)
@@ -23790,6 +23793,7 @@ def main_page(request: Request) -> None:
         refresh_detail = None
         refresh_top = None
         refresh_actions = None
+        desktop_action_buttons = {}
 
         def refresh_inventory_views(*, preserve_scroll: bool = True, refresh_manifest_view: bool = True) -> None:
             invalidate_inventory_state_cache()
@@ -23802,7 +23806,10 @@ def main_page(request: Request) -> None:
             if refresh_detail is not None:
                 refresh_detail.refresh()
             if refresh_actions is not None:
-                refresh_actions.refresh()
+                if DESKTOP_MODE:
+                    refresh_actions()
+                else:
+                    refresh_actions.refresh()
             if preserve_scroll:
                 restore_manifest_scroll()
 
@@ -24028,12 +24035,14 @@ def main_page(request: Request) -> None:
                 perform_delete_selected_saved,
             )
 
-        def render_manifest_entry(source: str, key: object, item: Item) -> None:
+        def render_manifest_entry(source: str, key: object, item: Item, *, archive: bool = False) -> None:
             token = state.inventory_selection_token(source, key)
             is_selected = token == state.selected_inventory_key
             is_preview = token == getattr(state, 'hovered_inventory_key', '')
             row_classes = 'mq-item-card selected' if is_selected else ('mq-item-card previewing' if is_preview else 'mq-item-card')
             extra_classes = ' mq-saved-manifest-entry-card' if source == 'saved' else ''
+            if archive:
+                extra_classes += ' pd-saved-item'
             card = ui.card().classes(f'{row_classes} mq-manifest-entry-card{extra_classes} w-full p-2').style(rarity_edge_style(item) + f';--rarity-color:{RARITY_COLORS.get(item.rarity, "#829d98")}')
 
             def select_entry() -> None:
@@ -24056,9 +24065,14 @@ def main_page(request: Request) -> None:
             card.on('click', lambda _e: select_entry())
             if DESKTOP_MODE:
                 card.props(f'tabindex=0 role=option aria-selected={str(is_selected).lower()}')
+                card.props(f'data-item-type={get_saved_item_category(item)} data-item-rarity={item.rarity} data-item-tier={item_required_level(item)}')
                 card.on('keydown.enter', lambda _e: select_entry())
+                if archive:
+                    card.props(f'data-pd-inspect-key="saved-{key[0]}-{key[1]}" aria-label="{html.escape(saved_item_type_label(item), quote=True)} Tier {int(key[1])}"')
                 with card:
-                    experience_ui.render_manifest_contents(item, sys.modules[__name__], selected=is_selected, saved=source == 'saved')
+                    experience_ui.render_manifest_contents(item, sys.modules[__name__], selected=is_selected, saved=source == 'saved', archive=archive)
+                    if archive:
+                        ui.html(build_item_hover_tooltip_html(item)).classes('pd-inspect-content')
                 return
             if not DESKTOP_MODE:
                 card.on('mouseenter', lambda _e: start_preview())
@@ -24117,11 +24131,19 @@ def main_page(request: Request) -> None:
                 ui.label('Affixes').classes('mq-inv-block-title mb-2')
                 ui.html(inventory_affix_detail_html(item))
 
-        with ui.column().classes('mq-inventory-workspace w-full gap-4'):
+        def toggle_saved_family(category: str) -> None:
+            state.saved_set_collapsed[category] = not bool(state.saved_set_collapsed.get(category, False))
+            state.sync_active_slot()
+            refresh_inventory_views()
+
+        workspace_classes = 'mq-inventory-workspace w-full gap-4'
+        if DESKTOP_MODE and state.inventory_view == 'Saved Sets':
+            workspace_classes += ' pd-saved-workspace'
+        with ui.column().classes(workspace_classes):
             with ui.card().classes('mq-card mq-inv-hero-card w-full p-4'):
                 with ui.row().classes('w-full items-start justify-between gap-4 max-[1100px]:flex-wrap'):
                     with ui.column().classes('gap-1 flex-grow'):
-                        ui.label('Build Workbench' if DESKTOP_MODE else 'Inventory & Equipment').classes('mq-inv-title')
+                        ui.label(('Saved Sets' if state.inventory_view == 'Saved Sets' else 'Build Workbench') if DESKTOP_MODE else 'Inventory & Equipment').classes('mq-inv-title')
                         
                     with ui.row().classes('gap-2 flex-wrap'):
                         inventory_view_btn = ui.button('Inventory', on_click=lambda: switch_inventory_view('Inventory')).classes('mq-btn-secondary rounded-lg')
@@ -24138,6 +24160,16 @@ def main_page(request: Request) -> None:
                     entries = view['entries']
                     selected_item = view['selected_item']
                     if DESKTOP_MODE:
+                        if state.inventory_view == 'Saved Sets':
+                            with ui.element('div').classes('pd-archive-overview'):
+                                with ui.element('div'):
+                                    ui.label('YOUR GEAR FOR THE NEXT ASCENT').classes('pd-eyebrow')
+                                    ui.label('Protected across Prismatic Quest runs. One saved piece per type and tier.').classes('pd-subtle')
+                                with ui.element('div').classes('pd-archive-selection'):
+                                    ui.label('SELECTED MARK').classes('pd-eyebrow')
+                                    ui.html(experience_ui.inspect_item_html(selected_item, sys.modules[__name__], key='archive-selected-item', caption='Saved item'))
+                                experience_ui.render_item_legend(sys.modules[__name__])
+                            return
                         with ui.element('div').classes('pd-equipped-rack'):
                             for slot, caption in [('weapon', 'WEAPON'), ('armor', 'ARMOR'), ('charm', 'CHARM')]:
                                 with ui.element('div').classes('pd-equipped-slot'):
@@ -24145,6 +24177,7 @@ def main_page(request: Request) -> None:
                             with ui.element('div').classes('pd-pack-context'):
                                 ui.label(f'{len(entries)} shown / ' + ('Protected items' if state.inventory_view == 'Saved Sets' else f'{len(player.inventory)} in pack')).classes('pd-subtle')
                                 ui.label('Click a find to compare. Equipped slots are always inspectable.').classes('pd-comparison-note')
+                                experience_ui.render_item_legend(sys.modules[__name__])
                         return
                     with ui.row().classes('w-full gap-4 mt-4 max-[1200px]:flex-wrap'):
                         with ui.card().classes('mq-panel-frame mq-inv-top-card mq-inv-equip-card p-4 flex-[0.68] min-w-[200px]'):
@@ -24165,9 +24198,9 @@ def main_page(request: Request) -> None:
             with ui.row().classes('mq-inventory-panes w-full items-stretch gap-4 max-[1250px]:flex-wrap'):
                 with ui.column().classes('pd-pack-column gap-4' if DESKTOP_MODE else 'w-full gap-4' if state.inventory_view == 'Saved Sets' else 'flex-[1.88] min-w-[480px] gap-4'):
                     with ui.card().classes('mq-card mq-inv-manifest-panel w-full p-4'):
-                        ui.label('Protected Collection' if DESKTOP_MODE and state.inventory_view == 'Saved Sets' else 'Pack Manifest').classes('mq-inv-section-title')
+                        ui.label('Type & Tier Archive' if DESKTOP_MODE and state.inventory_view == 'Saved Sets' else 'Pack Manifest').classes('mq-inv-section-title')
                         if DESKTOP_MODE and state.inventory_view == 'Saved Sets':
-                            ui.label('Equip a protected item, or restore it to your pack. One saved item per type and tier.').classes('pd-comparison-note')
+                            ui.label('Expand a family. Select a tier mark to equip or restore; hover any saved piece for its full stats.').classes('pd-comparison-note')
                         
                         with ui.row().classes('w-full gap-3 mt-4 flex-wrap'):
                             tier_select = ui.select([f'All tiers'] + [f'Tier {tier}' for tier in ITEM_BUCKETS], value=state.tier_filter, label='Tier')
@@ -24190,6 +24223,9 @@ def main_page(request: Request) -> None:
                                 entries = view['entries']
                                 inventory_mode = view['inventory_mode']
                                 if DESKTOP_MODE:
+                                    if not inventory_mode:
+                                        experience_ui.render_saved_archive(state, view, sys.modules[__name__], render_manifest_entry, toggle_saved_family)
+                                        return
                                     with ui.column().classes('w-full gap-2').props('role=listbox aria-label="Item collection"'):
                                         for source, key, item in entries:
                                             render_manifest_entry(source, key, item)
@@ -24288,7 +24324,7 @@ def main_page(request: Request) -> None:
                             render_inventory_manifest_entries()
                             refresh_manifest = render_inventory_manifest_entries
 
-                if DESKTOP_MODE or state.inventory_view == 'Inventory':
+                if state.inventory_view == 'Inventory':
                     @ui.refreshable
                     def render_inventory_detail_columns() -> None:
                         view = current_inventory_state()
@@ -24310,6 +24346,24 @@ def main_page(request: Request) -> None:
                     render_inventory_detail_columns()
                     refresh_detail = render_inventory_detail_columns
 
+            def sync_desktop_action_buttons() -> None:
+                view = current_inventory_state()
+                inventory_mode = view['inventory_mode']
+                ready = not state.fight_in_progress
+                selected = view['has_selected_inventory_item'] if inventory_mode else view['has_selected_saved_item']
+                can_equip = bool(selected and can_player_equip_item(player, view['selected_item'])[0])
+                enabled = {
+                    'equip': ready and inventory_mode and can_equip,
+                    'sell': ready and inventory_mode and selected,
+                    'sell_all': ready and inventory_mode and any(entry[0] == 'inventory' for entry in view['entries']),
+                    'save': ready and inventory_mode and selected,
+                    'equip_saved': ready and not inventory_mode and can_equip,
+                    'restore': ready and not inventory_mode and selected,
+                    'delete_saved': ready and not inventory_mode and selected,
+                }
+                for key, button in desktop_action_buttons.items():
+                    button.set_enabled(enabled[key])
+
             @ui.refreshable
             def render_inventory_action_bar() -> None:
                 view = current_inventory_state()
@@ -24330,6 +24384,10 @@ def main_page(request: Request) -> None:
                         close_btn = ui.button('Close', on_click=lambda: (inventory_dialog.close() if popup else close_inventory_scene(), request_render_refresh())).classes('mq-btn-secondary rounded-lg')
 
                         if DESKTOP_MODE:
+                            desktop_action_buttons.update(equip=equip_selected_btn, sell=sell_selected_btn,
+                                                          sell_all=sell_all_btn, save=save_selected_btn,
+                                                          equip_saved=equip_saved_btn, restore=restore_saved_btn,
+                                                          delete_saved=delete_saved_btn)
                             for button in (equip_selected_btn, sell_selected_btn, sell_all_btn, save_selected_btn):
                                 button.set_visibility(inventory_mode)
                             for button in (equip_saved_btn, restore_saved_btn, delete_saved_btn):
@@ -24350,7 +24408,7 @@ def main_page(request: Request) -> None:
                             restore_saved_btn.disable()
                             delete_saved_btn.disable()
             render_inventory_action_bar()
-            refresh_actions = render_inventory_action_bar
+            refresh_actions = sync_desktop_action_buttons if DESKTOP_MODE else render_inventory_action_bar
 
         restore_manifest_scroll()
     if False:  # Inventory popup is deprecated in favor of the full inventory scene.
