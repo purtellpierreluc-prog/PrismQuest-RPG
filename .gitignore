@@ -13,3 +13,10 @@ dist/
 .nicegui/
 masterquest_nicegui_saves.json
 masterquest_nicegui_bazaar.json
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+sandbox-access.key
+realm-preview-identity.json
+pending-local.json
+pending-*.json

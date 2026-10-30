@@ -1,6 +1,8 @@
 # Release Gates and Owner Handoff
 
-This is a Windows offline alpha, not a Steam-ready or legally cleared release.
+This is a Windows alpha with offline play and an opt-in network preview, not a
+Steam-ready or legally cleared release. See `concourse-network-0.10.md` for the
+playable test realm and the explicit hosting/Steam authentication release gates.
 
 ## Account and Platform
 

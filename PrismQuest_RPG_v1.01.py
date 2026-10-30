@@ -30,6 +30,7 @@ DESKTOP_SAVE_STORE = AtomicSaveStore(DESKTOP_PATHS.save_file, DESKTOP_PATHS.back
 DESKTOP_ACTIVE_STATE = None
 DESKTOP_DISPLAY = None
 DESKTOP_AUDIO = None
+DESKTOP_NETWORK = None
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 try:
@@ -25887,6 +25888,11 @@ def main_page(request: Request) -> None:
                 return
             player = state.player
             assert player is not None
+            if DESKTOP_MODE and state.game_tab == 'network' and DESKTOP_NETWORK is not None:
+                from steam_client.realm.ui import render_concourse
+                ui.run_javascript("window.mqSetHotkeysLocked && window.mqSetHotkeysLocked(true); window.mqSetLabyrinthKeysEnabled && window.mqSetLabyrinthKeysEnabled(false);")
+                render_concourse(DESKTOP_NETWORK, sys.modules[__name__], lambda: (state.enter_town(), request_render_refresh()))
+                return
             render_hotkey_action_buttons()
             current_scene_tutorial_key = SCENE_TUTORIAL_TAB_MAP.get(state.game_tab, '') if state.screen == 'game' else ''
             async def handle_fight() -> None:
@@ -28679,7 +28685,7 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
             return True
         if state.screen != 'game':
             return False
-        quiet_tabs = {'ladder', 'guild_hall', 'glossary', 'settings', 'donate', 'profile', 'labyrinth'}
+        quiet_tabs = {'ladder', 'guild_hall', 'glossary', 'settings', 'donate', 'profile', 'labyrinth', 'network'}
         return str(getattr(state, 'game_tab', '') or '') not in quiet_tabs
 
     def maybe_refresh_for_passive_regen() -> None:

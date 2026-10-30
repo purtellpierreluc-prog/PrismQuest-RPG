@@ -1,7 +1,29 @@
 # PrismQuest Reimagined
 
-This build is an offline Windows solo RPG with hireable and permanent companions.
-It is not connected to your web-game account, purchases, ladder, or characters.
+This Windows RPG includes offline chronicles with hireable/permanent companions
+and an optional Concourse network preview. Neither is connected to your web-game
+account, purchases, ladder, or characters.
+
+## The Concourse Preview
+
+Open **Concourse** in Town, or **Concourse / Network** in the Chronicle menu.
+**Enter Test Realm** creates a separate, persistent test character. Its gold,
+equipment, Bazaar listings, couriers, guild and realm ladder never affect solo
+chronicles. Use **Prepare Test Character** once to try the level-45 Labyrinth.
+
+For multiple clients on the same machine, a developer can start the separate
+keyed loopback realm service and connect through **Developer Test Service**.
+Steam authentication and public multiplayer still require the owner's App ID,
+native SDK connection, and a hosted service. Uploading to Steam alone does not
+enable these. The local preview is always marked **NOT STEAM**.
+
+Party invitations use codes. The leader navigates and everyone must ready up.
+The realm resolves battles once for the whole party, not separately per client.
+Disconnecting preserves the checkpoint; **Leave Party** explicitly ends an
+active expedition for everyone while keeping earned progression. Gear/trading
+are locked during a shared expedition. Bazaar purchases and courier deliveries
+arrive in your realm vault. **Refresh Realm** updates chat/market views without
+background polling while you type or inspect items.
 
 ## Install and Launch
 

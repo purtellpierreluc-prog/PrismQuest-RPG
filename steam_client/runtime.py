@@ -92,6 +92,8 @@ def launch(argv=None):
         logging.getLogger().setLevel(logging.INFO)
         AtomicSaveStore(paths.save_file, paths.backups).load()
         game = load_game(paths)
+        from .realm.client import NetworkController
+        game.DESKTOP_NETWORK = NetworkController(paths)
         from nicegui import app, native, ui
 
         from .audio import DesktopAudio

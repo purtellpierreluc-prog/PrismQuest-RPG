@@ -206,6 +206,7 @@ def render_navigation(state, actions, scene):
                 with ui.menu().classes('pd-journal-menu'):
                     for label, callback in [('Character & Stats', lambda: actions['route']('stats')),
                                              ('Chronicle Records', lambda: actions['route']('ladder')),
+                                             ('Concourse / Network', lambda: actions['route']('network')),
                                              ('Glossary', lambda: actions['route']('glossary')),
                                              ('Settings', lambda: actions['route']('settings')),
                                              ('Class Selection', actions['classes']),
@@ -289,6 +290,7 @@ def render_town(state, game, actions):
                         ui.label(detail).classes('pd-service-description')
         with ui.element('footer').classes('pd-town-footer'):
             ui.label(f'{p.wins} victories / {p.losses} defeats / {len(p.inventory)} items in pack').classes('pd-subtle')
+            ui.button('Concourse', icon='public', on_click=lambda: actions['route']('network')).classes('mq-btn-secondary pd-text-btn')
             with ui.button('Town Crier', icon='campaign').classes('mq-btn-secondary pd-text-btn'):  # noqa: SIM117
                 with ui.menu():
                     ui.label(state.town_crier_status_text()).classes('pd-crier-copy')
