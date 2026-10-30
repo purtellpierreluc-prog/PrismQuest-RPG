@@ -5,7 +5,8 @@
   const defaults = {effects_volume: 35, music_volume: 18, muted: false, music_enabled: true,
     combat_enabled: true, rewards_enabled: true, mute_unfocused: true};
   let config = {...defaults, ...(window.pqAudioInitial || {})};
-  let context = null, master = null, effects = null, music = null, undertone = null;
+  let context = null, master = null, effects = null, music = null, undertone = null, score = null;
+  let scoreMode = '', bedLoading = null;
   let boot = null, interacted = false, focused = document.hasFocus(), disposed = false;
   let previous = null, lastLab = null, inCombat = false, lastCombatAt = -Infinity;
   let lastLabCritAt = 0, ducked = false, epoch = 0, lastRewardAt = -Infinity;
@@ -14,6 +15,7 @@
   const counts = Object.create(null), failed = new Set();
   const files = ['ambient', 'undertone', 'impact', 'spell', 'critical', 'encounter', 'victory',
     'level', 'find_soft', 'find_rare', 'find_prismatic'];
+  const chapterFiles = new Set(['story_threshold','story_judging','story_binding','story_fracture','story_ascend','story_complete','story_purchase','prism_bed']);
   const allowed = () => !disposed && !config.muted &&
     (!config.mute_unfocused || (focused && document.visibilityState !== 'hidden'));
   const effectsAllowed = reward => allowed() && config.effects_volume > 0 &&
@@ -64,7 +66,11 @@
   function startLoops() {
     if (!context || !config.music_enabled || config.music_volume <= 0 || !allowed()) return;
     clearTimeout(loopStopTimer);
-    for (const [name, bus] of [['ambient', music], ['undertone', undertone]]) {
+    if (scoreMode === 'rite' && !buffers.has('prism_bed') && !bedLoading) {
+      bedLoading = load('prism_bed').then(() => { if (!disposed && scoreMode === 'rite') applyMix(); });
+    }
+    for (const [name, bus] of [['ambient', music], ['undertone', undertone], ['prism_bed', score]]) {
+      if (name === 'prism_bed' && scoreMode !== 'rite') continue;
       if (loops.has(name) || !buffers.has(name)) continue;
       const source = context.createBufferSource();
       source.buffer = buffers.get(name);
@@ -78,8 +84,15 @@
     if (!context) { status(); return; }
     ramp(effects.gain, config.effects_volume / 100, .08);
     const bed = config.music_enabled ? config.music_volume / 100 : 0;
-    ramp(music.gain, bed * 1.35 * (ducked ? .42 : 1), .8);
+    ramp(music.gain, bed * (scoreMode === 'rite' ? .12 : scoreMode === 'aftermath' ? .24 : 1.35) * (ducked ? .42 : 1), .8);
     ramp(undertone.gain, bed * (inCombat ? .36 : 0) * (ducked ? .42 : 1), 1.5);
+    ramp(score.gain, bed * (scoreMode === 'rite' ? 1.05 : 0) * (ducked ? .65 : 1), .8);
+    if (scoreMode !== 'rite' && loops.has('prism_bed')) {
+      const source = loops.get('prism_bed');
+      loops.delete('prism_bed');
+      source.stop(context.currentTime + .85);
+      source.onended = () => source.disconnect();
+    }
     if (!config.music_enabled || !config.music_volume) {
       clearTimeout(loopStopTimer);
       loopStopTimer = setTimeout(stopLoops, 900);
@@ -110,7 +123,7 @@
   }
   async function load(name) {
     try {
-      const response = await fetch('/desktop-ui/audio/v1/' + name + '.wav', {cache: 'force-cache'});
+      const response = await fetch((chapterFiles.has(name) ? '/desktop-ui/audio/v2/' : '/desktop-ui/audio/v1/') + name + '.wav', {cache: 'force-cache'});
       if (!response.ok) throw new Error('Audio asset unavailable');
       const decoded = await context.decodeAudioData(await response.arrayBuffer());
       buffers.set(name, decoded);
@@ -131,6 +144,7 @@
         effects = context.createGain(); effects.connect(master);
         music = context.createGain(); music.gain.value = 0; music.connect(master);
         undertone = context.createGain(); undertone.gain.value = 0; undertone.connect(master);
+        score = context.createGain(); score.gain.value = 0; score.connect(master);
         context.onstatechange = status;
         boot = Promise.all(files.map(load)).then(() => { if (!disposed) { applyMix(); applyFocus(); } });
       } catch (_) {
@@ -150,7 +164,7 @@
     applyMix();
     duckTimer = setTimeout(() => { ducked = false; applyMix(); }, 2100);
   }
-  function play(name, {reward = false, gain = 1, key = ''} = {}) {
+  function play(name, {reward = false, gain = 1, key = '', chapter = false} = {}) {
     if (!effectsAllowed(reward) || context?.state !== 'running' || !buffers.has(name)) return false;
     if (reward && now()-lastRewardAt < 240) return false;
     if (key && !remember(key)) return false;
@@ -167,7 +181,7 @@
     source.playbackRate.value = reward ? 1 : .985 + Math.random()*.03;
     volume.gain.value = gain;
     source.connect(volume); volume.connect(effects);
-    const voice = {source, volume, reward};
+    const voice = {source, volume, reward, chapter};
     voices.add(voice);
     source.onended = () => { voices.delete(voice); source.disconnect(); volume.disconnect(); };
     source.start();
@@ -187,7 +201,9 @@
     inCombat = !!signal.a;
     if (!old || old.p !== signal.p || !signal.p) {
       cancelRewards(); lastLab = null; lastLabCritAt = 0;
-      stopVoices();
+      // Rebuilding the aftermath with a retired hero must not cut its score.
+      // A real hero change (including quitting to title) still clears voices.
+      if (!old || old.p !== signal.p) stopVoices();
       applyMix();
       return;
     }
@@ -255,6 +271,30 @@
     await (boot || Promise.resolve());
     return play(lootSound(rarity) || 'find_soft', {reward:true, gain:.65, key:'ritual:' + key});
   }
+  function stopChapterVoices() {
+    for (const voice of voices) if (voice.chapter) {
+      ramp(voice.volume.gain,0,.09);
+      try { voice.source.stop(context.currentTime+.1); } catch (_) { /* already ended */ }
+    }
+  }
+  let chapterTicket = 0;
+  function scoreScene(mode) {
+    if (!['','rite','aftermath'].includes(mode)) return;
+    if (scoreMode === mode) return;
+    chapterTicket++;
+    scoreMode = mode;
+    if (!mode) stopChapterVoices();
+    applyMix();
+  }
+  async function chapter(name,key) {
+    if (!chapterFiles.has(name) || name === 'prism_bed' || !interacted || !effectsAllowed(true)) return false;
+    const ticket = ++chapterTicket;
+    await (boot || Promise.resolve());
+    if (!buffers.has(name) && !failed.has(name)) await load(name);
+    if (ticket !== chapterTicket || !effectsAllowed(true) || (name !== 'story_purchase' && !scoreMode)) return false;
+    stopChapterVoices();
+    return play(name,{reward:true,gain:.72,key:'chapter:'+key,chapter:true});
+  }
   function close() {
     disposed = true;
     cancelRewards();
@@ -262,9 +302,10 @@
     stopVoices(); stopLoops();
     if (context && context.state !== 'closed') context.close().catch(() => {});
   }
-  const api = {sync, combatStep, configure, preview, ritual,
+  const api = {sync, combatStep, configure, preview, ritual, chapter, scoreScene,
     inspect: () => ({preferences: {...config}, context: context?.state || 'locked', focused, allowed: allowed(),
-      decoded: buffers.size, failed: [...failed], voices: voices.size, loops: loops.size, dedupKeys: seen.size, played: {...counts}})};
+      decoded: buffers.size, failed: [...failed], voices: voices.size, chapterVoices: [...voices].filter(voice=>voice.chapter).length,
+      scoreMode, loops: loops.size, dedupKeys: seen.size, played: {...counts}})};
   window.PrismAudio = api;
   document.addEventListener('pointerdown', unlock, {passive: true});
   document.addEventListener('keydown', event => { if (!event.repeat && !['Shift','Control','Alt','Meta'].includes(event.key)) unlock(); }, {passive: true});

@@ -13,6 +13,11 @@ try {
     if (-not ([System.IO.Path]::GetFullPath($testRoot)).StartsWith($PSScriptRoot + [System.IO.Path]::DirectorySeparatorChar)) { throw 'Test path escaped the workspace.' }
     & $python -m pytest tests -q --basetemp $testRoot
     if ($LASTEXITCODE -ne 0) { throw 'Regression tests failed.' }
+    $outputExe = Join-Path $PSScriptRoot 'dist\PrismQuest\PrismQuest.exe'
+    $runningBuild = Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -eq $outputExe }
+    if ($runningBuild) {
+        throw 'Close the running PrismQuest game normally before rebuilding. Its installed files have not been replaced.'
+    }
     & $python -m PyInstaller --noconfirm PrismQuestDesktop.spec
     if ($LASTEXITCODE -ne 0) { throw 'Desktop packaging failed.' }
     & $python tools/release_audit.py --directory dist/PrismQuest

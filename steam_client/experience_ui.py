@@ -193,15 +193,19 @@ def render_combat_stats(player):
 
 def render_navigation(state, actions, scene):
     p = state.player
+    rite = getattr(state, '_desktop_ascension', None)
+    locked = bool(state.fight_in_progress or (rite is not None and (
+        rite.busy or rite.pending_verdict is not None or
+        (state.game_tab == 'masterquest' and rite.started and not rite.receipt))))
     with ui.element('header').classes('pd-navigation'):
         ui.html(scene_heading(scene, p.player_class, p.level, state.current_slot_title()))
         with ui.element('div').classes('pd-nav-actions'):
             ui.html(f'<span class="pd-currency"><small>GOLD</small>{p.gold:,}</span>')
             if scene != 'town_square':
                 home = ui.button('Town', icon='home', on_click=actions['town']).classes('mq-btn-secondary pd-nav-btn').props('aria-label="Return to Town"')
-                home.set_enabled(not state.fight_in_progress)
+                home.set_enabled(not locked)
             pack = ui.button('Armory', icon='inventory_2', on_click=actions['inventory']).classes('mq-btn-secondary pd-nav-btn').props('aria-label=Inventory')
-            pack.set_enabled(not state.fight_in_progress)
+            pack.set_enabled(not locked)
             with ui.button('Chronicle', icon='more_horiz').classes('mq-btn-secondary pd-nav-btn').props('aria-label="Chronicle Menu"') as more:  # noqa: SIM117
                 with ui.menu().classes('pd-journal-menu'):
                     for label, callback in [('Character & Stats', lambda: actions['route']('stats')),
@@ -216,7 +220,7 @@ def render_navigation(state, actions, scene):
                         ui.menu_item('Tutorial', on_click=actions['tutorial'])
                     if scene == 'town_square':
                         ui.menu_item('Quit to Title', on_click=actions['title'])
-            more.set_enabled(not state.fight_in_progress)
+            more.set_enabled(not locked)
 
 
 def _journey(state):

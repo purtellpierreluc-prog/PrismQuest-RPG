@@ -1,0 +1,62 @@
+{
+  "files": {
+    "prism_bed": {
+      "peak": 0.05308966711163521,
+      "rms": 0.01677727257447667,
+      "sample_rate": 22050,
+      "seconds": 16.0,
+      "sha256": "2350c2c5cf8fb402a074ac716c4146272a2c6d6121e4ed1cff34150b2a64eb91"
+    },
+    "story_ascend": {
+      "peak": 0.18046027421951294,
+      "rms": 0.030317477023200073,
+      "sample_rate": 22050,
+      "seconds": 5.4,
+      "sha256": "68959b60c7f590fb1a98f5b59ba76095673aa08691f2f790be80d6ea28de4a0e"
+    },
+    "story_binding": {
+      "peak": 0.12067072838544846,
+      "rms": 0.026887642975499063,
+      "sample_rate": 22050,
+      "seconds": 1.9,
+      "sha256": "2c9ee675f2f27341ea7c434c37932a5c46342d1e5e8393f692b0d4a99b633070"
+    },
+    "story_complete": {
+      "peak": 0.2089867889881134,
+      "rms": 0.031214652806715114,
+      "sample_rate": 22050,
+      "seconds": 7.0,
+      "sha256": "db3b3e1600f25a820a6f36ec57dd3ae06d9547e7b61b1d976eea066ab3c79a36"
+    },
+    "story_fracture": {
+      "peak": 0.06888394802808762,
+      "rms": 0.014072253251310902,
+      "sample_rate": 22050,
+      "seconds": 3.4,
+      "sha256": "a342c136daa9358bc9d27558a564671a6942c7e370dba6bf1adf89a976160004"
+    },
+    "story_judging": {
+      "peak": 0.061390724033117294,
+      "rms": 0.019435296294364135,
+      "sample_rate": 22050,
+      "seconds": 1.3500226757369616,
+      "sha256": "cce0ee99b755bf27039524a2c2d5adf4aa3d65d709a589db0d65fe439d4757b7"
+    },
+    "story_purchase": {
+      "peak": 0.08298289775848389,
+      "rms": 0.021064396446250286,
+      "sample_rate": 22050,
+      "seconds": 1.2499773242630385,
+      "sha256": "f5f68742078d5c0ab46425690e54cc14ec41079c58af0fad2cf866bf645532f0"
+    },
+    "story_threshold": {
+      "peak": 0.0739065408706665,
+      "rms": 0.014707383970427495,
+      "sample_rate": 22050,
+      "seconds": 4.4,
+      "sha256": "1541f00a50ca522799c6368a3f4569170526a6f2b7ae067a88dd7abe29d943c4"
+    }
+  },
+  "origin": "Original procedural PrismQuest synthesis; no external recordings or samples.",
+  "version": 2
+}

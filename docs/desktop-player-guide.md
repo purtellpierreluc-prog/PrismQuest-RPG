@@ -41,6 +41,25 @@ The fee is still 2 gold plus one gold per affix across both offerings. There is
 no promise that the result will be stronger. Equipped, saved and vaulted items
 are not consumed by the workbench.
 
+## The Exchange and Prismatic Quest
+
+Marketplace presents three curiosities. Click one to inspect full stats and
+compare against your current equipment. Review Purchase, then confirm its price.
+Purchased gear goes to the pack, not directly onto your hero. Stock changes at
+the existing level milestones, never simply because you reopened the shop.
+
+At level 60, approach Prismatic Quest to review its entry fee, blind matching
+odds and carryover rules before paying. Colors do not reveal correct pairings.
+Choose a light, then a vessel, or drag a light; one wrong offering ends the rite.
+Bound choices stay in place. You can step away between offerings after confirming
+that the entry fee will not be refunded.
+
+The aftermath records the outcome before asking you to continue. Normal success
+and failure end this hero's climb, preserving the existing gear/gold/proficiency
+carryover. Successful completion of the final class preserves your current hero
+and opens the way back to Town or the Labyrinth. The chapter's quiet score uses
+your existing audio settings; reduced motion removes decorative effects.
+
 ## Install and Launch
 
 Keep the complete PrismQuest folder together, including `_internal`.

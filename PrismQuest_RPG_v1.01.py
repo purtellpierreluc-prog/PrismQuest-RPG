@@ -23600,6 +23600,9 @@ def main_page(request: Request) -> None:
                 ui.button('Continue', on_click=lambda: (state.dismiss_masterquest_result_popup(), masterquest_result_dialog.close(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-6 py-3 font-semibold text-lg max-[640px]:w-full')
 
     def sync_masterquest_result_dialog(force: bool = False) -> None:
+        if DESKTOP_MODE and getattr(state, '_desktop_ascension', None) is not None:
+            masterquest_result_dialog.close()
+            return
         popup_open = bool(getattr(state, 'masterquest_result_popup_open', False))
         popup_text = str(getattr(state, 'masterquest_result_popup_text', '') or '')
         popup_tone = str(getattr(state, 'masterquest_result_popup_tone', 'success') or 'success')
@@ -25064,7 +25067,12 @@ def main_page(request: Request) -> None:
         if destination == 'inventory':
             open_inventory_scene()
         elif destination == 'masterquest':
-            state.begin_masterquest()
+            if DESKTOP_MODE:
+                state.screen = 'game'
+                state.game_tab = 'masterquest'
+                state.sync_active_slot()
+            else:
+                state.begin_masterquest()
         else:
             state.open_game_tab(destination)
         request_render_refresh()
@@ -25095,7 +25103,7 @@ def main_page(request: Request) -> None:
             ui.run_javascript("window.mqSetHotkeysLocked && window.mqSetHotkeysLocked(false);")
             return
         bindings = normalize_hotkey_bindings(getattr(state, 'hotkey_bindings', {}))
-        combat_hotkeys_locked = bool(state.current_monster is not None or str(getattr(state, 'game_tab', '') or '') == 'labyrinth')
+        combat_hotkeys_locked = bool(state.current_monster is not None or str(getattr(state, 'game_tab', '') or '') in {'labyrinth', 'masterquest'})
         ui.run_javascript(f"window.mqSetHotkeyBindings && window.mqSetHotkeyBindings({json.dumps(bindings)});")
         ui.run_javascript(f"window.mqSetHotkeysLocked && window.mqSetHotkeysLocked({json.dumps(combat_hotkeys_locked)});")
         with ui.element('div').style('display:none'):
@@ -25244,6 +25252,11 @@ def main_page(request: Request) -> None:
         with ui.column().classes(' '.join(page_classes)) as page_root:
             if DESKTOP_MODE:
                 page_root._props['data-pq-audio'] = json.dumps(audio_signal(state), separators=(',', ':'))
+                rite = getattr(state, '_desktop_ascension', None)
+                if rite is not None and rite.receipt is not None and not rite.acknowledged:
+                    from steam_client.chapter_ui import render_aftermath
+                    render_aftermath(state, sys.modules[__name__], experience_actions())
+                    return
             if state.screen == 'title':
                 title_lang = normalize_ui_language(getattr(state, 'ui_language', DEFAULT_UI_LANGUAGE))
                 t = lambda key, **kwargs: localized_title_text(title_lang, key, **kwargs)
@@ -26882,6 +26895,11 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                         render_bazaar_ledger_card()
                         return
                     elif state.game_tab == 'marketplace':
+                        if DESKTOP_MODE:
+                            from steam_client.chapter_ui import render_market
+                            state.ensure_marketplace_offers(allow_cached=True)
+                            render_market(state, sys.modules[__name__], experience_actions())
+                            return
                         state.ensure_marketplace_offers(force_reroll=False, allow_cached=True)
                         next_reroll = state.get_next_marketplace_reroll_level()
                         next_reroll_text = f'Next shop reroll at level {next_reroll}.' if next_reroll is not None else 'You have reached the final shop reroll tier.'
@@ -27354,6 +27372,10 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                             return
 
                     elif state.game_tab == 'masterquest':
+                        if DESKTOP_MODE:
+                            from steam_client.chapter_ui import render_ascension
+                            render_ascension(state, sys.modules[__name__], experience_actions())
+                            return
                         state.ensure_masterquest_scene_state(False)
                         next_class = season_class_masterquest_next(state.current_slot_season_id()).get(normalize_player_class_name(player.player_class, str(player.player_class or 'Black Guard')))
                         route_label = f'Unlock {next_class}' if next_class else 'Complete the Final Rite'
@@ -28689,7 +28711,7 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
             return True
         if state.screen != 'game':
             return False
-        quiet_tabs = {'ladder', 'guild_hall', 'glossary', 'settings', 'donate', 'profile', 'labyrinth', 'network', 'transmute'}
+        quiet_tabs = {'ladder', 'guild_hall', 'glossary', 'settings', 'donate', 'profile', 'labyrinth', 'network', 'transmute', 'marketplace', 'masterquest'}
         return str(getattr(state, 'game_tab', '') or '') not in quiet_tabs
 
     def maybe_refresh_for_passive_regen() -> None:

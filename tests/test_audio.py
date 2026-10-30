@@ -128,3 +128,37 @@ def test_audio_engine_is_local_event_driven_and_packaged():
     assert 'visibilitychange' in source and "window.addEventListener('blur'" in source
     assert '750' in source and 'seen.size > 128' in source
     assert "'steam_client.audio'" in (ROOT / 'PrismQuestDesktop.spec').read_text()
+
+
+def test_chapter_score_is_original_quiet_and_seamless():
+    folder = ROOT / 'steam_client/static/audio/v2'
+    manifest = json.loads((folder / 'manifest.json').read_text())
+    assert manifest['version'] == 2 and 'no external' in manifest['origin']
+    assert len(manifest['files']) == 8
+    for name, info in manifest['files'].items():
+        path = folder / f'{name}.wav'
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == info['sha256']
+        with wave.open(str(path)) as stream:
+            assert stream.getnchannels() == 1 and stream.getsampwidth() == 2
+            assert stream.getframerate() == 22050
+            samples = array.array('h', stream.readframes(stream.getnframes()))
+        if sys.byteorder != 'little':
+            samples.byteswap()
+        assert max(abs(value) for value in samples) < 32767 * .22
+        assert math.isclose(info['seconds'], len(samples)/22050)
+        assert abs(sum(samples)/len(samples)) < 2
+        if name == 'prism_bed':
+            assert abs(samples[-1]-samples[0]) < 100
+        else:
+            assert abs(samples[0]) < 100 and abs(samples[-1]) < 150
+
+
+def test_chapter_effects_are_finite_and_do_not_expose_answers():
+    source = (ROOT / 'steam_client/static/chapters.js').read_text()
+    assert 'setInterval' not in source and 'requestAnimationFrame' not in source
+    assert 'solution' not in source and 'Infinity' not in source
+    assert 'prefers-reduced-motion' in source and 'visibilitychange' in source
+    engine = (ROOT / 'steam_client/static/audio.js').read_text()
+    assert 'ticket !== chapterTicket' in engine
+    assert 'scoreMode' in engine and '/desktop-ui/audio/v2/' in engine
+    assert 'if (!old || old.p !== signal.p) stopVoices();' in engine
