@@ -1,10 +1,20 @@
-# PrismQuest Reimagined 0.6.0
+# PrismQuest Reimagined 0.7.0
 
 This is an experience-design fork of the Windows/offline Steam conversion, isolated on `codex/steam-experience-redesign`. It is not a Steam release yet. Nocturne 0.4.0 remains in `SteamEditionVisual`, with rollback tag `steam-nocturne-v0.4.0` at `af00de2`. The original 0.3.0 edition remains in `SteamEdition`. Neither preserved executable nor the hosted web game is replaced.
 
 Reimagined changes the information architecture, not just the skin: a battle-first Arena with live rounds and a dedicated reward phase, contextual town goals, an equipment workbench with real recalculated stat trade-offs, click-locked selection, a separate character-build workspace, global navigation, and expedition objectives. Artwork, combat rolls, item ownership, economy and save-format rules are preserved. See `docs/experience-redesign.md` for design, verification and rollback notes.
 
 Screenshots of the new decision loop are included in `docs/experience-redesign.md`.
+
+## Chronicle and Equipment Workspaces
+
+The save selector now presents three complete chronicle cards, including the hero, level, gold, victories, pack count and expedition-resume status. All three Open controls fit in the window, including empty chronicles.
+
+Inventory and Saved Sets share a pinned-header/pinned-actions workspace, illustrated item rows, full affix sheets and actual recalculated equipment comparisons. Empty protected collections explain how to start; occupied collections have the same inspection tools as the pack. Lists and details scroll independently rather than extending behind the action bar. Saving, restoring and equipping use the existing item transaction paths.
+
+Arena displays six compact combat numbers: weapon damage, spell damage, critical chance, physical armor, magic resistance and evasion. Equipped slots can be inspected with mouse or keyboard during fights without changing equipment or issuing server requests. The hover stays outside combat's refreshable panels.
+
+The complete previous 0.6.0 build is preserved in `.build-backups\reimagined-0.6.0-e2ced9f\PrismQuest`, with source tag `steam-reimagined-v0.6.0`. See `docs/equipment-workspaces-0.7.md` for validation and screenshots.
 
 ## Quiet Soundscape
 

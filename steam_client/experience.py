@@ -9,6 +9,31 @@ LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
+class ChroniclePreview:
+    occupied: bool
+    name: str = 'An unwritten legend'
+    player_class: str = ''
+    level: int = 1
+    gold: int = 0
+    wins: int = 0
+    items: int = 0
+    expedition: bool = False
+
+
+def chronicle_preview(slot):
+    """Read only summary fields; never deserialize or rewrite owned equipment."""
+    player = slot.get('player')
+    if not player:
+        return ChroniclePreview(False)
+    if not isinstance(player, dict):
+        return ChroniclePreview(True, name='Record needs attention')
+    return ChroniclePreview(True, str(player.get('name') or 'Adventurer'),
+                            str(player.get('player_class') or ''), max(1, int(player.get('level', 1))),
+                            int(player.get('gold', 0)), int(player.get('wins', 0)),
+                            len(player.get('inventory') or []), bool(slot.get('desktop_labyrinth_run')))
+
+
+@dataclass(frozen=True)
 class Journey:
     title: str
     detail: str

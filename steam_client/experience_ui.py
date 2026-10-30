@@ -5,6 +5,7 @@ import html
 from nicegui import ui
 
 from .experience import (
+    chronicle_preview,
     current_result,
     equipment_changes,
     journey_for,
@@ -28,6 +29,93 @@ def image_plate(uri, alt, classes=''):
             ui.html(f'<img src="{text(uri)}" alt="{text(alt)}" decoding="async" draggable="false">')
         else:
             ui.label(alt).classes('pd-art-fallback')
+
+
+def render_chronicles(state, game, refresh):
+    with ui.element('main').classes('pd-chronicle-workspace'):
+        with ui.element('header').classes('pd-chronicle-heading'):
+            with ui.element('div'):
+                eyebrow('PRISMQUEST / LOCAL CHRONICLES')
+                ui.label('Choose your legend.').classes('pd-chronicle-title')
+                ui.label('Three independent roads. Each keeps its own hero and everything they have earned.').classes('pd-subtle')
+            ui.button('Back to Title', icon='arrow_back', on_click=lambda: (state.return_to_title(), refresh())).classes('mq-btn-secondary')
+        with ui.element('div').classes('pd-chronicle-deck'):
+            for index, (mode, detail, theme) in enumerate([
+                ('Core', 'The classic ascent', 'gold'), ('SSF', 'A self-found chronicle', 'silver'),
+                ('HC', 'A life with consequences', 'blood')]):
+                preview = chronicle_preview(state.slots[index])
+                with ui.element('article').classes(f'pd-save-card pd-save-{theme}'):
+                    with ui.element('div').classes('pd-save-header'):
+                        ui.label(f'0{index+1} / {mode.upper()}').classes('pd-eyebrow')
+                        ui.label('CONTINUE' if preview.occupied else 'NEW CHRONICLE').classes('pd-save-state')
+                    ui.label(detail).classes('pd-save-mode')
+                    image_plate(game._hero_data_uri(preview.player_class) if preview.player_class in game.CLASS_DESCRIPTIONS else '',
+                                preview.player_class or 'Your story begins here', 'pd-save-art')
+                    with ui.element('div').classes('pd-save-description'):
+                        ui.label(preview.name).classes('pd-save-name')
+                        ui.label(f'{preview.player_class} / Level {preview.level}' if preview.occupied else 'Choose a class and begin the climb.').classes('pd-subtle')
+                        if preview.occupied:
+                            ui.html(f'<div class="pd-save-facts"><span><b>{preview.gold:,}</b>GOLD</span><span><b>{preview.wins:,}</b>VICTORIES</span><span><b>{preview.items:,}</b>PACK ITEMS</span></div>')
+                        else:
+                            ui.label('No existing character will be replaced.').classes('pd-comparison-note')
+                    ui.label('EXPEDITION READY TO RESUME' if preview.expedition else 'OFFLINE / SAVED ON THIS MACHINE').classes('pd-save-location')
+                    ui.button('Continue Chronicle' if preview.occupied else 'Begin Chronicle', icon='arrow_forward',
+                              on_click=lambda idx=index: (state.open_slot(idx), refresh())).classes('mq-btn-gold pd-save-open').props(f'aria-label="Open {mode}"')
+        ui.label('Items, vaults, unlocks, companions and expedition progress stay with their chronicle.').classes('pd-chronicle-footer')
+
+
+def inspect_item_html(item, game, *, key, caption):
+    name = game.safe_item_name(item) if item else 'Empty slot'
+    color = game.RARITY_COLORS.get(getattr(item, 'rarity', ''), '#8fa4ae')
+    content = game.build_item_hover_tooltip_html(item) if item else '<div class="pd-subtle">Nothing equipped in this slot.</div>'
+    return (f'<button type="button" class="pd-inspect-trigger" data-pd-inspect-key="{text(key)}" '
+            f'aria-label="Inspect equipped {text(caption)}" style="--pd-rarity:{text(color)}">'
+            f'<span class="pd-inspect-caption">{text(caption)}</span><span class="pd-inspect-name">{text(name)}</span>'
+            f'<span class="pd-inspect-tier">{("T" + str(game.item_required_level(item))) if item else "--"}</span>'
+            f'<span class="pd-inspect-content" hidden>{content}</span></button>')
+
+
+def render_item_sheet(title, item, game, empty_text):
+    with ui.card().classes('mq-card mq-inv-detail-panel pd-item-sheet w-full'):
+        eyebrow(title)
+        if item is None:
+            ui.label(empty_text).classes('pd-item-empty')
+            return
+        color = game.RARITY_COLORS.get(item.rarity, '#bdc9c9')
+        with ui.element('div').classes('pd-item-sheet-heading').style(f'--pd-rarity:{color}'):
+            image_plate(game.item_icon_uri(item), item.subtype, 'pd-item-icon')
+            with ui.element('div'):
+                ui.label(f'{item.rarity.upper()} / TIER {game.item_required_level(item)}').classes('pd-item-rarity')
+                ui.label(game.safe_item_name(item)).classes('pd-item-sheet-name')
+                ui.label(item.subtype).classes('pd-subtle')
+        ui.html(game.inventory_base_detail_html(item))
+        eyebrow('AFFIXES')
+        ui.html(game.inventory_affix_detail_html(item))
+        ui.label(f'Merchant value / {game.safe_item_sell_value(item)} gold').classes('pd-item-value')
+
+
+def render_manifest_contents(item, game, *, selected=False, saved=False):
+    color = game.RARITY_COLORS.get(item.rarity, '#bdc9c9')
+    with ui.element('div').classes('pd-pack-entry').style(f'--pd-rarity:{color}'):
+        image_plate(game.item_icon_uri(item), item.subtype, 'pd-pack-icon')
+        with ui.element('div').classes('pd-pack-entry-copy'):
+            ui.label(f'{item.rarity.upper()} / TIER {game.item_required_level(item)}' + (' / PROTECTED' if saved else '')).classes('pd-item-rarity')
+            ui.label(game.safe_item_name(item)).classes('mq-inv-entry-title')
+            ui.label(game.safe_item_base_stat_text(item)).classes('pd-pack-base')
+            count = max(0, len(item.affix_stats) - 2)
+            ui.label(game.safe_item_affix_preview_text(item) + (f' / +{count} more' if count else '')).classes('pd-pack-affixes')
+        with ui.element('div').classes('pd-pack-entry-end'):
+            ui.label(f'{game.safe_item_sell_value(item)}g').classes('pd-item-value')
+            ui.html('<span class="mq-manifest-flag selected">Selected</span>' if selected else '<span class="pd-selection-mark" aria-hidden="true">+</span>')
+
+
+def render_combat_stats(player):
+    with ui.element('dl').classes('pd-combat-stats').props('aria-label="Champion combat stats"'):
+        for label, value in [('Weapon', f'{player.weapon_attack_min:,}-{player.weapon_attack_max:,}'),
+                             ('Spell', f'{player.spell_attack_min:,}-{player.spell_attack_max:,}'),
+                             ('Crit', f'{player.crit_chance:.1%}'), ('Armor', f'{player.physical_armor:,}'),
+                             ('Resist', f'{player.magic_resistance:,}'), ('Evade', f'{player.evasion:.1%}')]:
+            ui.html(f'<div><dt>{text(label)}</dt><dd>{text(value)}</dd></div>')
 
 
 def render_navigation(state, actions, scene):
@@ -178,6 +266,7 @@ def render_arena(state, game, actions):
                         if popup:
                             ui.html(popup)
                     ui.html(game.animated_meter_html('player-mana', 'MANA', p.mana, max(1, p.max_mana), 'mana', 2600))
+                    render_combat_stats(p)
             with ui.element('section').classes('pd-battle-focus'):
                 if active:
                     eyebrow('LIVE ENCOUNTER')
@@ -288,10 +377,9 @@ def render_arena(state, game, actions):
         with ui.element('div').classes('pd-arena-understory'):
             with ui.element('div').classes('pd-loadout-strip'):
                 eyebrow('YOUR LOADOUT')
-                for slot, label in [('weapon', 'W'), ('armor', 'A'), ('charm', 'C')]:
+                for slot in ('weapon', 'armor', 'charm'):
                     item = p.equipped.get(slot)
-                    button = ui.button(f'{label} / {game.safe_item_name(item) if item else "Empty"}', on_click=actions['inventory']).classes('mq-btn-secondary pd-loadout-item')
-                    button.set_enabled(not active)
+                    ui.html(inspect_item_html(item, game, key=f'arena-equipped-{slot}', caption=slot.title())).classes('pd-loadout-item')
             render_journey(state, game, compact=True)
 
 

@@ -7,6 +7,7 @@ from test_runtime_regressions import sample_item, state_for
 
 from steam_client.experience import (
     begin_battle,
+    chronicle_preview,
     current_result,
     equipment_changes,
     finish_battle,
@@ -141,3 +142,28 @@ def test_actual_payout_observer_does_not_confuse_simulator_copies_with_new_drops
 def test_lab_progress_counts_resolved_tiles_not_generated_tiles():
     row = {'grid_size': 7, 'tile_states': {'0,0': {'resolved': True}, '1,0': {'visited': True}, '2,0': {'visited': False}}}
     assert labyrinth_progress(row) == (1, 49)
+
+
+def test_chronicle_preview_reads_summary_without_touching_save_or_items(game):
+    p = state_for(game).player
+    slot = {'player': p.to_dict(), 'desktop_labyrinth_run': {'version': 1}}
+    before = copy.deepcopy(slot)
+    preview = chronicle_preview(slot)
+    assert preview.occupied and preview.name == p.name and preview.level == p.level
+    assert preview.items == len(p.inventory) and preview.expedition
+    assert slot == before
+    assert not chronicle_preview({'player': None}).occupied
+    assert chronicle_preview({'player': 'unreadable'}).occupied
+
+
+def test_equipment_inspection_is_read_only_and_escaped(game):
+    from steam_client.experience_ui import inspect_item_html
+    item = sample_item(game)
+    item.name = '<script>not markup</script>'
+    before = item.to_dict()
+    markup = inspect_item_html(item, game, key='arena-equipped-weapon', caption='Weapon')
+    assert 'data-pd-inspect-key="arena-equipped-weapon"' in markup
+    assert '&lt;script&gt;' in markup and '<script>' not in markup
+    assert 'disabled' not in markup and 'onclick' not in markup
+    assert item.to_dict() == before
+    assert 'Nothing equipped' in inspect_item_html(None, game, key='empty', caption='Charm')

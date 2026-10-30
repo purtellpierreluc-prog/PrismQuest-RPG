@@ -24034,7 +24034,7 @@ def main_page(request: Request) -> None:
             is_preview = token == getattr(state, 'hovered_inventory_key', '')
             row_classes = 'mq-item-card selected' if is_selected else ('mq-item-card previewing' if is_preview else 'mq-item-card')
             extra_classes = ' mq-saved-manifest-entry-card' if source == 'saved' else ''
-            card = ui.card().classes(f'{row_classes} mq-manifest-entry-card{extra_classes} w-full p-2').style(rarity_edge_style(item))
+            card = ui.card().classes(f'{row_classes} mq-manifest-entry-card{extra_classes} w-full p-2').style(rarity_edge_style(item) + f';--rarity-color:{RARITY_COLORS.get(item.rarity, "#829d98")}')
 
             def select_entry() -> None:
                 state.select_inventory_entry(source, key)
@@ -24054,6 +24054,12 @@ def main_page(request: Request) -> None:
                 refresh_inventory_preview()
 
             card.on('click', lambda _e: select_entry())
+            if DESKTOP_MODE:
+                card.props(f'tabindex=0 role=option aria-selected={str(is_selected).lower()}')
+                card.on('keydown.enter', lambda _e: select_entry())
+                with card:
+                    experience_ui.render_manifest_contents(item, sys.modules[__name__], selected=is_selected, saved=source == 'saved')
+                return
             if not DESKTOP_MODE:
                 card.on('mouseenter', lambda _e: start_preview())
                 card.on('mouseleave', lambda _e: clear_preview())
@@ -24089,6 +24095,9 @@ def main_page(request: Request) -> None:
                                 ui.html("<span class='mq-manifest-flag preview'>Preview</span>")
 
         def render_item_pane(title: str, item: Optional[Item], empty_text: str) -> None:
+            if DESKTOP_MODE:
+                experience_ui.render_item_sheet(title, item, sys.modules[__name__], empty_text)
+                return
             with ui.card().classes('mq-card mq-inv-detail-panel w-full p-3 h-full'):
                 ui.label(title).classes('mq-inv-section-title mb-2')
                 if item is None:
@@ -24132,11 +24141,10 @@ def main_page(request: Request) -> None:
                         with ui.element('div').classes('pd-equipped-rack'):
                             for slot, caption in [('weapon', 'WEAPON'), ('armor', 'ARMOR'), ('charm', 'CHARM')]:
                                 with ui.element('div').classes('pd-equipped-slot'):
-                                    ui.label(caption).classes('pd-eyebrow')
-                                    ui.html(equipped_item_inline_html(player.equipped.get(slot), 'Empty'))
+                                    ui.html(experience_ui.inspect_item_html(player.equipped.get(slot), sys.modules[__name__], key=f'armory-equipped-{slot}', caption=caption.title()))
                             with ui.element('div').classes('pd-pack-context'):
-                                ui.label(f'{len(player.inventory)} in pack / {len(entries)} shown').classes('pd-subtle')
-                                ui.label('Click to lock a find. Compare the trade-offs, then equip.').classes('pd-comparison-note')
+                                ui.label(f'{len(entries)} shown / ' + ('Protected items' if state.inventory_view == 'Saved Sets' else f'{len(player.inventory)} in pack')).classes('pd-subtle')
+                                ui.label('Click a find to compare. Equipped slots are always inspectable.').classes('pd-comparison-note')
                         return
                     with ui.row().classes('w-full gap-4 mt-4 max-[1200px]:flex-wrap'):
                         with ui.card().classes('mq-panel-frame mq-inv-top-card mq-inv-equip-card p-4 flex-[0.68] min-w-[200px]'):
@@ -24155,9 +24163,11 @@ def main_page(request: Request) -> None:
                 refresh_top = render_inventory_top_summary
 
             with ui.row().classes('mq-inventory-panes w-full items-stretch gap-4 max-[1250px]:flex-wrap'):
-                with ui.column().classes('w-full gap-4' if state.inventory_view == 'Saved Sets' else 'flex-[1.88] min-w-[480px] gap-4'):
+                with ui.column().classes('pd-pack-column gap-4' if DESKTOP_MODE else 'w-full gap-4' if state.inventory_view == 'Saved Sets' else 'flex-[1.88] min-w-[480px] gap-4'):
                     with ui.card().classes('mq-card mq-inv-manifest-panel w-full p-4'):
-                        ui.label('Pack Manifest').classes('mq-inv-section-title')
+                        ui.label('Protected Collection' if DESKTOP_MODE and state.inventory_view == 'Saved Sets' else 'Pack Manifest').classes('mq-inv-section-title')
+                        if DESKTOP_MODE and state.inventory_view == 'Saved Sets':
+                            ui.label('Equip a protected item, or restore it to your pack. One saved item per type and tier.').classes('pd-comparison-note')
                         
                         with ui.row().classes('w-full gap-3 mt-4 flex-wrap'):
                             tier_select = ui.select([f'All tiers'] + [f'Tier {tier}' for tier in ITEM_BUCKETS], value=state.tier_filter, label='Tier')
@@ -24179,6 +24189,15 @@ def main_page(request: Request) -> None:
                                 view = current_inventory_state()
                                 entries = view['entries']
                                 inventory_mode = view['inventory_mode']
+                                if DESKTOP_MODE:
+                                    with ui.column().classes('w-full gap-2').props('role=listbox aria-label="Item collection"'):
+                                        for source, key, item in entries:
+                                            render_manifest_entry(source, key, item)
+                                        if not entries:
+                                            with ui.element('div').classes('pd-collection-empty'):
+                                                ui.label('Nothing in this view yet.').classes('pd-save-name')
+                                                ui.label('Reset filters to see other items.' if player.inventory and inventory_mode else 'Use Save Selected in Inventory to protect a piece here.' if not inventory_mode else 'Your next discovery starts in the Arena.').classes('pd-subtle')
+                                    return
                                 if not entries:
                                     empty_text = 'No items match the current filter.' if inventory_mode else 'No saved items match the current filter.'
                                     with ui.card().classes('mq-item-card w-full p-4').style('min-height: 140px; display:flex; align-items:center;'):
@@ -24269,7 +24288,7 @@ def main_page(request: Request) -> None:
                             render_inventory_manifest_entries()
                             refresh_manifest = render_inventory_manifest_entries
 
-                if state.inventory_view == 'Inventory':
+                if DESKTOP_MODE or state.inventory_view == 'Inventory':
                     @ui.refreshable
                     def render_inventory_detail_columns() -> None:
                         view = current_inventory_state()
@@ -24280,7 +24299,7 @@ def main_page(request: Request) -> None:
                             with ui.element('div').classes('pd-equipment-inspector'):
                                 experience_ui.render_equipment_decision(player, selected_item, sys.modules[__name__])
                                 with ui.element('div').classes('pd-compare-sheets'):
-                                    render_item_pane('Selected Find', selected_item, 'Select an item from your pack.')
+                                    render_item_pane('Selected Find' if view['inventory_mode'] else 'Protected Find', selected_item, 'Choose a piece from the collection.')
                                     render_item_pane('Currently Equipped', comparison_item, 'Nothing equipped in this slot.')
                             return
                         with ui.column().classes('flex-[0.76] min-w-[250px] gap-3'):
@@ -24317,6 +24336,8 @@ def main_page(request: Request) -> None:
                                 button.set_visibility(not inventory_mode)
                             if inventory_mode and has_selected_inventory_item:
                                 equip_selected_btn.set_enabled(can_player_equip_item(player, view['selected_item'])[0])
+                            if not inventory_mode and has_selected_saved_item:
+                                equip_saved_btn.set_enabled(can_player_equip_item(player, view['selected_item'])[0])
 
                         if state.fight_in_progress or not inventory_mode or not has_selected_inventory_item:
                             equip_selected_btn.disable()
@@ -25238,6 +25259,9 @@ def main_page(request: Request) -> None:
                                 ui.button(t('open_community_discord'), icon='forum').classes('w-full font-semibold tracking-wide rounded-xl py-3 mt-4 mq-btn-gold')
                 return
             if state.screen == 'chronicle':
+                if DESKTOP_MODE:
+                    experience_ui.render_chronicles(state, sys.modules[__name__], request_render_refresh)
+                    return
                 chronicle_lang = normalize_ui_language(getattr(state, 'ui_language', DEFAULT_UI_LANGUAGE))
                 t = lambda key, **kwargs: localized_title_text(chronicle_lang, key, **kwargs)
                 with ui.row().classes('mq-shell w-full items-stretch gap-6 no-wrap max-[1200px]:flex-wrap'):

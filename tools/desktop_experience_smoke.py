@@ -37,9 +37,13 @@ def main():
                 box = page.get_by_role('button', name=label, exact=True).first.bounding_box()
                 assert box and box['y'] >= 0 and box['y']+box['height'] <= metrics['h'] + 1, (name, label, box)
             for selector in selectors:
-                for element in page.locator(selector).all():
-                    box = element.bounding_box()
-                    assert box and box['y'] >= 0 and box['y']+box['height'] <= metrics['h'] + 1, (name, selector, box)
+                expect(page.locator(selector).first).to_be_visible()
+                # Sample a refreshable combat region in one browser task instead
+                # of retaining nodes across a round's DOM replacement.
+                boxes = page.locator(selector).evaluate_all('els => els.map(e => { const r=e.getBoundingClientRect(); return {y:r.y,height:r.height}; })')
+                assert boxes, (name, selector)
+                for box in boxes:
+                    assert box['height'] > 0 and box['y'] >= 0 and box['y']+box['height'] <= metrics['h'] + 1, (name, selector, box)
             page.screenshot(path=str(out / f'{name}-{metrics["w"]}.png'))
             print(json.dumps({'scene': name, **metrics}), flush=True)
 
@@ -80,7 +84,7 @@ def main():
             page.set_viewport_size({'width': 1280, 'height': 720})
             page.get_by_role('button', name='Inspect This Find', exact=True).click()
             page.locator('.pd-equipment-decision').wait_for()
-            assert page.locator('.mq-inv-detail-panel').first.inner_text().startswith('Selected Find')
+            assert page.locator('.mq-inv-detail-panel').first.inner_text().lower().startswith('selected find')
             check('first-upgrade', ['Equip Selected', 'Close'])
             page.get_by_role('button', name='Equip Selected', exact=True).click()
             page.get_by_role('button', name='Close', exact=True).click()
