@@ -25126,6 +25126,7 @@ def main_page(request: Request) -> None:
                     hotkey_button.disable()
 
     refresh_state = {'pending': False, 'last_at': 0.0, 'dirty': False, 'token': 0}
+    desktop_refresh = None
     labyrinth_view_refs: Dict[str, object] = {'key': None, 'step': None}
 
     def labyrinth_combat_view_key(session_row: Dict[str, object]) -> object:
@@ -25179,6 +25180,9 @@ def main_page(request: Request) -> None:
         return True
 
     def request_render_refresh(*_args, force: bool = False, delay: float = 0.0) -> None:
+        if DESKTOP_MODE and getattr(state, '_desktop_page_refresh', None) is not None:
+            state._desktop_page_refresh.request(force=force, delay=delay)
+            return
         min_gap = 0.25
 
         def _schedule_follow_up(wait_time: float = 0.0) -> None:
@@ -28821,6 +28825,10 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
     if not DESKTOP_MODE:
         ui.timer(2.0, maybe_retry_auth_reconnect)
         normalize_oauth_hash_once()
+    if DESKTOP_MODE:
+        from steam_client.refresh import bind_page_refresh
+        desktop_refresh = bind_page_refresh(ui.context.client, lambda: getattr(render, 'refresh')())
+        state._desktop_page_refresh = desktop_refresh
     render()
     if oauth_consumed:
         ui.run_javascript("if (window.location.search) { window.history.replaceState({}, document.title, window.location.pathname); }")

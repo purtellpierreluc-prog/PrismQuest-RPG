@@ -15,7 +15,8 @@
   const counts = Object.create(null), failed = new Set();
   const files = ['ambient', 'undertone', 'impact', 'spell', 'critical', 'encounter', 'victory',
     'level', 'find_soft', 'find_rare', 'find_prismatic'];
-  const chapterFiles = new Set(['story_threshold','story_judging','story_binding','story_fracture','story_ascend','story_complete','story_purchase','prism_bed']);
+  const riteFiles = new Set(['rite_listen','rite_unseal','rite_ascend','rite_complete']);
+  const chapterFiles = new Set(['story_threshold','story_judging','story_binding','story_fracture','story_ascend','story_complete','story_purchase','prism_bed',...riteFiles]);
   const allowed = () => !disposed && !config.muted &&
     (!config.mute_unfocused || (focused && document.visibilityState !== 'hidden'));
   const effectsAllowed = reward => allowed() && config.effects_volume > 0 &&
@@ -123,7 +124,7 @@
   }
   async function load(name) {
     try {
-      const response = await fetch((chapterFiles.has(name) ? '/desktop-ui/audio/v2/' : '/desktop-ui/audio/v1/') + name + '.wav', {cache: 'force-cache'});
+      const response = await fetch((riteFiles.has(name) ? '/desktop-ui/audio/v3/' : chapterFiles.has(name) ? '/desktop-ui/audio/v2/' : '/desktop-ui/audio/v1/') + name + '.wav', {cache: 'force-cache'});
       if (!response.ok) throw new Error('Audio asset unavailable');
       const decoded = await context.decodeAudioData(await response.arrayBuffer());
       buffers.set(name, decoded);

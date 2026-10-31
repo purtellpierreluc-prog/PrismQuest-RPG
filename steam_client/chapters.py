@@ -1,5 +1,6 @@
 """Decision models for the shop and the rite; existing game rules stay in charge."""
 
+import asyncio
 import copy
 import json
 import logging
@@ -141,6 +142,14 @@ class AscensionResult:
     attempts: int
 
 
+@dataclass
+class Offering:
+    essence: str
+    vessel: str
+    correct: bool = field(repr=False)
+    applied: bool = False
+
+
 class Ascension:
     def __init__(self, state, game):
         self.state, self.game = state, game
@@ -154,6 +163,11 @@ class Ascension:
         self.sequence = 0
         self.last_essence = self.last_vessel = ''
         self._before = None
+        self.offering = None
+        self.target_vessel = ''
+        self.history = []
+        self.phase = 'ritual'
+        self._quick = asyncio.Event()
 
     def brief(self):
         p, g = self.state.player, self.game
@@ -177,12 +191,45 @@ class Ascension:
 
     def select(self, key):
         s = self.state
-        if not self.started or self.busy or self.receipt or self.pending_verdict is not None:
+        if not self.started or self.busy or self.receipt or self.pending_verdict is not None or self.offering:
             raise ChapterError('The prism is not accepting another light yet.')
         if key not in s.masterquest_essence_order or key in s.masterquest_matched_essences:
             raise ChapterError('Choose an unbound light.')
         s.select_masterquest_essence(key)
         s.clear_masterquest_drag()
+        self.target_vessel = ''
+
+    def aim(self, vessel):
+        s = self.state
+        if not self.started or self.busy or self.receipt or self.offering or self.pending_verdict is not None:
+            raise ChapterError('The prism is not accepting another choice yet.')
+        if vessel not in s.masterquest_container_order or vessel in s.masterquest_matched_containers:
+            raise ChapterError('Choose an empty vessel.')
+        if not s.masterquest_active_essence():
+            raise ChapterError('Choose a light first. Nothing has been committed.')
+        self.target_vessel = vessel
+        self.error = ''
+
+    def quick_reveal(self):
+        if self.busy and self.offering:
+            self._quick.set()
+
+    async def commit(self, essence, vessel, refresh):
+        if essence != self.state.masterquest_active_essence() or vessel != self.target_vessel:
+            raise ChapterError('Your pairing changed. Review the displayed light and vessel before committing.')
+        await self.offer(vessel, refresh)
+
+    async def _pause(self, seconds):
+        try:
+            await asyncio.wait_for(self._quick.wait(), seconds)
+        except TimeoutError:
+            pass
+
+    def _notify(self, refresh):
+        try:
+            refresh()
+        except Exception:
+            LOGGER.exception('Offering continues despite interrupted view callback.')
 
     def _settle(self, passed, original):
         s = self.state
@@ -193,13 +240,16 @@ class Ascension:
             self._before = {'name':p.name,'class':p.player_class,'level':p.level,'wins':p.wins,
                             'seconds':s.current_run_elapsed_seconds(),'next':brief['next'],'final':brief['final']}
         old = self._before
-        atomic_progress(s, lambda: original(passed))
-        p = s.player
-        self.receipt = AscensionResult(self.session, passed, bool(passed and old['final']), old['name'], old['class'], old['next'],
-                                       old['level'], old['wins'], old['seconds'], int(p.gold if p else s.shared_gold),
-                                       len(p.inventory) if p else len(s.shared_inventory), len(s.labyrinth_roster_companions),
-                                       int(s.ladder_stats.get(old['class'], {}).get('masterquest_attempts',0)))
+        def settle():
+            original(passed)
+            p = s.player
+            return AscensionResult(self.session, passed, bool(passed and old['final']), old['name'], old['class'], old['next'],
+                                   old['level'], old['wins'], old['seconds'], int(p.gold if p else s.shared_gold),
+                                   len(p.inventory) if p else len(s.shared_inventory), len(s.labyrinth_roster_companions),
+                                   int(s.ladder_stats.get(old['class'], {}).get('masterquest_attempts',0)))
+        self.receipt = atomic_progress(s, settle)
         self.pending_verdict = None
+        self.offering = None
         self.acknowledged = False
         s.dismiss_masterquest_result_popup()
 
@@ -209,30 +259,71 @@ class Ascension:
             raise ChapterError('There is no active offering to submit.')
         if self.busy:
             return
+        if self.offering:
+            raise ChapterError('Continue the committed offering before making another choice.')
         if hero_key(s) != self.owner or s.game_tab != 'masterquest':
             raise ChapterError('The active climb changed. No offering was submitted.')
-        if vessel not in s.masterquest_container_order or vessel in s.masterquest_matched_containers or not s.masterquest_active_essence():
+        essence = s.masterquest_active_essence()
+        if vessel not in s.masterquest_container_order or vessel in s.masterquest_matched_containers or essence not in s.masterquest_solution:
             raise ChapterError('Select an unbound light, then an empty vessel.')
-        self.busy = True
-        self.error = ''
         self.sequence += 1
-        self.last_essence, self.last_vessel = s.masterquest_active_essence(), vessel
-        had_override = 'finish_masterquest_attempt' in s.__dict__
-        override = s.__dict__.get('finish_masterquest_attempt')
-        original = s.finish_masterquest_attempt
-        s.finish_masterquest_attempt = lambda passed: self._settle(passed, original)
+        self.last_essence, self.last_vessel = essence, vessel
+        self.offering = Offering(essence, vessel, s.masterquest_solution[essence] == vessel)
+        self._quick = asyncio.Event()
+        await self._resolve(refresh)
+
+    async def resume(self, refresh):
+        if not self.offering or self.receipt or self.pending_verdict is not None:
+            raise ChapterError('No interrupted offering is waiting.')
+        if not self.busy:
+            await self._resolve(refresh)
+
+    async def _resolve(self, refresh):
+        s, offering = self.state, self.offering
+        self.busy, self.error = True, ''
+        s.masterquest_resolving = True
         try:
-            await s.resolve_masterquest_drop(vessel, refresh)
+            if not offering.applied:
+                self.phase = 'judging'
+                self._notify(refresh)
+                await self._pause(2.7)
+                if hero_key(s) != self.owner:
+                    raise ChapterError('The active hero changed. Return to the original climb to continue.')
+                if offering.correct:
+                    s.masterquest_matched_essences.add(offering.essence)
+                    s.masterquest_matched_containers.add(offering.vessel)
+                    self.history.append((offering.essence, offering.vessel))
+                offering.applied = True
+                s.masterquest_selected_essence = ''
+                s.clear_masterquest_drag()
+            self.phase = 'matched' if offering.correct else 'rejected'
+            self._notify(refresh)
+            await self._pause(1.1)
+            if hero_key(s) != self.owner:
+                raise ChapterError('The active hero changed. Return to the original climb to continue.')
+            if offering.correct and len(s.masterquest_matched_essences) < len(s.masterquest_essence_order):
+                self.offering, self.target_vessel = None, ''
+                self.phase = 'ritual'
+            else:
+                if offering.correct:
+                    self.phase = 'unsealing'
+                    self._notify(refresh)
+                    await self._pause(1.4)
+                    if hero_key(s) != self.owner:
+                        raise ChapterError('The active hero changed. Return to the original climb to continue.')
+                self._settle(offering.correct, s.finish_masterquest_attempt)
         except DesktopTransactionError as exc:
             self.error = str(exc)
+        except asyncio.CancelledError:
+            self.error = 'The reveal was interrupted. Continue your committed offering; its pairing is preserved.'
+            raise
+        except Exception:
+            LOGGER.exception('Offering interrupted; committed pairing retained for recovery.')
+            self.error = 'The reveal was interrupted. Continue the offering without paying again or changing its pairing.'
         finally:
-            if had_override:
-                s.finish_masterquest_attempt = override
-            else:
-                s.__dict__.pop('finish_masterquest_attempt', None)
             self.busy = False
             s.masterquest_resolving = False
-        refresh()
+            self._notify(refresh)
 
     def retry_settlement(self):
         if self.pending_verdict is None or self.receipt:
@@ -249,14 +340,19 @@ class Ascension:
     def signal(self):
         s = self.state
         phase = 'ritual' if self.started else 'threshold'
-        if s.masterquest_resolving:
-            phase = 'matched' if s.masterquest_fading_essences else 'rejected' if s.masterquest_failure_essence else 'judging'
+        if self.busy:
+            phase = self.phase
+        elif self.offering:
+            phase = 'interrupted'
+        elif self.target_vessel and s.masterquest_active_essence():
+            phase = 'ready'
         if self.pending_verdict is not None:
             phase = 'save-error'
         if self.receipt:
             phase = 'final' if self.receipt.final else 'success' if self.receipt.passed else 'failure'
-        return {'key':self.session,'step':self.sequence,'phase':phase,'matched':len(s.masterquest_matched_essences),
+        return {'key':self.session,'step':self.sequence,'phase':phase,'matched':len(self.history),
                 'essence':self.last_essence,'vessel':self.last_vessel,
+                'duration':2700 if phase == 'judging' else 1400 if phase == 'unsealing' else 1100,
                 'reduced':bool(s.accessibility_reduce_motion or s.disable_last_drop_animation)}
 
 

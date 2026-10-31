@@ -130,11 +130,12 @@ def test_audio_engine_is_local_event_driven_and_packaged():
     assert "'steam_client.audio'" in (ROOT / 'PrismQuestDesktop.spec').read_text()
 
 
-def test_chapter_score_is_original_quiet_and_seamless():
-    folder = ROOT / 'steam_client/static/audio/v2'
+@pytest.mark.parametrize('version,count', [(2,8),(3,4)])
+def test_chapter_score_is_original_quiet_and_seamless(version, count):
+    folder = ROOT / f'steam_client/static/audio/v{version}'
     manifest = json.loads((folder / 'manifest.json').read_text())
-    assert manifest['version'] == 2 and 'no external' in manifest['origin']
-    assert len(manifest['files']) == 8
+    assert manifest['version'] == version and 'no external' in manifest['origin']
+    assert len(manifest['files']) == count
     for name, info in manifest['files'].items():
         path = folder / f'{name}.wav'
         assert hashlib.sha256(path.read_bytes()).hexdigest() == info['sha256']

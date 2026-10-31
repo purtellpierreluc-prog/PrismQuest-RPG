@@ -144,7 +144,7 @@ def test_rite_keeps_original_outcome_and_preserves_other_chronicles(game, monkey
             await rite.offer(vessel, lambda: None)
             if rite.receipt:
                 break
-    with patch.object(game.asyncio, 'sleep', immediate):
+    with patch.object(rite, '_pause', immediate):
         asyncio.run(solve())
     assert rite.receipt.passed == passed
     assert state.slots[1:] == others
@@ -182,7 +182,7 @@ def test_failed_settlement_can_retry_without_double_ledger_or_item_loss(game, mo
     essence = state.masterquest_essence_order[0]
     rite.select(essence)
     wrong = next(v for v in state.masterquest_container_order if v != state.masterquest_solution[essence])
-    with patch.object(game.asyncio, 'sleep', immediate):
+    with patch.object(rite, '_pause', immediate):
         asyncio.run(rite.offer(wrong, lambda: None))
     assert rite.receipt is None and rite.pending_verdict is False
     assert state.player is not None and inventory_counts(state) == before
@@ -222,3 +222,99 @@ def test_rite_duplicate_click_during_judgment_is_ignored(game):
     asyncio.run(exercise())
     assert rite.sequence == 1 and len(state.masterquest_matched_essences) == 1
     assert not rite.busy and rite.receipt is None
+
+
+def test_aiming_is_free_and_explicit_commit_is_required(game):
+    state, rite = rite_for(game)
+    rite.enter()
+    before = state.player.to_dict()
+    light = state.masterquest_essence_order[0]
+    rite.select(light)
+    rite.aim(state.masterquest_container_order[0])
+    assert rite.target_vessel and rite.sequence == 0
+    assert state.player.to_dict() == before and not state.masterquest_matched_essences
+    rite.select(state.masterquest_essence_order[1])
+    assert not rite.target_vessel
+
+
+def test_cancelled_offering_can_only_resume_its_committed_pair(game):
+    state, rite = rite_for(game)
+    rite.enter()
+    light = state.masterquest_essence_order[0]
+    vessel = state.masterquest_solution[light]
+    rite.select(light)
+    async def exercise():
+        task = asyncio.create_task(rite.offer(vessel, lambda: None))
+        await asyncio.sleep(.01)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert not rite.busy and rite.offering is not None
+        with pytest.raises(ChapterError):
+            rite.select(state.masterquest_essence_order[1])
+        async def instant(_seconds):
+            return None
+        rite._pause = instant
+        await rite.resume(lambda: None)
+    asyncio.run(exercise())
+    assert rite.sequence == 1 and state.masterquest_matched_essences == {light}
+    assert rite.offering is None and not rite.busy
+
+
+def test_ui_refresh_exception_does_not_abort_an_offering(game):
+    state, rite = rite_for(game)
+    rite.enter()
+    light = state.masterquest_essence_order[0]
+    rite.select(light)
+    async def instant(_seconds):
+        return None
+    rite._pause = instant
+    def broken_view():
+        raise RuntimeError('deleted slot')
+    asyncio.run(rite.offer(state.masterquest_solution[light], broken_view))
+    assert state.masterquest_matched_essences == {light} and not rite.busy
+    assert rite.offering is None
+
+
+def test_quick_reveal_changes_timing_not_the_committed_outcome(game):
+    state, rite = rite_for(game)
+    rite.enter()
+    light = state.masterquest_essence_order[0]
+    rite.select(light)
+    async def exercise():
+        task = asyncio.create_task(rite.offer(state.masterquest_solution[light], lambda: None))
+        await asyncio.sleep(.01)
+        rite.quick_reveal()
+        await asyncio.wait_for(task, .5)
+    asyncio.run(exercise())
+    assert state.masterquest_matched_essences == {light} and rite.sequence == 1
+
+
+def test_receipt_failure_cannot_commit_then_record_a_second_attempt(game, monkeypatch):
+    from steam_client import chapters
+    monkeypatch.setattr(game, 'DESKTOP_MODE', True)
+    state, rite = rite_for(game)
+    rite.enter()
+    items = inventory_counts(state)
+    original = chapters.AscensionResult
+    monkeypatch.setattr(chapters, 'AscensionResult', lambda *args: (_ for _ in ()).throw(ValueError('receipt error')))
+    with pytest.raises(DesktopTransactionError):
+        rite._settle(False, state.finish_masterquest_attempt)
+    assert state.player is not None and inventory_counts(state) == items
+    assert not state.slots[0].get('pq_ledger_entries')
+    monkeypatch.setattr(chapters, 'AscensionResult', original)
+    rite.retry_settlement()
+    assert len(state.slots[0]['pq_ledger_entries']) == 1
+
+
+def test_stale_commit_cannot_risk_a_newly_changed_pair(game):
+    state, rite = rite_for(game)
+    rite.enter()
+    light = state.masterquest_essence_order[0]
+    rite.select(light)
+    first, second = state.masterquest_container_order[:2]
+    rite.aim(first)
+    rite.aim(second)
+    with pytest.raises(ChapterError, match='pairing changed'):
+        asyncio.run(rite.commit(light, first, lambda: None))
+    assert rite.sequence == 0 and rite.offering is None

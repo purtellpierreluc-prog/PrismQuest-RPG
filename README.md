@@ -1,10 +1,29 @@
-# PrismQuest Reimagined 0.12.0
+# PrismQuest Reimagined 0.13.0
 
 This is an experience-design fork of the Windows/offline Steam conversion, isolated on `codex/steam-experience-redesign`. It is not a Steam release yet. Nocturne 0.4.0 remains in `SteamEditionVisual`, with rollback tag `steam-nocturne-v0.4.0` at `af00de2`. The original 0.3.0 edition remains in `SteamEdition`. Neither preserved executable nor the hosted web game is replaced.
 
 Reimagined changes the information architecture, not just the skin: a battle-first Arena with live rounds and a dedicated reward phase, contextual town goals, an equipment workbench with real recalculated stat trade-offs, click-locked selection, a separate character-build workspace, global navigation, and expedition objectives. Artwork, combat rolls, item ownership, economy and save-format rules are preserved. See `docs/experience-redesign.md` for design, verification and rollback notes.
 
 Screenshots of the new decision loop are included in `docs/experience-redesign.md`.
+
+## Stable Views and a More Deliberate Rite
+
+Desktop refreshes now run through one page-owned, awaited queue. Removed panels
+cannot cancel pending scene updates, unfinished asynchronous refreshes cannot
+overlap, and a failed renderer exposes Retry View instead of poisoning the queue.
+Callbacks from an older page use the current view of the same live session.
+
+Prismatic Quest now separates choosing from committing. A longer listening phase,
+clear selected/bound indicators, binding history, a final unsealing and a larger
+class-unlock reveal give the climb room to resolve. Quick Reveal (or Escape)
+shortens presentation only. Interrupted offerings can continue their exact pairing
+without charging again or rerolling. Matching odds and carryover rules are unchanged.
+See `docs/stability-and-rite-0.13.md` for behavior, verification and limitations.
+
+The complete previous build is preserved in
+`.build-backups/reimagined-0.12.0-455fe01/PrismQuest`; source rollback is
+`steam-reimagined-v0.12.0`. The hosted web game and preserved Steam editions remain
+unchanged.
 
 ## The Exchange and the Prism
 

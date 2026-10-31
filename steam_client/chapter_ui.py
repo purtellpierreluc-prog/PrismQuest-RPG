@@ -1,7 +1,6 @@
 """A considered purchase, and a climb brought to its emotional conclusion."""
 
 import json
-import uuid
 
 from nicegui import ui
 
@@ -127,13 +126,14 @@ def render_market(state, game, actions):
 def render_ascension(state, game, actions):
     rite = ascension_for(state, game)
     brief = rite.brief()
-    client = ui.context.client
 
     def refresh():
-        # Judgment outlives the button that submitted it. Schedule on the page,
-        # never on a replaced button's slot or its refresh timer can be lost.
-        with client:
-            actions['refresh']()
+        actions['refresh']()
+
+    def start_drag(key):
+        if not rite.busy and rite.offering is None and rite.pending_verdict is None:
+            state.start_masterquest_drag(key)
+            rite.target_vessel = ''
 
     def enter():
         try:
@@ -150,22 +150,36 @@ def render_ascension(state, game, actions):
             rite.error = str(exc)
         refresh()
 
-    async def submit(key):
+    async def submit(light, key):
         try:
-            await rite.offer(key, refresh)
+            await rite.commit(light, key, refresh)
+        except ChapterError as exc:
+            rite.error = str(exc)
+        refresh()
+
+    def aim(key):
+        try:
+            rite.aim(key)
+        except ChapterError as exc:
+            rite.error = str(exc)
+        refresh()
+
+    async def resume():
+        try:
+            await rite.resume(refresh)
         except ChapterError as exc:
             rite.error = str(exc)
         refresh()
 
     def retreat():
         state.reset_masterquest_scene_state()
-        rite.started = False
-        rite.session = uuid.uuid4().hex
+        state._desktop_ascension = None
         state.enter_town()
         refresh()
 
     with ui.element('section').classes('ps-scene') as scene:
         scene._props['data-ps-signal'] = json.dumps(rite.signal(), separators=(',', ':'))
+        scene._props['data-ps-phase'] = rite.signal()['phase']
         if not rite.started:
             with ui.element('div').classes('ps-threshold-art'):
                 ui.html(f'<img class="ps-prism" src="{text(game.get_masterquest_prism_data_uri())}" alt="The black prism" decoding="async">'
@@ -207,17 +221,35 @@ def render_ascension(state, game, actions):
             return
         with ui.element('header').classes('ps-rite-header'):
             with ui.element('div'):
-                eyebrow('THE RITE / ONE LIGHT AT A TIME')
-                ui.label('Let the silence answer.').classes('ps-section-title')
-            ui.label(f'{len(state.masterquest_matched_essences)} / {len(state.masterquest_essence_order)} LIGHTS BOUND').classes('ps-bound-count')
+                eyebrow('THE RITE / EVERY CHOICE BECOMES PART OF THE CLIMB')
+                ui.label('Offer a little of your light.').classes('ps-section-title')
+            with ui.element('div').classes('ps-progress'):
+                ui.label(f'{len(rite.history)} / {len(state.masterquest_essence_order)} LIGHTS BOUND').classes('ps-bound-count')
+                ui.html(''.join(f'<span class="{"bound" if i < len(rite.history) else ""}" aria-hidden="true"></span>' for i in range(len(state.masterquest_essence_order))))
+        phase = rite.signal()['phase']
+        locked = rite.busy or rite.offering is not None or rite.pending_verdict is not None
+        active = state.masterquest_active_essence()
+        def number(key, family):
+            keys = game.MASTERQUEST_ESSENCE_KEYS if family == 'light' else game.MASTERQUEST_VESSEL_KEYS
+            return str(keys.index(key)+1) if key in keys else '-'
         with ui.element('div').classes('ps-ritual-layout'):
             with ui.element('aside').classes('ps-ritual-guide'):
-                image_plate(game._hero_data_uri(state.player.player_class), state.player.player_class, 'ps-current-hero')
-                ui.label(state.player.name).classes('ps-section-title')
-                ui.label(state.player.player_class).classes('pd-subtle')
-                eyebrow('THE PROMISE')
-                ui.label(brief['next'] or 'Final victory').classes('ps-destination')
-                ui.label('Select a light, then offer it to a vessel. You can also drag the light. Colors and positions do not reveal the hidden pairing.').classes('pd-subtle')
+                with ui.element('div').classes('ps-guide-reading'):
+                    image_plate(game._hero_data_uri(state.player.player_class), state.player.player_class, 'ps-current-hero')
+                    ui.label(state.player.name).classes('ps-section-title')
+                    ui.label(state.player.player_class).classes('pd-subtle')
+                    eyebrow('THE PROMISE')
+                    ui.label(brief['next'] or 'Final victory').classes('ps-destination')
+                    ui.label('Choose a light. Choose its vessel. Commit only when you are ready.').classes('ps-guide-copy')
+                    remaining = len(state.masterquest_essence_order)-len(rite.history)
+                    ui.label(f'Next blind pick / 1 in {max(1,remaining)}').classes('ps-pick-odds')
+                    ui.label('Colors are not clues. One wrong binding ends the rite.').classes('pd-comparison-note')
+                    with ui.element('div').classes('ps-binding-ledger'):
+                        eyebrow('THE LIGHTS YOU HAVE BOUND')
+                        if not rite.history:
+                            ui.label('Your first offering is still unwritten.').classes('pd-comparison-note')
+                        for light, vessel in rite.history:
+                            ui.label(f'Light {number(light,"light")} / Vessel {number(vessel,"vessel")} / Bound').classes('ps-bound-entry')
                 ui.label(f'Entry paid / {brief["cost"]}g').classes('ps-entry-paid')
                 if rite.pending_verdict is not None:
                     ui.label(rite.error).classes('ps-error')
@@ -228,6 +260,9 @@ def render_ascension(state, game, actions):
                             rite.error = str(exc)
                         refresh()
                     ui.button('Retry Saving Outcome', on_click=retry).classes('mq-btn-gold')
+                elif rite.offering and not rite.busy:
+                    ui.label(rite.error).classes('ps-error')
+                    ui.button('Continue Offering', on_click=resume).classes('mq-btn-gold')
                 elif not rite.busy:
                     if getattr(rite, 'want_leave', False):
                         ui.label('Leave the unfinished rite? Entry is not refunded; this hero can keep climbing.').classes('ps-risk')
@@ -239,30 +274,47 @@ def render_ascension(state, game, actions):
                 with ui.element('div').classes('ps-vessels').props('role=group aria-label="Hidden vessels"'):
                     for key in state.masterquest_container_order:
                         matched = key in state.masterquest_matched_containers
-                        number = game.MASTERQUEST_VESSEL_KEYS.index(key)+1
-                        button = ui.button(on_click=lambda vessel=key: submit(vessel)).classes('ps-vessel' + (' bound' if matched else '')).props(f'data-ps-vessel={key} aria-label="Offer to vessel {number}"')
+                        label = number(key,'vessel')
+                        aimed = rite.target_vessel == key
+                        verdict = key == rite.last_vessel and phase in {'matched','rejected','unsealing'}
+                        styles = (' bound' if matched else '') + (' selected' if aimed else '') + (' rejected' if verdict and phase == 'rejected' else '')
+                        button = ui.button(on_click=lambda vessel=key: aim(vessel)).classes('ps-vessel' + styles).props(f'data-ps-vessel={key} aria-label="Choose vessel {label}" aria-pressed={str(aimed).lower()}')
                         with button:
-                            ui.html(f'<span class="ps-vessel-rune" aria-hidden="true">{number:02}</span><span class="ps-vessel-bowl" aria-hidden="true"></span><b>{"BOUND" if matched else "VESSEL " + str(number)}</b>')
+                            ui.html(f'<span class="ps-vessel-rune" aria-hidden="true">{label.zfill(2)}</span><span class="ps-vessel-bowl" aria-hidden="true">{"<span class=material-icons>check</span>" if matched else ""}</span><b>{"BOUND" if matched else "CHOSEN" if aimed else "VESSEL " + label}</b>')
                         button.on('dragover', js_handler='event => event.preventDefault()')
-                        button.on('drop', lambda _e, vessel=key: submit(vessel))
-                        button.set_enabled(not matched and not rite.busy and rite.pending_verdict is None)
+                        button.on('drop', lambda _e, vessel=key: aim(vessel))
+                        button.set_enabled(not matched and not locked)
                 with ui.element('div').classes('ps-prism-stage'):
-                    ui.html(f'<img class="ps-prism" src="{text(game.get_masterquest_prism_data_uri())}" alt="The prism weighs the offering" decoding="async"><div class="ps-halo" aria-hidden="true"></div><div class="ps-prism-trace" aria-hidden="true"></div>')
-                    phase = rite.signal()['phase']
-                    heading = 'The chamber holds its breath.' if phase == 'judging' else 'The light found a home.' if phase == 'matched' else 'The silence breaks.' if phase == 'rejected' else 'Choose a light. Choose a vessel.'
-                    ui.label(heading).classes('ps-chamber-caption').props('role=status')
+                    ui.html(f'<img class="ps-prism" src="{text(game.get_masterquest_prism_data_uri())}" alt="The prism weighs the offering" decoding="async"><div class="ps-halo" aria-hidden="true"></div><div class="ps-prism-trace" aria-hidden="true"></div><div class="ps-binding-bloom" aria-hidden="true"></div><div class="ps-listen-track" aria-hidden="true"><span></span></div>')
+                    headings = {'judging':'The prism is listening.','matched':'Your light holds.','rejected':'The light slips away.','unsealing':'The last seal is opening.','interrupted':'Your offering is waiting.','save-error':'Your outcome is waiting to be saved.'}
+                    heading = headings.get(phase, 'Two choices. One promise.' if rite.target_vessel else 'Where will your light belong?')
+                    with ui.element('div').classes('ps-stage-copy'):
+                        eyebrow('03 / THE ANSWER' if locked else '02 / COMMIT WHEN READY' if rite.target_vessel else '01 / CHOOSE YOUR PAIRING')
+                        ui.label(heading).classes('ps-chamber-caption').props('role=status')
+                        whisper = 'Gathering your light. Weighing the silence. Awaiting an answer.' if phase == 'judging' else 'A new legend waits beyond the glass.' if phase == 'unsealing' else 'Select a vessel above. Your choice is not committed yet.' if active and not rite.target_vessel else 'Choose one of your unbound lights below.'
+                        ui.label(whisper).classes('ps-whisper')
                 with ui.element('div').classes('ps-essences').props('role=group aria-label="Unbound lights"'):
                     for key in state.masterquest_essence_order:
                         matched = key in state.masterquest_matched_essences
-                        number = game.MASTERQUEST_ESSENCE_KEYS.index(key)+1
+                        label = number(key,'light')
                         selected = state.masterquest_active_essence() == key
-                        button = ui.button(on_click=lambda essence=key: select(essence)).classes('ps-essence' + (' selected' if selected else '') + (' bound' if matched else '')).props(f'data-ps-essence={key} draggable=true aria-label="Select light {number}" aria-pressed={str(selected).lower()}')
+                        button = ui.button(on_click=lambda essence=key: select(essence)).classes('ps-essence' + (' selected' if selected else '') + (' bound' if matched else '')).props(f'data-ps-essence={key} draggable={str(not locked and not matched).lower()} aria-label="Select light {label}" aria-pressed={str(selected).lower()}')
                         with button:
-                            ui.html(f'<img src="{text(state.masterquest_essence_visuals.get(key,""))}" alt="" decoding="async" draggable="false"><b>{"BOUND" if matched else "LIGHT " + str(number)}</b>')
-                        button.on('dragstart', lambda _e, essence=key: state.start_masterquest_drag(essence))
+                            ui.html(f'<img src="{text(state.masterquest_essence_visuals.get(key,""))}" alt="" decoding="async" draggable="false"><b>{"BOUND" if matched else "CHOSEN / LIGHT " + label if selected else "LIGHT " + label}</b>')
+                        button.on('dragstart', lambda _e, essence=key: start_drag(essence))
                         button.on('dragend', lambda: state.clear_masterquest_drag())
-                        button.set_enabled(not matched and not rite.busy and rite.pending_verdict is None)
-                ui.label(rite.error or 'Each vessel is unique. One mistake ends the rite. The colors are not clues.').classes('ps-chamber-note')
+                        button.set_enabled(not matched and not locked)
+                with ui.element('footer').classes('ps-commit-zone'):
+                    with ui.element('div').classes('ps-pair-summary'):
+                        ui.label(f'LIGHT {number(rite.last_essence,"light")} / VESSEL {number(rite.last_vessel,"vessel")}' if locked else f'LIGHT {number(active,"light")} / VESSEL {number(rite.target_vessel,"vessel")}').classes('ps-choice-summary')
+                        ui.label(rite.error or ('Offering committed. Let the prism answer.' if locked else 'Nothing is spent by choosing. Commit this pairing when ready.')).classes('ps-chamber-note')
+                    if rite.busy:
+                        ui.button('Quick Reveal', icon='fast_forward', on_click=rite.quick_reveal).classes('mq-btn-secondary ps-quick')
+                    elif rite.offering and rite.pending_verdict is None:
+                        ui.button('Continue Offering', on_click=resume).classes('mq-btn-gold')
+                    else:
+                        commit = ui.button('Commit Offering', icon='flare', on_click=lambda light=active, vessel=rite.target_vessel: submit(light, vessel)).classes('mq-btn-gold ps-commit')
+                        commit.set_enabled(bool(active and rite.target_vessel and not locked))
 
 
 def render_aftermath(state, game, actions):
@@ -295,6 +347,13 @@ def render_aftermath(state, game, actions):
                     eyebrow('THE FULL PATH, COMPLETED' if receipt.final else 'A NEW LEGEND, UNLOCKED' if receipt.passed else 'THE LIGHT WENT QUIET')
                     ui.label('You became\nthe light.' if receipt.final else 'The prism\nremembers you.' if receipt.passed else 'The climb\nstill mattered.').classes('ps-outcome-title').props('role=heading aria-level=1 tabindex=-1')
                     ui.label('The whole class path stands behind you. Your hero remains; the Labyrinth still calls.' if receipt.final else f'{receipt.next_class} is now yours to begin. This chapter ends, but what you carried through it remains.' if receipt.passed else 'The prism refused the offering, not the story. This attempt is recorded. Your remaining gold, gear and proficiency carry into the next climb.').classes('ps-outcome-story')
+                    if receipt.passed and not receipt.final:
+                        with ui.element('div').classes('ps-unlock-card'):
+                            image_plate(game._hero_data_uri(receipt.next_class), receipt.next_class, 'ps-unlock-art')
+                            with ui.element('div'):
+                                eyebrow('YOUR NEXT LEGEND / NOW UNLOCKED')
+                                ui.label(receipt.next_class).classes('ps-unlock-name')
+                                ui.label('Your climb made this possible.').classes('pd-subtle')
                     with ui.element('div').classes('ps-legacy-facts'):
                         for title, value in [('VICTORIES',f'{receipt.victories:,}'),('TIME ON THIS CLIMB',game.format_duration(receipt.seconds)),('CLASS ATTEMPTS',str(receipt.attempts))]:
                             ui.html(f'<span><small>{text(title)}</small><b>{text(value)}</b></span>')

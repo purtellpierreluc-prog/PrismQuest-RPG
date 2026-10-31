@@ -50,9 +50,21 @@ the existing level milestones, never simply because you reopened the shop.
 
 At level 60, approach Prismatic Quest to review its entry fee, blind matching
 odds and carryover rules before paying. Colors do not reveal correct pairings.
-Choose a light, then a vessel, or drag a light; one wrong offering ends the rite.
-Bound choices stay in place. You can step away between offerings after confirming
+Choose a light, then a vessel, or drag a light to aim the pairing. Neither action
+commits it. Review the named pair and press **Commit Offering** when ready; one
+wrong offering ends the rite. The prism listens, then a correct binding lights up
+and joins your binding history. The last seal opens before the climb's aftermath.
+**Quick Reveal**, or Escape while waiting, shortens the presentation without
+changing its result. Bound choices stay in place. You can step away between offerings after confirming
 that the entry fee will not be refunded.
+
+If a reveal is interrupted while the game process remains open, **Continue
+Offering** resumes its committed pair. It does not spend another fee or roll a
+new pairing. A failed save offers **Retry Saving Outcome**. Unfinished rites are
+not new cross-process save checkpoints, so do not quit the game to reroll them.
+
+If a screen update fails, **Retry View** redraws the current state without
+resetting your run. Render errors are recorded in the local desktop log.
 
 The aftermath records the outcome before asking you to continue. Normal success
 and failure end this hero's climb, preserving the existing gear/gold/proficiency

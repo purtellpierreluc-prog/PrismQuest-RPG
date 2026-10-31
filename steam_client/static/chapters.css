@@ -170,3 +170,69 @@
   .ps-legacy-facts { padding:8px 0; }.ps-legacy-facts b { font-size:18px; }
   .ps-what-endures .pd-subtle { font-size:11px; }.ps-kept { font-size:13px; }
 }
+
+/* The offering has a clear sequence: choose, commit, listen, bind. */
+.ps-progress { display:flex; flex-direction:column; align-items:flex-end; gap:9px; }
+.ps-progress > div:last-child { display:flex; gap:7px; }
+.ps-progress span { display:block; width:22px; height:5px; border:1px solid #809183; background:#17231f; transform:skewX(-25deg); }
+.ps-progress span.bound { border-color:#e1d7a6; background:#d5d7ad; box-shadow:0 0 9px #c4dca84a; }
+.ps-ritual-layout { grid-template-columns:230px minmax(0,1fr); }
+.ps-ritual-guide { gap:10px; overflow:hidden; }
+.ps-guide-reading { display:flex; flex-direction:column; gap:10px; min-height:0; flex:1 1 0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; }
+.ps-guide-reading > *,.ps-ritual-guide > :not(.ps-guide-reading) { flex-shrink:0; }
+.ps-current-hero { height:95px; flex-shrink:0; }
+.ps-guide-copy { color:#c3d2c5; font:400 14px/1.5 var(--pq-sans); }
+.ps-pick-odds { color:#ddcfaa; font:600 15px/1.4 var(--pq-sans); }
+.ps-binding-ledger { display:flex; flex-direction:column; gap:8px; margin:7px 0; padding-top:12px; border-top:1px solid #465b4b; }
+.ps-bound-entry { color:#c4d9b8; font:400 12px/1.4 var(--pq-sans); }
+.ps-chamber { grid-template-rows:95px minmax(90px,1fr) 90px 66px; gap:12px; padding:16px; }
+.ps-chamber .ps-prism-stage { align-items:center; flex-direction:column; justify-content:flex-end; }
+.ps-prism-stage .ps-prism { height:86%; max-width:260px; top:-2%; }
+.ps-prism-stage .ps-halo { width:185px; height:185px; top:0; border-color:#b6c9ac66; box-shadow:0 0 0 20px #8ebc9007,0 0 0 45px #adc7ac06; }
+.ps-stage-copy { z-index:3; display:flex; flex-direction:column; gap:8px; align-items:center; width:100%; padding:15px 6px 2px; background:linear-gradient(transparent,#10181ce8 35%); }
+.ps-chamber-caption { padding:0; background:none; font-size:28px; line-height:1.15; }
+.ps-whisper { color:#aebfb2; text-align:center; font:400 13px/1.4 var(--pq-sans); }
+.ps-binding-bloom { position:absolute; inset:8%; border-radius:50%; background:radial-gradient(ellipse,#cbdc9166,#8cb4ae18 50%,transparent 70%); opacity:0; pointer-events:none; }
+.ps-listen-track { position:absolute; top:3px; left:30%; width:40%; height:3px; background:#9eb58a22; opacity:0; }
+.ps-listen-track span { display:block; height:100%; background:linear-gradient(90deg,#789f8f,#e1d7a7); transform-origin:left; }
+.ps-stage-copy .pd-eyebrow { font-size:10px; }
+.mq-desktop .ps-vessel.selected { background:radial-gradient(ellipse,#d9cd9c22,transparent 75%),#26332b; border:2px solid #e3cfa0; box-shadow:inset 0 0 0 2px #b9aa6f22; }
+.ps-vessel-bowl { display:grid; place-items:center; }
+.ps-vessel-bowl .material-icons { color:#c9e9bc; font-size:22px; }
+.ps-vessel.bound,.ps-essence.bound { opacity:.72!important; border-color:#87b28a!important; background:#23372f!important; }
+.mq-desktop .ps-vessel.rejected { border-color:#bb886f; background:#372822; }
+.ps-vessel-rune { font-size:24px; }
+.ps-essence b,.ps-vessel b { font-size:10px; }
+.ps-commit-zone { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:15px; border-top:1px solid #53624c; padding-top:10px; }
+.ps-pair-summary { min-width:0; display:flex; flex-direction:column; gap:6px; }
+.ps-choice-summary { font:600 13px/1.3 var(--pq-sans); color:#e1d4ac; letter-spacing:.08em; }
+.ps-commit-zone .ps-chamber-note { text-align:left; font-size:11px; line-height:1.3; }
+.ps-commit-zone .q-btn { min-height:44px; min-width:160px; }
+.ps-scene[data-ps-phase="judging"] .ps-chamber { border-color:#b1b18a; }
+.ps-scene[data-ps-phase="matched"] .ps-chamber,.ps-scene[data-ps-phase="unsealing"] .ps-chamber { border-color:#c5d5a2; background:radial-gradient(ellipse,#6a8e6830,transparent 72%),#111b1c; }
+.ps-unlock-card { display:flex; align-items:center; gap:18px; padding:10px 18px; border:1px solid #8e9d72; border-radius:4px; background:radial-gradient(ellipse at 20% 50%,#a9bf6033,transparent 65%),#263029; }
+.ps-unlock-art { width:95px; height:100px; flex-shrink:0; }
+.ps-unlock-name { color:#e1d4a9; font:400 28px/1.3 var(--pq-serif); margin:8px 0; }
+.ps-aftermath.victory .ps-aftermath-art { background:radial-gradient(ellipse at 50% 48%,#aecf8a35,#445e4612 55%,transparent 75%),#11191c; }
+@media(max-height:720px) {
+  .ps-chamber { grid-template-rows:80px minmax(80px,1fr) 78px 60px; gap:10px; padding:12px; }
+  .ps-ritual-layout { grid-template-columns:205px minmax(0,1fr); }
+  .ps-chamber-caption { font-size:24px; }.ps-essence img { height:45px; }
+  .ps-ritual-guide .ps-current-hero { height:70px; }.ps-unlock-art { width:65px; height:75px; }
+  .ps-unlock-name { font-size:24px; margin:4px 0; }
+}
+@media(max-height:550px) {
+  .ps-chamber { grid-template-rows:60px minmax(65px,1fr) 60px 58px; gap:7px; padding:9px; }
+  .ps-ritual-layout { grid-template-columns:165px minmax(0,1fr); }
+  .ps-rite-header .ps-section-title { font-size:19px; }.ps-bound-count { font-size:11px; }
+  .ps-chamber-caption { font-size:20px; }.ps-whisper { font-size:11px; }
+  .ps-stage-copy { gap:4px; padding-top:8px; }.ps-prism-stage .ps-halo { width:110px; height:110px; }
+  .ps-commit-zone .q-btn { min-height:38px; min-width:125px; font-size:11px; }
+  .ps-essence img { height:33px; width:33px; }.ps-vessel-rune { font-size:18px; }
+  .ps-vessel .q-btn__content > div,.ps-essence .q-btn__content > div { gap:2px; }
+  .ps-vessel-bowl { height:15px; }.ps-vessel-bowl .material-icons { font-size:16px; }
+  .ps-choice-summary { font-size:11px; }.ps-guide-copy { font-size:12px; }
+  .ps-ritual-guide .ps-current-hero { height:50px; }.ps-binding-ledger { gap:5px; }
+  .ps-unlock-card { gap:10px; padding:7px 10px; }.ps-unlock-art { width:50px; height:60px; }
+  .ps-unlock-name { font-size:21px; }
+}

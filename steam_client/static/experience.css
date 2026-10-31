@@ -487,3 +487,4 @@
   .pd-archive-overview .pd-subtle { font-size:11px; }
   .pd-saved-family-toggle { font-size:15px; }
 }
+.pd-view-recovery { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:12000; max-width:90vw; display:flex; align-items:center; gap:18px; padding:14px 18px; border:1px solid #c4a470; border-radius:5px; color:#e5dbc2; background:#19221ff5; box-shadow:0 10px 50px #0009; font:400 14px/1.4 var(--pq-sans); }

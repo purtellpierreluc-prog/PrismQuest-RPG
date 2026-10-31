@@ -27,6 +27,9 @@ def main():
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--mode',choices=['success','failure','blind'],default='blind')
     parser.add_argument('--skip-market',action='store_true')
+    parser.add_argument('--reload-judging',action='store_true')
+    parser.add_argument('--quick-reveal',action='store_true')
+    parser.add_argument('--reduced-motion',action='store_true')
     args=parser.parse_args()
     if '.local-test' not in args.profile.resolve().parts:
         raise SystemExit('Only disposable .local-test profiles may be used.')
@@ -36,6 +39,8 @@ def main():
     with sync_playwright() as p:
         browser=p.chromium.launch(executable_path=r'C:\Program Files\Google\Chrome\Application\chrome.exe',headless=True)
         page=browser.new_page(viewport={'width':1280,'height':720})
+        if args.reduced_motion:
+            page.emulate_media(reduced_motion='reduce')
         errors,external,reports=[],[],[]
         page.on('pageerror',lambda e:errors.append(str(e)))
         def route(request):
@@ -101,7 +106,7 @@ def main():
         enter.click();page.locator('.ps-chamber').wait_for()
         assert slots()[0]['player']['gold']==before[0]['player']['gold']-fee
         assert 'solution' not in page.locator('[data-ps-signal]').get_attribute('data-ps-signal')
-        sizes('chamber',['.ps-chamber','.ps-essences','.ps-vessels'])
+        sizes('chamber',['.ps-chamber','.ps-essences','.ps-vessels','.ps-commit-zone','.ps-ritual-guide > button'])
         for attempt in range(6):
             if page.locator('.ps-aftermath').count():break
             lights=page.locator('.ps-essence:not(.bound):not([disabled])')
@@ -124,9 +129,24 @@ def main():
                 target=page.locator(f'[data-ps-vessel="{vessel}"]')
             else:target=vessels.first
             target.click()
+            expect(page.locator('.ps-vessel.selected')).to_have_count(1)
+            assert not page.locator('.ps-aftermath').count()
+            assert json.loads(page.locator('[data-ps-signal]').get_attribute('data-ps-signal'))['phase']=='ready'
+            assert len(slots()[0].get('pq_ledger_entries',[]))==len(before[0].get('pq_ledger_entries',[]))
+            button('Commit Offering').click()
             page.wait_for_timeout(180)
             check('judging-'+str(attempt))
-            page.wait_for_timeout(2200)
+            if args.reload_judging and attempt==0:
+                page.reload(wait_until='networkidle')
+                page.locator('.ps-chamber').wait_for()
+                # A fresh document requires a trusted gesture to unlock audio.
+                page.mouse.click(4,4)
+            if args.quick_reveal:
+                page.locator('.ps-quick').click()
+            page.wait_for_function('''() => {const el=document.querySelector('[data-ps-signal]');if(!el)return false;return !['judging','matched','rejected','unsealing'].includes(JSON.parse(el.dataset.psSignal).phase)}''')
+            if page.get_by_role('button',name='Continue Offering',exact=True).count():
+                page.get_by_role('button',name='Continue Offering',exact=True).first.click()
+                page.wait_for_function('''() => {const el=document.querySelector('[data-ps-signal]');return el&&!['judging','matched','rejected','unsealing','interrupted'].includes(JSON.parse(el.dataset.psSignal).phase)}''')
         page.locator('.ps-aftermath').wait_for()
         signal=json.loads(page.locator('[data-ps-signal]').get_attribute('data-ps-signal'))
         assert signal['phase'] in ('success','failure','final')
@@ -138,8 +158,10 @@ def main():
         page.wait_for_timeout(2000)
         sizes('aftermath',['.ps-aftermath','.ps-aftermath-body','.ps-aftermath-primary'])
         audio=page.evaluate('window.PrismAudio.inspect()')
-        cue={'success':'story_ascend','failure':'story_fracture','final':'story_complete'}[signal['phase']]
+        cue={'success':'rite_ascend','failure':'story_fracture','final':'rite_complete'}[signal['phase']]
         assert audio['played'].get(cue)==1 and not audio['failed'],audio
+        if args.reduced_motion:
+            assert page.evaluate('PrismChapters.inspect().animations')==0
         after=slots()
         assert after[1:]==before[1:]
         assert owned(after[0])==owned(before[0])
