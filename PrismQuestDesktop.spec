@@ -19,7 +19,7 @@ a = Analysis(
         (str(root / 'steam_client' / 'static'), 'steam_client/static'),
         (str(root / 'docs' / 'desktop-player-guide.md'), '.'),
     ],
-    hiddenimports=nicegui_hidden + webview_hidden + ['PIL.Image', 'uvicorn.logging', 'clr_loader', 'steam_client.panels', 'steam_client.transactions', 'steam_client.save_schema', 'steam_client.visuals', 'steam_client.experience', 'steam_client.experience_ui', 'steam_client.audio', 'steam_client.realm.ui', 'steam_client.realm.rules', 'steam_client.realm.client', 'steam_client.crucible_ui', 'steam_client.chapter_ui', 'steam_client.refresh'],
+    hiddenimports=nicegui_hidden + webview_hidden + ['PIL.Image', 'uvicorn.logging', 'clr_loader', 'steam_client.panels', 'steam_client.transactions', 'steam_client.save_schema', 'steam_client.visuals', 'steam_client.experience', 'steam_client.experience_ui', 'steam_client.audio', 'steam_client.realm.ui', 'steam_client.realm.rules', 'steam_client.realm.client', 'steam_client.crucible_ui', 'steam_client.chapter_ui', 'steam_client.refresh', 'steam_client.well_ui', 'steam_client.stat_formulas'],
     excludes=['pytest', 'playwright', 'ruff', 'supabase', 'nicegui.testing'],
     noarchive=False,
 )

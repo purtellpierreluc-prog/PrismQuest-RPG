@@ -20,9 +20,15 @@
   function place() {
     if (!anchor?.isConnected || !overlay || overlay.hidden) return;
     const a = anchor.getBoundingClientRect(), b = overlay.getBoundingClientRect();
-    const left = Math.max(12, Math.min(a.left, innerWidth - b.width - 12));
+    let left = Math.max(12, Math.min(a.left, innerWidth - b.width - 12));
     const above = a.top - b.height - 12;
-    const top = above >= 12 ? above : Math.min(innerHeight - b.height - 12, a.bottom + 12);
+    let top = above >= 12 ? above : a.bottom + 12;
+    if (top + b.height > innerHeight - 12) {
+      // Tall formulas belong beside the card, not across its allocation buttons.
+      if (a.right + b.width + 24 <= innerWidth) left = a.right + 12;
+      else if (a.left - b.width - 12 >= 12) left = a.left - b.width - 12;
+      top = Math.max(12, Math.min(a.top, innerHeight - b.height - 12));
+    }
     overlay.style.left = Math.round(left) + 'px';
     overlay.style.top = Math.max(12, Math.round(top)) + 'px';
   }
@@ -74,7 +80,10 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
     window.addEventListener('blur', hide);
     window.addEventListener('resize', place, {passive:true});
-    document.addEventListener('scroll', place, {passive:true, capture:true});
+    document.addEventListener('scroll', e => {
+      if (overlay?.contains(e.target)) place();
+      else hide();
+    }, {passive:true, capture:true});
     new MutationObserver(records => {
       if (!key || queued || !records.some(r => !overlay?.contains(r.target))) return;
       queued = true; queueMicrotask(reconcile);

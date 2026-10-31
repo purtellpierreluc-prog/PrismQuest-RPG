@@ -194,9 +194,11 @@ def render_combat_stats(player):
 def render_navigation(state, actions, scene):
     p = state.player
     rite = getattr(state, '_desktop_ascension', None)
+    well = getattr(state, '_desktop_well', None)
     locked = bool(state.fight_in_progress or (rite is not None and (
         rite.busy or rite.pending_verdict is not None or
-        (state.game_tab == 'masterquest' and rite.started and not rite.receipt))))
+        (state.game_tab == 'masterquest' and rite.started and not rite.receipt))) or
+        (well is not None and (well.pending or well.interrupted)))
     with ui.element('header').classes('pd-navigation'):
         ui.html(scene_heading(scene, p.player_class, p.level, state.current_slot_title()))
         with ui.element('div').classes('pd-nav-actions'):
@@ -516,6 +518,7 @@ def render_expedition_brief(row):
 
 
 def render_character(state, game, actions):
+    from .stat_formulas import CORE_NOTES, tooltip_html
     p = state.player
     with ui.element('div').classes('pd-character-workspace'):
         with ui.element('section').classes('pd-character-build'):
@@ -524,9 +527,9 @@ def render_character(state, game, actions):
             ui.label(game.CLASS_DESCRIPTIONS[p.player_class]).classes('pd-subtle')
             ui.label(f'{p.unspent_stat_points} points to allocate').classes('pd-points-available')
             with ui.element('div').classes('pd-stat-allocation-grid'):
-                for key, label, note in [('strength', 'Strength', 'Weapon scaling'), ('dexterity', 'Dexterity', 'Weapon scaling / Speed'),
-                                         ('intelligence', 'Intelligence', 'Spell scaling / Mana / Resist'), ('vitality', 'Vitality', 'Health / Physical armor')]:
-                    with ui.element('div').classes('pd-allocation-card'):
+                for key, (label,note) in CORE_NOTES.items():
+                    with ui.element('div').classes('pd-allocation-card').props(f'tabindex=0 data-pd-inspect-key="core-{state.active_slot_index}-{key}" aria-label="{label} formula and next point preview"'):
+                        ui.html('<span class="pd-inspect-content" hidden>'+tooltip_html(p,key,game,label)+'</span>').style('display:none')
                         ui.label(label).classes('pd-allocation-name')
                         ui.label(str(getattr(p, key))).classes('pd-allocation-value')
                         ui.label(note).classes('pd-comparison-note')
@@ -538,12 +541,13 @@ def render_character(state, game, actions):
         with ui.element('section').classes('pd-character-readout'):
             eyebrow('YOUR BUILD IN PRACTICE')
             with ui.element('div').classes('pd-character-totals'):
-                for label, value in [('Health', f'{p.max_hp:,}'), ('Mana', f'{p.max_mana:,}'),
-                                     ('Weapon damage', f'{p.weapon_attack_min}-{p.weapon_attack_max}'),
-                                     ('Spell damage', f'{p.spell_attack_min}-{p.spell_attack_max}'),
-                                     ('Physical armor', str(p.physical_armor)), ('Magic resistance', str(p.magic_resistance)),
-                                     ('Critical chance', f'{p.crit_chance:.0%}'), ('Evasion', f'{p.evasion:.0%}')]:
-                    ui.html(f'<div><span>{text(label)}</span><b>{text(value)}</b></div>')
+                for key,label,value in [('health','Health',f'{p.max_hp:,}'),('mana','Mana',f'{p.max_mana:,}'),
+                                        ('weapon','Weapon damage',f'{p.weapon_attack_min}-{p.weapon_attack_max}'),('spell','Spell damage',f'{p.spell_attack_min}-{p.spell_attack_max}'),
+                                        ('armor','Physical armor',str(p.physical_armor)),('resistance','Magic resistance',str(p.magic_resistance)),
+                                        ('critical','Critical chance',f'{p.crit_chance:.0%}'),('evasion','Evasion',f'{p.evasion:.0%}'),
+                                        ('accuracy','Accuracy',f'{p.accuracy:.0%}'),('initiative','Initiative',str(p.speed))]:
+                    ui.html(f'<div class="pd-total-formula" tabindex="0" data-pd-inspect-key="total-{state.active_slot_index}-{key}" aria-label="{text(label)} formula"><span>{text(label)} <small>?</small></span><b>{text(value)}</b>'
+                            '<span class="pd-inspect-content" hidden>'+tooltip_html(p,key,game,label)+'</span></div>')
             with ui.element('div').classes('pd-proficiency-sheet'):
                 ui.html(game.build_proficiency_tooltip_html(p))
             ui.button('Return to Arena', icon='arrow_forward', on_click=lambda: actions['route']('arena')).classes('mq-btn-gold')

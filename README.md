@@ -1,10 +1,30 @@
-# PrismQuest Reimagined 0.13.0
+# PrismQuest Reimagined 0.14.0
 
 This is an experience-design fork of the Windows/offline Steam conversion, isolated on `codex/steam-experience-redesign`. It is not a Steam release yet. Nocturne 0.4.0 remains in `SteamEditionVisual`, with rollback tag `steam-nocturne-v0.4.0` at `af00de2`. The original 0.3.0 edition remains in `SteamEdition`. Neither preserved executable nor the hosted web game is replaced.
 
 Reimagined changes the information architecture, not just the skin: a battle-first Arena with live rounds and a dedicated reward phase, contextual town goals, an equipment workbench with real recalculated stat trade-offs, click-locked selection, a separate character-build workspace, global navigation, and expedition objectives. Artwork, combat rolls, item ownership, economy and save-format rules are preserved. See `docs/experience-redesign.md` for design, verification and rollback notes.
 
 Screenshots of the new decision loop are included in `docs/experience-redesign.md`.
+
+## The Build and the Deep
+
+Character & Stats now has stable formula hovers and read-only, real-engine
+one-point forecasts. Dexterity is correctly described as weapon scaling and
+initiative, not attack speed. The proficiency audit preserves existing power
+while fixing partial legacy progression and a Labyrinth level-up that could
+erase temporary effects. The ledger now explains raw damage versus item EE.
+
+Action buttons use fixed hitboxes, clear focus/disabled states and immediate
+inset press feedback. The Well is a bounded, three-column ritual workspace:
+choose a Common item, review its exact cost, commit, then see the already-saved
+answer. Original combat, 10-gold cost and 50% return chance are unchanged.
+Failed entry restores payment; a failed outcome save retries the same rolled
+reward without duplication. Reveals are finite, skippable and refresh-safe.
+
+The complete previous executable is preserved in
+`.build-backups/reimagined-0.13.0-a24328c/PrismQuest`; source rollback is
+`steam-reimagined-v0.13.0`. See `docs/build-and-well-0.14.md` for verification and
+recovery limits. This remains isolated from main and the hosted web game.
 
 ## Stable Views and a More Deliberate Rite
 

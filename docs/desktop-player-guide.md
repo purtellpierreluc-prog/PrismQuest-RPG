@@ -25,6 +25,33 @@ are locked during a shared expedition. Bazaar purchases and courier deliveries
 arrive in your realm vault. **Refresh Realm** updates chat/market views without
 background polling while you type or inspect items.
 
+## Your Build and the Well
+
+Open Character & Stats from the Arena or Chronicle menu. Hover or focus a core
+stat to see its actual formula and the rounded changes from allocating one more
+point. These previews spend nothing. Dexterity scales weapons and initiative,
+not attack speed: Arena and Well initiative decides the first actor, while
+Labyrinth uses party order. Hover the derived totals for their rules too.
+
+Proficiency trains the family actually used on a successful hit. Each family
+level adds 1% of raw item damage, additive with the item's Enhanced Effect
+contribution, not 1% of final damage. It does not improve affixes or reduce mana
+costs. Existing proficiency power and leveling thresholds are unchanged.
+
+At the Well of Evil, select a Common item from your pack, review the named item
+and 10-gold fee, then Cast Offering. No item is selected automatically. Victory
+has a 50% chance to return an item of the offering's type and tier; rarity uses
+normal Magic Find and affixes use the Well's favorable roll. A stronger item is
+not guaranteed. Defeat or withdrawal consumes the offering and fee without loot.
+
+The last answer is a read-only record. Returned gear is saved into your pack
+before the reveal, with no claim button. Reveal now or Escape skips presentation;
+reduced motion/item-animation preferences bypass it. A temporarily interrupted
+encounter can continue in the same open game without a second payment. A failed
+outcome save offers Retry Saving Outcome, retaining that exact rolled answer.
+These recovery stages are in memory, not new cross-process checkpoints: retry
+before closing the game. The original Hardcore death rules still apply.
+
 ## The Crucible
 
 From Town, open **Transmutation**. Pick a **Form** from your pack, then a different

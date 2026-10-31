@@ -9663,7 +9663,7 @@ def build_proficiency_tooltip_text(player: Optional['Player']) -> str:
     progress = getattr(player, 'proficiency_progress', empty_proficiency_progress())
     active_keys = set(active_proficiency_keys(player))
     lines = [
-        'Each level grants +1% Enhanced Effect with that weapon or charm family.',
+        'Each level adds +1% raw item damage with that weapon or charm family.',
         'You gain 1 proficiency point on each successful player hit.',
         '',
     ]
@@ -9672,7 +9672,7 @@ def build_proficiency_tooltip_text(player: Optional['Player']) -> str:
         current = int(progress.get(key, 0))
         needed = proficiency_threshold_for_level(level)
         marker = '◆' if key in active_keys else '·'
-        lines.append(f"{marker} {key:<16} Lv {level:<3}   {current:>4}/{needed:<4}   (+{level}% EE)")
+        lines.append(f"{marker} {key:<16} Lv {level:<3}   {current:>4}/{needed:<4}   (+{level}% base)")
     if active_keys:
         lines.append('')
         lines.append('Active loadout')
@@ -9698,7 +9698,7 @@ def build_proficiency_tooltip_html(player: Optional['Player']) -> str:
             "<span class='mq-prof-name'>%s</span>"
             "<span class='mq-prof-level'>Lv %s</span>"
             "<span class='mq-prof-progress'>%s / %s</span>"
-            "<span class='mq-prof-bonus'>+%s%% EE</span>"
+            "<span class='mq-prof-bonus'>+%s%% base</span>"
             "</div>"
             % (
                 row_class,
@@ -9717,9 +9717,9 @@ def build_proficiency_tooltip_html(player: Optional['Player']) -> str:
     return (
         "<div class='mq-prof-tooltip-card'>"
         "<div class='mq-prof-title'>Proficiency Ledger</div>"
-        "<div class='mq-prof-sub'>Each successful player hit grants 1 proficiency point. Every level in that family adds +1%% Enhanced Effect.</div>"
+        "<div class='mq-prof-sub'>Each successful hit trains only the weapon or charm used. Each family level adds +1%% raw item damage, additive with the item's EE contribution, not +1%% final damage. Item affixes, armor and mana cost are unchanged.</div>"
         "<div class='mq-prof-grid'>%s</div>"
-        "<div class='mq-prof-active'><span class='mq-prof-active-label'>Active Loadout</span><span class='mq-prof-active-value'>%s</span></div>"
+        "<div class='mq-prof-active'><span class='mq-prof-active-label'>Equipped Families</span><span class='mq-prof-active-value'>%s</span></div>"
         "</div>"
     ) % (''.join(rows), active_text)
 
@@ -10275,7 +10275,7 @@ class Player(Fighter):
             return (0, 0)
         if proficiency_key not in self.proficiency_levels:
             self.proficiency_levels[proficiency_key] = 0
-            self.proficiency_progress[proficiency_key] = 0
+        self.proficiency_progress.setdefault(proficiency_key, 0)
         old_level = self.proficiency_levels[proficiency_key]
         self.proficiency_progress[proficiency_key] += amount
         while self.proficiency_progress[proficiency_key] >= proficiency_threshold_for_level(self.proficiency_levels[proficiency_key]):
@@ -10283,7 +10283,9 @@ class Player(Fighter):
             self.proficiency_progress[proficiency_key] -= threshold
             self.proficiency_levels[proficiency_key] += 1
         new_level = self.proficiency_levels[proficiency_key]
-        if new_level != old_level:
+        # Lab actors are rebuilt with their new proficiency before the next
+        # action. Recalculating here would erase active prism/ability modifiers.
+        if new_level != old_level and not getattr(self, '_labyrinth_combat_modifiers', False):
             self.recalculate_stats()
         return old_level, new_level
     def recalculate_stats(self) -> None:
@@ -10405,8 +10407,8 @@ class Player(Fighter):
         payload['player_class'] = normalize_player_class_name(payload.get('player_class'), str(payload.get('player_class') or 'Black Guard'))
         payload['inventory'] = [Item.from_dict(item) for item in payload.get('inventory', [])]
         payload['equipped'] = {slot: Item.from_dict(item) if item else None for slot, item in payload.get('equipped', {}).items()}
-        payload['proficiency_levels'] = dict(payload.get('proficiency_levels', empty_proficiency_levels()))
-        payload['proficiency_progress'] = dict(payload.get('proficiency_progress', empty_proficiency_progress()))
+        payload['proficiency_levels'] = {**empty_proficiency_levels(), **dict(payload.get('proficiency_levels') or {})}
+        payload['proficiency_progress'] = {**empty_proficiency_progress(), **dict(payload.get('proficiency_progress') or {})}
         allowed_fields = set(getattr(cls, '__dataclass_fields__', {}).keys())
         if allowed_fields:
             payload = {key: value for key, value in payload.items() if key in allowed_fields}
@@ -11074,7 +11076,7 @@ def resolve_turn(attacker: Fighter, defender: Fighter) -> CombatEvent:
     if isinstance(attacker, Player):
         old_level, new_level = attacker.grant_proficiency_point(proficiency_key, 1)
         if proficiency_key and new_level > old_level:
-            text += f' {proficiency_key} proficiency reaches {new_level} (+{new_level}% enhanced effect).'
+            text += f' {proficiency_key} proficiency reaches {new_level} (+{new_level}% raw item damage).'
     damage_to = 'player' if isinstance(defender, Player) else 'monster'
     return CombatEvent(text, 'danger' if crit else 'info', damage_to=damage_to, damage_amount=damage, crit=crit)
 def gain_xp(player: Player, amount: int, level_cap: Optional[int] = 60) -> List[str]:
@@ -11480,7 +11482,7 @@ def build_glossary_text() -> str:
     lines.append('• Arena item drops roll affixes with disadvantage. Well of Evil rewards roll affixes with advantage, but the shaped ritual reward itself is still only a 50% drop chance after victory.')
     lines.append('• Affix rolls are deliberately bottom-heavy: low rolls are common, top-end rolls are sharply rarer.')
     lines.append("• Well of Evil costs 10 gold plus one Common inventory item. After a winning ritual, there is a 50% chance to receive a drop that matches the offering's tier and type, and you return to the Well after the fight.")
-    lines.append('• Proficiency gains 1 point on each successful player hit for the active weapon or charm family. Each proficiency level grants +1% Enhanced Effect to that family. Threshold per level: 1000 × (current proficiency level + 1).')
+    lines.append('• Proficiency gains 1 point on each successful player hit for the weapon or charm used. Each proficiency level adds +1% raw item damage to that family, additive with its item EE contribution. Threshold per level: 1000 × (current proficiency level + 1).')
     lines.append("• Transmutation needs two Fine-or-better items of the same tier. The second offering can be any type, but the result always keeps Offering One's type. Gold cost = 2 + both items' total affix counts.")
     lines.append('• Transmutation rarity odds: 35% one step up from the lower rarity, 50% stay near the higher rarity, 15% one step down from the higher rarity.')
     lines.append('• Marketplace has three stalls: a cheap Fine utility piece, a premium rare-goods slot, and a Special Stall. Unspawnables come only from the Special Stall. Bazaar sellers can manage up to 100 active listings and may reprice or remove unsold posts.')
@@ -14341,6 +14343,10 @@ def generate_well_item_drop(sacrificed_item: Item, magic_find: float) -> Item:
     return generate_specific_item(item_level, slot, subtype, rarity, affix_roll_mode='advantage')
 
 async def queue_well_encounter_async(self, refresh) -> None:
+    if DESKTOP_MODE:
+        from steam_client.well import well_for
+        await well_for(self, sys.modules[__name__]).legacy_start(refresh)
+        return
     if self.player is None or self.fight_in_progress:
         return
     removed_item: Optional[Item] = None
@@ -14884,6 +14890,10 @@ def request_arena_flee(self) -> None:
     self.add_log('You turn and sprint for the edge of the arena.', 'warning')
 
 async def _resolve_arena_flee_async(self, refresh) -> None:
+    if DESKTOP_MODE and self.current_encounter_type == 'well' and not getattr(self, '_desktop_well_settling', False):
+        from steam_client.well import well_for
+        await well_for(self, sys.modules[__name__]).settle(lambda callback: _resolve_arena_flee_async(self, callback), refresh)
+        return
     encounter_type = self.current_encounter_type
     fleeing_monster = copy.deepcopy(self.current_monster) if self.current_monster is not None else None
     self.monster_chain_combo = 0
@@ -14960,6 +14970,10 @@ async def _run_arena_combat_async(self, refresh) -> None:
     self.current_monster = sim_monster
     await self._finish_arena_fight_async(refresh)
 async def _finish_arena_fight_async(self, refresh) -> None:
+    if DESKTOP_MODE and self.current_encounter_type == 'well' and not getattr(self, '_desktop_well_settling', False):
+        from steam_client.well import well_for
+        await well_for(self, sys.modules[__name__]).settle(lambda callback: _finish_arena_fight_async(self, callback), refresh)
+        return
     if self.player is None or self.current_monster is None:
         self.fight_in_progress = False
         self.player_damage_popup_text = ''
@@ -20066,6 +20080,7 @@ def _labyrinth_apply_effects_to_player(player: Player, effects: Dict[str, float]
     setattr(player, 'labyrinth_first_incoming_hit_mult', max(0.10, 1.0 + float(effects.get('first_hit_taken_mult', 0.0) or 0.0)))
     setattr(player, 'labyrinth_physical_taken_mult', max(0.10, 1.0 + float(effects.get('physical_taken_mult', 0.0) or 0.0)))
     setattr(player, 'labyrinth_magic_taken_mult', max(0.10, 1.0 + float(effects.get('magic_taken_mult', 0.0) or 0.0)))
+    player._labyrinth_combat_modifiers = True
 
 
 def _labyrinth_apply_effects_to_monster(monster: Fighter, effects: Dict[str, float], boss: bool = False) -> None:
@@ -20214,7 +20229,7 @@ def _labyrinth_resolve_turn(attacker: Fighter, defender: Fighter, context: Dict[
     if isinstance(attacker, Player):
         old_level, new_level = attacker.grant_proficiency_point(proficiency_key, 1)
         if proficiency_key and new_level > old_level:
-            text += f' {proficiency_key} proficiency reaches {new_level} (+{new_level}% enhanced effect).'
+            text += f' {proficiency_key} proficiency reaches {new_level} (+{new_level}% raw item damage).'
     redirected_mode = bool(context.get('warlock_redirect_mode', False))
     damage_to = '' if redirected_mode else ('player' if isinstance(defender, Player) else 'monster')
     return CombatEvent(text, 'danger' if crit and not redirected_mode else 'info' if redirected_mode else ('danger' if crit else 'info'), damage_to=damage_to, damage_amount=(0 if redirected_mode else damage), crit=crit and not redirected_mode)
@@ -27192,6 +27207,10 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                             return
                             return
                     elif state.game_tab == 'well':
+                        if DESKTOP_MODE:
+                            from steam_client.well_ui import render_well
+                            render_well(state, sys.modules[__name__], experience_actions())
+                            return
                         state.ensure_well_scene_state(False)
                         tempt_line = state.current_well_scene_line or "The handmaiden waits beside the well, smiling at the sound of coin."
                         status_text = state.well_status_text()
@@ -28049,7 +28068,7 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                     ui.html(build_glossary_list_html([
                                         'Each successful player hit grants 1 proficiency point to the active weapon or charm family.',
                                         'Threshold to level a family = 1000 × (current proficiency level + 1).',
-                                        'Every proficiency level adds +1% Enhanced Effect to that family only.',
+                                        'Every proficiency level adds +1% raw item damage to that family only, not +1% final damage.',
                                         'Tracked families: Axe, Dagger, Staff, Fire Charm, Ice Charm, Lightning Charm.',
                                     ])).classes('mt-4')
                             with ui.row().classes('w-full gap-4 items-stretch flex-wrap'):

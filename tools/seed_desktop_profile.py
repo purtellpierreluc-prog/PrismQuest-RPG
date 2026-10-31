@@ -16,6 +16,8 @@ from steam_client.storage import AtomicSaveStore
 parser = argparse.ArgumentParser()
 parser.add_argument('directory')
 parser.add_argument('--visual-cues', action='store_true', help='Include multiple item families and protected tier marks for UI checks.')
+parser.add_argument('--well-audit', action='store_true', help='Disposable overpowered hero for quick real-engine Well settlement checks.')
+parser.add_argument('--level', type=int, choices=[45,60], default=45, help='Use level 60 for Prismatic Quest acceptance checks.')
 args = parser.parse_args()
 directory = Path(args.directory).resolve()
 if not directory.is_relative_to(ROOT / '.local-test'):
@@ -31,9 +33,17 @@ game = load_game(paths)
 logging.getLogger('prismquest.runtime').disabled = True
 slots = [game.build_default_slot_payload() for _ in range(3)]
 for index, slot in enumerate(slots):
-    player = game._labyrinth_build_companion_player('Black Guard', 45)
+    player = game._labyrinth_build_companion_player('Black Guard', args.level)
     player.name = 'Desktop Veteran'
     player.gold = 20000
+    if args.well_audit and index == 0:
+        player.base_max_hp = 100000
+        player.base_attack_min = 100000
+        player.base_attack_max = 100001
+        player.base_accuracy = 1.5
+        player.unspent_stat_points = 12
+        player.recalculate_stats()
+        player.hp = player.max_hp
     player.inventory = [game.generate_specific_item(45, 'weapon', 'Axe', rarity) for rarity in ['Common', 'Fine', 'Rare', 'Epic', 'Relic'] for _ in range(6)]
     slot.update(player=player.to_dict(), town_tutorial_seen=True, guided_intro_stage=game.GUIDED_INTRO_COMPLETE,
                 scene_tutorials_seen={key: True for key in slot['scene_tutorials_seen']},
