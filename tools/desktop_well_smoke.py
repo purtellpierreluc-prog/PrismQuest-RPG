@@ -118,6 +118,7 @@ def main():
         button('Shape Your Build').click()
         page.locator('.pd-character-workspace').wait_for()
         dex = page.get_by_label('Dexterity formula and next point preview',exact=True)
+        page.keyboard.down('Control')
         dex.hover()
         portal = page.locator('#pd-item-inspection')
         expect(portal).to_be_visible()
@@ -125,6 +126,7 @@ def main():
         assert 'IF YOU ALLOCATE ONE POINT NOW' in portal.inner_text()
         assert slots()[0]['player'] == original[0]['player']
         page.screenshot(path=str(args.output/'dexterity-formula.png'))
+        page.keyboard.up('Control')
         page.mouse.move(4,4)
         allocation = page.get_by_label('+1 Vitality',exact=True)
         box = allocation.bounding_box()

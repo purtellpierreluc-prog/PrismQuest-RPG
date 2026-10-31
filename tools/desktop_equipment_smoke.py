@@ -115,6 +115,7 @@ def main():
         page.locator('.pd-combat-stats').wait_for()
         assert len(page.locator('.pd-combat-stats dd').all_text_contents()) == 6
         weapon = page.get_by_role('button', name='Inspect equipped Weapon', exact=True)
+        page.keyboard.down('Control')
         weapon.hover()
         portal = page.locator('#pd-item-inspection')
         expect(portal).to_be_visible()

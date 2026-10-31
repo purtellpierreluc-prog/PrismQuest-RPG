@@ -40,3 +40,5 @@
 .pd-total-formula { cursor:help; }.pd-total-formula > span > small { color:#acb994;font-size:10px; }
 .pd-total-formula { display:flex;flex-direction:column;gap:3px; }
 .pd-allocation-card:focus-visible,.pd-total-formula:focus-visible { outline:1px solid #d0c8a2;outline-offset:3px; }
+/* The same modifier gates legacy Lab/gear/proficiency panels as the new portal. */
+html[data-pq-nocturne="true"]:not([data-pq-inspect-ctrl="true"]) :is(.mq-item-hover-floating,.mq-prof-tooltip-floating,.mq-stat-tooltip-floating,.mq-item-hover-panel,.mq-prof-tooltip-panel,.q-tooltip) { display:none!important; }

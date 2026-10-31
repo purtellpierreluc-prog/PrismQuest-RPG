@@ -4,7 +4,13 @@
   if (window.pdItemInspection) return;
   const selector = '[data-pd-inspect-key]';
   let overlay = null, key = '', anchor = null, hideTimer = 0, queued = false;
-  let pointer = {x: -1, y: -1}, keyboard = false;
+  let pointer = {x: -1, y: -1}, keyboard = false, control = false;
+  function modifier(held) {
+    control = held;
+    document.documentElement.dataset.pqInspectCtrl = String(held);
+    if (!held) hide();
+  }
+  modifier(false);
   function target() {
     if (overlay) return overlay;
     overlay = document.createElement('aside');
@@ -43,6 +49,7 @@
     hideTimer = setTimeout(hide, 140);
   }
   function show(el, fromKeyboard = false) {
+    if (!control) return;
     const content = el?.querySelector('.pd-inspect-content');
     if (!content) return;
     clearTimeout(hideTimer);
@@ -56,6 +63,7 @@
   }
   function reconcile() {
     queued = false;
+    if (!control) { hide(); return; }
     if (!key || !document.body) return;
     const next = [...document.querySelectorAll(selector)].find(el => el.dataset.pdInspectKey === key);
     if (!next) { hide(); return; }
@@ -65,9 +73,16 @@
     else hide();
   }
   function start() {
-    document.addEventListener('pointermove', e => { pointer = {x:e.clientX, y:e.clientY}; }, {passive:true});
+    document.addEventListener('pointermove', e => {
+      pointer = {x:e.clientX, y:e.clientY};
+      if (control !== e.ctrlKey) {
+        modifier(e.ctrlKey);
+        if (control) show(e.target.closest?.(selector));
+      }
+    }, {passive:true});
     document.addEventListener('pointerover', e => {
       pointer = {x:e.clientX, y:e.clientY};
+      modifier(e.ctrlKey);
       const el = e.target.closest(selector);
       if (el) show(el);
     });
@@ -77,8 +92,17 @@
     });
     document.addEventListener('focusin', e => { const el=e.target.closest(selector); if (el) show(el, true); });
     document.addEventListener('focusout', e => { if (e.target.closest(selector)) scheduleHide(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
-    window.addEventListener('blur', hide);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { hide(); return; }
+      if (e.key !== 'Control' || e.repeat) return;
+      modifier(true);
+      const hovered = document.elementFromPoint(pointer.x, pointer.y)?.closest(selector);
+      const focused = document.activeElement?.closest(selector);
+      if (hovered || focused) show(hovered || focused, !hovered);
+    });
+    document.addEventListener('keyup', e => { if (e.key === 'Control' || !e.ctrlKey) modifier(false); });
+    window.addEventListener('blur', () => { modifier(false); pointer = {x:-1,y:-1}; });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) modifier(false); });
     window.addEventListener('resize', place, {passive:true});
     document.addEventListener('scroll', e => {
       if (overlay?.contains(e.target)) place();

@@ -27,7 +27,10 @@ background polling while you type or inspect items.
 
 ## Your Build and the Well
 
-Open Character & Stats from the Arena or Chronicle menu. Hover or focus a core
+Hold **Ctrl** while hovering to inspect equipment, abilities and stat formulas.
+Releasing Ctrl closes inspection. Ctrl plus keyboard focus also works.
+
+Open Character & Stats from the Arena or Chronicle menu. Ctrl-hover or Ctrl-focus a core
 stat to see its actual formula and the rounded changes from allocating one more
 point. These previews spend nothing. Dexterity scales weapons and initiative,
 not attack speed: Arena and Well initiative decides the first actor, while

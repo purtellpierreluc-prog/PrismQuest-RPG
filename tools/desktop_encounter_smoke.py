@@ -47,11 +47,13 @@ def main():
         assert abs(settled_scale-.985) < .001
         find = page.get_by_role('button', name='Inspect last dropped item', exact=True)
         expect(find).to_be_enabled()
+        page.keyboard.down('Control')
         find.hover()
         portal = page.locator('#pd-item-inspection')
         expect(portal).to_be_visible()
         loot = portal.inner_text()
         assert 'Rare' in loot and 'Read-only record' in loot
+        page.keyboard.up('Control')
         page.mouse.move(650, 100)
         for w, h in [(1280, 720), (960, 600), (1920, 1080), (800, 500)]:
             page.set_viewport_size({'width': w, 'height': h})
@@ -70,6 +72,7 @@ def main():
         after_stage = page.locator('.pd-battle-theatre').bounding_box()
         assert abs(before_stage['height']-after_stage['height']) <= 1, (before_stage, after_stage)
         expect(find).to_be_enabled()
+        page.keyboard.down('Control')
         find.hover()
         expect(portal).to_be_visible()
         assert portal.inner_text() == loot, 'The next fight must not clear the last find.'
@@ -81,6 +84,7 @@ def main():
             assert portal.inner_text() == loot
         assert page.evaluate('window.PrismEncounter.inspect().counts.arrival') == 2
         page.screenshot(path=str(args.output / 'last-find-in-combat.png'))
+        page.keyboard.up('Control')
         page.mouse.move(650, 100)
         page.wait_for_timeout(200)
         page.screenshot(path=str(args.output / 'species-atmosphere.png'))
