@@ -57,4 +57,3 @@ def test_forecasts_do_not_walk_the_inventory(game):
     player = game.create_player('Black Guard')
     player.inventory = UntouchedPack()
     assert next_point_lines(player, 'vitality')
-
