@@ -7073,6 +7073,8 @@ def build_default_slot_payload(season_id: int = DEFAULT_LADDER_SEASON_ID) -> Dic
         'carryover_proficiency_progress': empty_proficiency_progress(),
         'town_communications_text': '',
         'town_communications_messages': [],
+        'town_service_spend': {},
+        'town_services': {},
         'current_run_kills': 0,
         'town_tutorial_seen': False,
         'scene_tutorials_seen': build_default_scene_tutorials_seen(False),
@@ -7604,6 +7606,13 @@ def normalize_labyrinth_roster_companions(raw_entries: object) -> List[Dict[str,
     return rows
 
 
+def normalize_town_service_spend(raw: object) -> Dict[str, int]:
+    if not isinstance(raw, dict):
+        return {}
+    return {key: value for key, value in raw.items()
+            if isinstance(key, str) and 0 < len(key) <= 48 and type(value) is int and value >= 0}
+
+
 def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
     slot = build_default_slot_payload()
     if not isinstance(raw_slot, dict):
@@ -7613,6 +7622,9 @@ def normalize_slot_payload(raw_slot: object) -> Dict[str, object]:
         raw_player = copy.deepcopy(raw_player)
         raw_player['player_class'] = normalize_player_class_name(raw_player.get('player_class'), str(raw_player.get('player_class') or 'Black Guard'))
     slot['player'] = raw_player
+    slot['town_service_spend'] = normalize_town_service_spend(raw_slot.get('town_service_spend', {}))
+    from steam_client.town_data import normalize_town
+    slot['town_services'] = normalize_town(raw_slot.get('town_services', {}))
     slot['saved_item_sets'] = raw_slot.get('saved_item_sets', slot['saved_item_sets'])
     slot['saved_set_collapsed'] = normalize_saved_set_collapsed(raw_slot.get('saved_set_collapsed'), True)
     vault_items = raw_slot.get('vault_items', [])
@@ -12711,6 +12723,9 @@ class SessionState:
         slot['ladder_reset_count'] = sanitize_ladder_reset_count(reset_count)
         if isinstance(previous_slot, dict):
             slot['labyrinth_roster_companions'] = normalize_labyrinth_roster_companions(previous_slot.get('labyrinth_roster_companions', []))
+            if DESKTOP_MODE:
+                slot['town_service_spend'] = normalize_town_service_spend(previous_slot.get('town_service_spend', {}))
+                slot['town_services'] = copy.deepcopy(previous_slot.get('town_services', {}))
         return slot
 
     def _apply_runtime_ladder_reset_state(self, notice: str, tone: str = 'warning') -> None:
@@ -13316,6 +13331,8 @@ class SessionState:
         slot['monster_chain_combo'] = int(self.monster_chain_combo)
         slot['current_run_kills'] = int(getattr(self, 'current_run_kills', 0) or 0)
         slot['town_communications_text'] = str(self.town_communications_text)
+        if DESKTOP_MODE:
+            slot['town_service_spend'] = dict(self.local_town_service_spend)
         slot['town_communications_messages'] = [dict(message) for message in _recent_chat_messages(self.town_communications_messages, 80)]
         slot['town_tutorial_seen'] = bool(self.town_tutorial_seen)
         slot['scene_tutorials_seen'] = dict(self.scene_tutorials_seen)
@@ -13374,6 +13391,9 @@ class SessionState:
         self.active_slot_index = index
         self.ladder_mode = slot_mode_for_index(index)
         slot = normalize_slot_payload(self.slots[index])
+        if DESKTOP_MODE:
+            self.local_town_service_spend = dict(slot['town_service_spend'])
+            self.load_town_coffers()
         slot_season_id = int(
             self.current_global_season_id
             if slot_uses_global_ladder(self.ladder_mode)
@@ -13714,7 +13734,7 @@ class SessionState:
         return True
 
     def trigger_scene_tutorial_if_needed(self, scene_key: str) -> None:
-        if DESKTOP_MODE and scene_key == 'ladder':
+        if DESKTOP_MODE and scene_key in {'ladder', 'guild_hall', 'bazaar'}:
             return
         if self.player is None or scene_key not in SCENE_TUTORIAL_CONTENT:
             return
@@ -14065,6 +14085,9 @@ def finish_masterquest_attempt(self, passed: bool) -> None:
             reset_slot['season_id'] = reset_season_id
             reset_slot['ladder_reset_count'] = new_reset_count
             reset_slot['labyrinth_roster_companions'] = normalize_labyrinth_roster_companions(base_slot.get('labyrinth_roster_companions', []))
+            if DESKTOP_MODE:
+                reset_slot['town_service_spend'] = dict(base_slot['town_service_spend'])
+                reset_slot['town_services'] = copy.deepcopy(base_slot['town_services'])
             self.slots[slot_index] = reset_slot
             self.player = None
             self.current_run_started_at = 0.0
@@ -15872,7 +15895,7 @@ def town_crier_status_text(self) -> str:
     total_gold = int(getattr(self, 'town_coffers_total', 0) or 0)
     by_service = dict(getattr(self, 'town_coffers_by_service', {}) or {})
     if DESKTOP_MODE:
-        return f'The Town Crier counts {total_gold:,} gold spent on town services during this visit to the offline chronicle.'
+        return f'The Town Crier counts {total_gold:,} gold spent on town services throughout this chronicle. The ledger is saved across visits and climbs.'
     if source == 'cloud_unavailable':
         return 'The Town Crier slaps a sealed municipal ledger and grumbles that the shared town coffers cannot be read just now.'
     if source == 'local':
@@ -21204,7 +21227,9 @@ def open_game_tab(self, tab_name: str, note: Optional[str] = None) -> None:
     if self.player is None:
         return
     requested_tab = str(tab_name or '')
-    if DESKTOP_MODE and requested_tab in {'bazaar', 'guild_hall', 'donate'}:
+    if DESKTOP_MODE and requested_tab == 'network':
+        requested_tab = 'bazaar'
+    if DESKTOP_MODE and requested_tab == 'donate':
         self.add_log('That online service is not available in the offline desktop prototype.', 'warning')
         return
     previous_screen = str(getattr(self, 'screen', '') or '')
@@ -21253,12 +21278,12 @@ def open_game_tab(self, tab_name: str, note: Optional[str] = None) -> None:
             self.sync_public_leaderboard(force=False)
         self.ensure_ladder_scene_state(True, allow_cached=True)
         self.refresh_guild_leaderboard(force=False, allow_cached=True)
-    elif requested_tab == 'guild_hall':
+    elif requested_tab == 'guild_hall' and not DESKTOP_MODE:
         if public_sync_due:
             self.sync_public_leaderboard(force=False)
         self.refresh_guild_hall_state(allow_cached=True)
         self.refresh_guild_leaderboard(force=False, allow_cached=True)
-    elif requested_tab == 'bazaar':
+    elif requested_tab == 'bazaar' and not DESKTOP_MODE:
         self.refresh_bazaar_listings(force=False, allow_cached=True)
     elif requested_tab == 'marketplace':
         self.ensure_marketplace_offers(False, allow_cached=True)
@@ -23045,7 +23070,7 @@ def apply_pending_global_season_reset(self, announce: bool = True) -> bool:
             sanitize_ladder_season_id(slot.get('season_id', DEFAULT_LADDER_SEASON_ID)) < target_season
             or sanitize_ladder_reset_count(slot.get('ladder_reset_count', 0)) < target_resets
         ):
-            self.slots[index] = self.ladder_reset_slot_payload(target_season, target_resets)
+            self.slots[index] = self.ladder_reset_slot_payload(target_season, target_resets, slot if DESKTOP_MODE else None)
             changed_indexes.append(index)
     if not changed_indexes:
         return False
@@ -25105,6 +25130,7 @@ def main_page(request: Request) -> None:
         return {
             'route': experience_route, 'refresh': request_render_refresh,
             'inventory': open_inventory_scene, 'review': review_experience_item,
+            'vault': open_inn_vault_dialog,
             'town': lambda: (state.enter_town(), request_render_refresh()),
             'slots': lambda: (state.go_to_chronicles(), request_render_refresh()),
             'classes': open_class_select_warning,
@@ -25920,11 +25946,8 @@ def main_page(request: Request) -> None:
                 return
             player = state.player
             assert player is not None
-            if DESKTOP_MODE and state.game_tab == 'network' and DESKTOP_NETWORK is not None:
-                from steam_client.realm.ui import render_concourse
-                ui.run_javascript("window.mqSetHotkeysLocked && window.mqSetHotkeysLocked(true); window.mqSetLabyrinthKeysEnabled && window.mqSetLabyrinthKeysEnabled(false);")
-                render_concourse(DESKTOP_NETWORK, sys.modules[__name__], lambda: (state.enter_town(), request_render_refresh()))
-                return
+            if DESKTOP_MODE and state.game_tab == 'network':
+                state.game_tab = 'bazaar'
             render_hotkey_action_buttons()
             current_scene_tutorial_key = SCENE_TUTORIAL_TAB_MAP.get(state.game_tab, '') if state.screen == 'game' else ''
             async def handle_fight() -> None:
@@ -26703,6 +26726,10 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
 """)
                                 return
                     elif state.game_tab == 'bazaar':
+                        if DESKTOP_MODE:
+                            from steam_client.community_ui import render_bazaar
+                            render_bazaar(state, sys.modules[__name__], experience_actions())
+                            return
                         state.refresh_bazaar_listings(force=False, allow_cached=True)
                         with ui.column().classes('w-full gap-4'):
                             with ui.card().classes('mq-card w-full p-5'):
@@ -27355,6 +27382,10 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
 """)
                             return
                     elif state.game_tab == 'inn':
+                        if DESKTOP_MODE:
+                            from steam_client.hearth_ui import render_hearth
+                            render_hearth(state, sys.modules[__name__], experience_actions())
+                            return
                         state.ensure_inn_scene_state(False)
                         status_text = state.inn_status_text()
                         inn_cost = inn_rest_cost(player.player_class) if player is not None else 1
@@ -27494,6 +27525,10 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                             ui.button('Return to Chronicle Slots', on_click=lambda: (state.reset_masterquest_scene_state(), state.go_to_chronicles(), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
                             return
                     elif state.game_tab == 'guild_hall':
+                        if DESKTOP_MODE:
+                            from steam_client.community_ui import render_guild
+                            render_guild(state, sys.modules[__name__], experience_actions())
+                            return
                         state.refresh_guild_hall_state(allow_cached=True)
                         guild_row = getattr(state, 'guild_row', {}) if isinstance(getattr(state, 'guild_row', {}), dict) else {}
                         member_rows = getattr(state, 'guild_member_rows', []) if isinstance(getattr(state, 'guild_member_rows', []), list) else []
@@ -27643,6 +27678,10 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
                                 ui.button('Return to Arena', on_click=lambda: (state.open_game_tab('arena'), request_render_refresh())).classes('mq-btn-gold rounded-xl px-5 py-3 font-semibold')
                             return
                     elif state.game_tab == 'ladder':
+                        if DESKTOP_MODE:
+                            from steam_client.community_ui import render_ladder
+                            render_ladder(state, sys.modules[__name__], experience_actions())
+                            return
                         if DESKTOP_MODE:
                             with ui.card().classes('mq-card w-full p-5'):
                                 ui.label('Chronicle Records').classes('mq-inv-title')

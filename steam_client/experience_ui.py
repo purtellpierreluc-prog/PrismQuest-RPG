@@ -211,8 +211,9 @@ def render_navigation(state, actions, scene):
             with ui.button('Chronicle', icon='more_horiz').classes('mq-btn-secondary pd-nav-btn').props('aria-label="Chronicle Menu"') as more:  # noqa: SIM117
                 with ui.menu().classes('pd-journal-menu'):
                     for label, callback in [('Character & Stats', lambda: actions['route']('stats')),
-                                             ('Chronicle Records', lambda: actions['route']('ladder')),
-                                             ('Concourse / Network', lambda: actions['route']('network')),
+                                             ('Realm Ladder', lambda: actions['route']('ladder')),
+                                             ('Bazaar', lambda: actions['route']('bazaar')),
+                                             ('Guild Hall', lambda: actions['route']('guild_hall')),
                                              ('Glossary', lambda: actions['route']('glossary')),
                                              ('Settings', lambda: actions['route']('settings')),
                                              ('Class Selection', actions['classes']),
@@ -296,10 +297,15 @@ def render_town(state, game, actions):
                         ui.label(detail).classes('pd-service-description')
         with ui.element('footer').classes('pd-town-footer'):
             ui.label(f'{p.wins} victories / {p.losses} defeats / {len(p.inventory)} items in pack').classes('pd-subtle')
-            ui.button('Concourse', icon='public', on_click=lambda: actions['route']('network')).classes('mq-btn-secondary pd-text-btn')
+            bazaar = ui.button('Bazaar', icon='storefront', on_click=lambda: actions['route']('bazaar')).classes('mq-btn-secondary pd-text-btn')
+            bazaar.set_enabled(state.current_slot_mode() != 'SSF')
+            ui.button('Guild Hall', icon='shield', on_click=lambda: actions['route']('guild_hall')).classes('mq-btn-secondary pd-text-btn')
+            ui.button('Realm Ladder', icon='leaderboard', on_click=lambda: actions['route']('ladder')).classes('mq-btn-secondary pd-text-btn')
             with ui.button('Town Crier', icon='campaign').classes('mq-btn-secondary pd-text-btn'):  # noqa: SIM117
                 with ui.menu():
                     ui.label(state.town_crier_status_text()).classes('pd-crier-copy')
+                    for service,amount in sorted(state.town_coffers_by_service.items(),key=lambda pair:-pair[1]):
+                        ui.label(f'{game.TOWN_SERVICE_LABELS.get(service,service.replace("_"," ").title())}: {amount:,}g').classes('pd-crier-total')
             ui.button('Settings', icon='settings', on_click=lambda: actions['route']('settings')).classes('mq-btn-secondary pd-text-btn')
             ui.button('Quit to Title', on_click=actions['title']).classes('mq-btn-secondary pd-text-btn')
 

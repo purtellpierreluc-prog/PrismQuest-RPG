@@ -32,7 +32,7 @@ def test_atomic_save_round_trip(tmp_path):
     assert store.load() is None
     store.save(slots(25))
     assert store.load() == slots(25)
-    assert json.loads(store.path.read_text())['format_version'] == 2
+    assert json.loads(store.path.read_text())['format_version'] == 3
 
 
 def test_corrupt_primary_recovers_backup_without_destroying_it(tmp_path):
@@ -226,7 +226,7 @@ def test_desktop_refuses_online_only_scenes(game, monkeypatch):
     state = state_for(game)
     state.screen = 'town'
     state.game_tab = 'arena'
-    for tab in ('bazaar', 'guild_hall', 'donate'):
+    for tab in ('donate',):
         state.open_game_tab(tab)
         assert state.screen == 'town' and state.game_tab == 'arena'
     state.guided_discord_prompt_seen = True

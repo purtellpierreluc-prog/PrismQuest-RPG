@@ -1,3 +1,3 @@
-"""Standalone desktop runtime with an opt-in, isolated network realm preview."""
+"""Standalone desktop runtime and persistent current-chronicle town services."""
 
-__version__ = '0.14.0'
+__version__ = '0.15.0'

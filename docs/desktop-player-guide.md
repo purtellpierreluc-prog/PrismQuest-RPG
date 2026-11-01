@@ -1,29 +1,54 @@
 # PrismQuest Reimagined
 
 This Windows RPG includes offline chronicles with hireable/permanent companions
-and an optional Concourse network preview. Neither is connected to your web-game
-account, purchases, ladder, or characters.
+and persistent town services for your current hero. It is not connected to your
+web-game account, purchases, ladder, or characters.
 
-## The Concourse Preview
+## The Town and the Hearth
 
-Open **Concourse** in Town, or **Concourse / Network** in the Chronicle menu.
-**Enter Test Realm** creates a separate, persistent test character. Its gold,
-equipment, Bazaar listings, couriers, guild and realm ladder never affect solo
-chronicles. Use **Prepare Test Character** once to try the level-45 Labyrinth.
+At the Inn, the resource cards show what one room will restore: 35% of health
+and mana capacity, capped at full, with the original minimum recovery. Room
+cost is based on your class. If you have a Monster Chain Combo, explicitly
+confirm its reset. Resting keeps all items, experience and progression. A fully
+recovered hero with no chain cannot accidentally pay for an empty rest.
+The Vault retains its existing slot purchases, filters and free item movement.
 
-For multiple clients on the same machine, a developer can start the separate
-keyed loopback realm service and connect through **Developer Test Service**.
-Steam authentication and public multiplayer still require the owner's App ID,
-native SDK connection, and a hosted service. Uploading to Steam alone does not
-enable these. The local preview is always marked **NOT STEAM**.
+The Town Crier now keeps recorded service spending with each chronicle across
+restarts and climbs. Earlier spending that was never saved cannot be recovered.
+The breakdown includes the Inn, Vault, Marketplace, Well, Crucible and charters.
 
-Party invitations use codes. The leader navigates and everyone must ready up.
-The realm resolves battles once for the whole party, not separately per client.
-Disconnecting preserves the checkpoint; **Leave Party** explicitly ends an
-active expedition for everyone while keeping earned progression. Gear/trading
-are locked during a shared expedition. Bazaar purchases and courier deliveries
-arrive in your realm vault. **Refresh Realm** updates chat/market views without
-background polling while you type or inspect items.
+**Bazaar**, **Guild Hall** and **Realm Ladder** are now direct Town and Chronicle
+menu destinations. Concourse is no longer a game-mode detour or a second test
+character. These are **local chronicle services**, not live Steam services.
+Their scope is shown on every screen. Your old test-realm files are not deleted
+or mixed into the main game.
+
+In Bazaar, select a pack item, set a whole-number asking price, review the exact
+item/price and confirm. It leaves the pack for saved local escrow; it is not
+published to Steam players. Change Price saves an actual revised price. Return
+to Pack retrieves that exact item for free. Ledger snapshots are records, not
+additional owned items. Listings are same-mode only; SSF cannot trade. Empty
+Browse shelves remain honest: no generated players, offers or buyers are added.
+The NPC Marketplace remains separate and usable offline.
+
+In Guild Hall, review a local charter before paying the original main-game
+1,000g fee. Local invitation codes work among chronicles in this profile, not
+Steam friends. Members can keep a persistent private board. A founder cannot
+leave while other members remain; leaving as the only member dissolves the
+charter without refunding its fee. Input fields have no polling refresh.
+
+Realm Ladder shows actual local chronicle levels, wins and fastest recorded PQ
+attempts. Filter by mode or explicitly compare all local chronicles; My Ascents
+keeps the current chronicle's real PQ history. Beyond-60 levels are retained.
+This screen never resets the ladder, replaces heroes or uploads editable saves.
+Steam player trading, public guilds and global standings still require the App
+ID, native authentication and an authoritative hosted backend. Upload alone
+does not enable them, and local progression is not uploaded into that economy.
+
+Save format 3 adds protected escrow ownership. Upgrading keeps a separate
+`before-format-3-*` save in backups, outside the rotating ten-copy cleanup.
+To revert to 0.14 or earlier, use the old executable and matching pre-upgrade
+save. Older builds deliberately refuse format 3 rather than dropping listings.
 
 ## Your Build and the Well
 
@@ -117,8 +142,11 @@ death still applies the existing equipped-gear loss rules.
 Completing the final class path records the victory but does not automatically
 erase any local chronicle. Keep that hero and continue into the Labyrinth.
 There are no server-driven/calendar resets in this offline alpha.
-The local NPC Marketplace remains available. Concourse trading, courier, guilds,
-realm ladder and shared Labyrinth are a separate opt-in network preview.
+The local NPC Marketplace remains available. Bazaar, Guild Hall and Realm Ladder
+are now direct town destinations for the current chronicle, with explicitly
+local records. The former Concourse preview is no longer part of normal play.
+Live Steam trading, public guilds/rankings and shared online Labyrinth still
+require the separately configured authoritative network service.
 
 ## Controls and Display
 

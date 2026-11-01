@@ -6,7 +6,7 @@ SCENE_NAMES = {
     'arena': 'The Arena', 'labyrinth': 'Labyrinth of Light',
     'marketplace': 'The Exchange', 'well': 'Well of Evil', 'inn': 'The Wayfarer\'s Inn',
     'transmute': 'The Crucible', 'inventory': 'The Armory', 'settings': 'Field Settings',
-    'ladder': 'Chronicle Records', 'glossary': 'The Codex', 'stats': 'Character',
+    'ladder': 'Realm Ladder', 'bazaar': 'The Bazaar', 'guild_hall': 'Guild Hall', 'glossary': 'The Codex', 'stats': 'Character',
     'masterquest': 'Prismatic Quest', 'profile': 'Adventurer',
 }
 

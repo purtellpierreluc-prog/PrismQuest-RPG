@@ -86,7 +86,7 @@ PROGRESSION_FIELDS = (
 )
 
 
-def atomic_progress(state, action):
+def atomic_progress(state, action, *, failure_message=None):
     """Synchronous entry/settlement commits once; a disk failure restores the climb."""
     fields = set(STATE_FIELDS) | set(PROGRESSION_FIELDS) | {key for key in state.__dict__ if key.startswith('masterquest_')}
     snapshot = copy.deepcopy({key: state.__dict__[key] for key in fields if key in state.__dict__})
@@ -110,7 +110,7 @@ def atomic_progress(state, action):
                 state.__dict__[key] = snapshot[key]
             else:
                 state.__dict__.pop(key, None)
-        raise DesktopTransactionError('The rite could not be saved. Your previous hero, items, gold and progression were restored. Check storage space and retry.') from exc
+        raise DesktopTransactionError(failure_message or 'The rite could not be saved. Your previous hero, items, gold and progression were restored. Check storage space and retry.') from exc
     finally:
         for name, (had_override, override, _) in originals.items():
             if had_override:

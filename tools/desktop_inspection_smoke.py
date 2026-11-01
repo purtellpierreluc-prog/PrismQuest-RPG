@@ -31,6 +31,8 @@ def main():
         expect(page.locator('#legacy')).to_be_visible()
         assert overlay.inner_text() == 'Formula details'
         page.locator('#anchor').evaluate('e=>e.replaceWith(e.cloneNode(true))')
+        page.locator('#anchor').evaluate('e=>e.dispatchEvent(new PointerEvent("pointerover",{bubbles:true,ctrlKey:false}))')
+        page.wait_for_timeout(250)
         expect(overlay).to_be_visible()
         page.keyboard.up('Control')
         expect(overlay).not_to_be_visible()

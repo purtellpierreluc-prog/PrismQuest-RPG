@@ -103,6 +103,7 @@ class AtomicSaveStore:
             current_digest = hashlib.sha256(current).hexdigest() if current is not None else None
             if self._observed_digest is not _UNOBSERVED and current_digest != self._observed_digest:
                 raise SaveConflictError('The save changed outside this game session. Close the game and reopen it to load the changed save. Existing files were preserved.')
+            current_payload = None
             if current is not None:
                 current_payload = json.loads(current.decode('utf-8-sig')) if self.recovery_source is None else None
                 if current_payload is not None:
@@ -113,6 +114,23 @@ class AtomicSaveStore:
                         return False
             self.path.parent.mkdir(parents=True, exist_ok=True)
             self.backups.mkdir(parents=True, exist_ok=True)
+            migration_source,migration_payload = self.path,current_payload
+            if self.recovery_source:
+                migration_source = self.backups / self.recovery_source
+                migration_payload = json.loads(migration_source.read_text(encoding='utf-8-sig'))
+                self._validate(migration_payload)
+            if migration_payload is not None:
+                previous_version = migration_payload.get('format_version',1)
+                if previous_version < CURRENT_SAVE_VERSION:
+                    original_bytes = current if migration_source == self.path else migration_source.read_bytes()
+                    original_digest = hashlib.sha256(original_bytes).hexdigest()
+                    migration_name = f'before-format-{CURRENT_SAVE_VERSION}-from-{previous_version}-{original_digest[:16]}.json'
+                    target = self.backups/migration_name
+                    if target.exists():
+                        if hashlib.sha256(target.read_bytes()).hexdigest() != original_digest:
+                            raise SaveRecoveryRequired('The pre-upgrade backup changed. Existing saves were preserved.')
+                    else:
+                        shutil.copy2(migration_source,target)
             if self.path.exists():
                 try:
                     self._read(self.path)

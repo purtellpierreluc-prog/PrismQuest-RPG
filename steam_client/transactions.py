@@ -13,6 +13,8 @@ STATE_FIELDS = (
     'labyrinth_last_slot_sync_at', 'labyrinth_status', 'labyrinth_selected_roster_item_keys',
     'town_coffers_total', 'town_coffers_by_service', 'town_coffers_source', 'local_town_service_spend',
     'town_coffers_sync_ok', 'town_coffers_sync_message', 'marketplace_offers',
+    'monster_chain_combo', 'current_inn_line',
+    'inn_vault_inventory_selected_index',
     'log', '_last_local_slots_hash', '_last_runtime_session_hash', 'selected_inventory_key',
     'hovered_inventory_key', 'inventory_view', 'transmute_choice_one', 'transmute_choice_two',
     'transmute_last_result_item', 'transmute_reveal_lines', 'transmute_reveal_active',
@@ -20,7 +22,7 @@ STATE_FIELDS = (
 ITEM_ACTIONS = (
     'equip_item', 'sell_item', 'sell_inventory_items', 'delete_inventory_item', 'delete_saved_item', 'unequip_slot',
     'save_selected_item_to_set', 'retrieve_saved_item_to_inventory', 'equip_saved_item',
-    'buy_vault_slots', 'store_vault_item', 'withdraw_vault_item', 'transmute_selected',
+    'inn_rest', 'buy_vault_slots', 'store_vault_item', 'withdraw_vault_item', 'transmute_selected',
     'buy_marketplace_offer', 'labyrinth_buy_roster_companion', 'labyrinth_rename_roster_companion',
     'labyrinth_set_roster_companion_item', 'labyrinth_clear_roster_companion_item',
     'allocate', 'allocate_multiple',

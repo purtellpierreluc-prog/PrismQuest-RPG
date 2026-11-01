@@ -18,6 +18,7 @@ parser.add_argument('directory')
 parser.add_argument('--visual-cues', action='store_true', help='Include multiple item families and protected tier marks for UI checks.')
 parser.add_argument('--well-audit', action='store_true', help='Disposable overpowered hero for quick real-engine Well settlement checks.')
 parser.add_argument('--level', type=int, choices=[45,60], default=45, help='Use level 60 for Prismatic Quest acceptance checks.')
+parser.add_argument('--town-audit', action='store_true', help='Normal damaged Warlock and a chain for Inn/town acceptance checks.')
 args = parser.parse_args()
 directory = Path(args.directory).resolve()
 if not directory.is_relative_to(ROOT / '.local-test'):
@@ -33,9 +34,12 @@ game = load_game(paths)
 logging.getLogger('prismquest.runtime').disabled = True
 slots = [game.build_default_slot_payload() for _ in range(3)]
 for index, slot in enumerate(slots):
-    player = game._labyrinth_build_companion_player('Black Guard', args.level)
+    player = game._labyrinth_build_companion_player('Warlock' if args.town_audit and index == 0 else 'Black Guard', args.level)
     player.name = 'Desktop Veteran'
     player.gold = 20000
+    if args.town_audit and index == 0:
+        player.hp = max(1,int(player.max_hp*.08))
+        player.mana = 0
     if args.well_audit and index == 0:
         player.base_max_hp = 100000
         player.base_attack_min = 100000
@@ -49,6 +53,8 @@ for index, slot in enumerate(slots):
                 scene_tutorials_seen={key: True for key in slot['scene_tutorials_seen']},
                 guided_discord_prompt_seen=True, first_death_inn_tutorial_seen=True, vault_capacity=30)
     slot['vault_items'] = [item.to_dict() for item in player.inventory[:15]]
+    if args.town_audit and index == 0:
+        slot['monster_chain_combo'] = 12
     if args.visual_cues and index == 0:
         families = [('weapon', 'Axe'), ('weapon', 'Dagger'), ('weapon', 'Staff'),
                     ('armor', 'Light'), ('armor', 'Medium'), ('armor', 'Heavy'),

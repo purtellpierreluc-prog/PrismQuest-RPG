@@ -46,7 +46,7 @@ def test_legacy_upgrade_preserves_payload_and_original_backup(tmp_path):
     loaded = store.load()
     assert loaded == slots()
     store.save(loaded)
-    assert json.loads(store.path.read_text())['format_version'] == 2
+    assert json.loads(store.path.read_text())['format_version'] == 3
     assert any(json.loads(p.read_text()) == before for p in store.backups.glob('chronicles-*.json'))
 
 

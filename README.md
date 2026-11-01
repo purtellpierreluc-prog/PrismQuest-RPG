@@ -1,10 +1,36 @@
-# PrismQuest Reimagined 0.14.0
+# PrismQuest Reimagined 0.15.0
 
 This is an experience-design fork of the Windows/offline Steam conversion, isolated on `codex/steam-experience-redesign`. It is not a Steam release yet. Nocturne 0.4.0 remains in `SteamEditionVisual`, with rollback tag `steam-nocturne-v0.4.0` at `af00de2`. The original 0.3.0 edition remains in `SteamEdition`. Neither preserved executable nor the hosted web game is replaced.
 
 Reimagined changes the information architecture, not just the skin: a battle-first Arena with live rounds and a dedicated reward phase, contextual town goals, an equipment workbench with real recalculated stat trade-offs, click-locked selection, a separate character-build workspace, global navigation, and expedition objectives. Artwork, combat rolls, item ownership, economy and save-format rules are preserved. See `docs/experience-redesign.md` for design, verification and rollback notes.
 
 Screenshots of the new decision loop are included in `docs/experience-redesign.md`.
+
+## A Town Worth Returning To
+
+The Inn is now a bounded recovery workspace: see current/after-room resources,
+the original class-based fee and the chain-reset tradeoff before resting. A
+nonzero chain requires inline confirmation. Recovery remains 35% per room, with
+the original minimums; no full-heal shortcut or combat change was introduced.
+The existing Vault and Inventory stay one step away, with a direct Arena return.
+
+Town Crier spending is now saved per chronicle across visits, restarts and climbs.
+Older unrecorded spending cannot be reconstructed. Free rooms do not inflate it.
+
+Concourse is removed from normal navigation. Bazaar, Guild Hall and Realm Ladder
+are direct town destinations using the current chronicle, not a second test hero.
+They are explicitly local: real listing escrow/returns/repricing and a ledger,
+1,000g main-game guild charters with a persistent local board, and standings/PQ
+history from actual saved chronicles. No simulated players, fabricated trades,
+public Steam guilds or global rankings are claimed. Cross-mode and SSF trading
+remain blocked. Existing Concourse test databases are preserved but not imported.
+
+Save format 3 protects Bazaar escrow from older builds that would not understand
+that ownership location. Upgrade preserves a non-rotating `before-format-3-*`
+copy beside the normal rotating backups. To roll back, use the previous executable
+and its matching pre-upgrade save, not a newer save with the old executable.
+The complete previous build is in `.build-backups/reimagined-0.14.0-fa5fc87/PrismQuest`.
+See `docs/town-and-hearth-0.15.md` for behavior, local scope and verification.
 
 ## The Build and the Deep
 

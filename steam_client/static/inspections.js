@@ -82,7 +82,9 @@
     }, {passive:true});
     document.addEventListener('pointerover', e => {
       pointer = {x:e.clientX, y:e.clientY};
-      modifier(e.ctrlKey);
+      // Remounted nodes can receive layout-generated over events without modifiers.
+      // Key release, real pointer movement and window blur remain authoritative.
+      if (e.ctrlKey) modifier(true);
       const el = e.target.closest(selector);
       if (el) show(el);
     });

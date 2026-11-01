@@ -1,5 +1,5 @@
 /* Action controls, not selectable cards: fixed geometry, immediate tactile state. */
-@layer controls {
+@layer theme {
   html[data-pq-nocturne="true"] .q-btn:is(.mq-btn-gold,.mq-btn-secondary,.mq-btn-danger,.mq-btn-affirm,.mq-arena-btn-primary,.pq-menu-play):not([aria-pressed]):not(.pd-destination,.pd-service,.pc-slot) {
     border:1px solid #64716e!important; border-radius:5px!important;
     background:linear-gradient(175deg,#303b3d 0%,#222c30 44%,#182126 100%)!important;
@@ -7,12 +7,12 @@
     letter-spacing:.025em; text-shadow:none!important; touch-action:manipulation;transform:none!important;
     transition:background-color 100ms ease,border-color 100ms ease,box-shadow 90ms ease!important;
   }
-  html[data-pq-nocturne="true"] .q-btn:is(.mq-btn-gold,.mq-arena-btn-primary,.pq-menu-play):not([aria-pressed]) {
+  html[data-pq-nocturne="true"] .q-btn:is(.mq-btn-gold,.mq-arena-btn-primary,.pq-menu-play):not([aria-pressed]):not(.pd-destination,.pd-service,.pc-slot) {
     background:linear-gradient(165deg,#eee3c4 0%,#d6c18d 48%,#b9a170 100%)!important;
     border-color:#e8d4a5!important; color:#21241c!important;
     box-shadow:inset 0 1px 0 #fff9ddaa,inset 0 -1px 0 #6f5c36aa,0 2px 0 #080e0e!important;
   }
-  html[data-pq-nocturne="true"] .q-btn.mq-btn-danger:not([aria-pressed]) {
+  html[data-pq-nocturne="true"] .q-btn.mq-btn-danger:not([aria-pressed]):not(.pd-destination,.pd-service,.pc-slot) {
     background:linear-gradient(170deg,#483132,#30252a)!important;border-color:#9a6a62!important;color:#f0cfc1!important;
   }
   html[data-pq-nocturne="true"] .q-btn:is(.mq-btn-gold,.mq-btn-secondary,.mq-btn-danger,.mq-btn-affirm,.mq-arena-btn-primary,.pq-menu-play):not([aria-pressed]):enabled:not([aria-disabled="true"]):hover {
