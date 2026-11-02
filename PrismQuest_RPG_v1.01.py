@@ -16408,6 +16408,7 @@ def _labyrinth_complete_tile_states(
                 'visited': bool(value.get('visited', False)),
                 'resolved': bool(value.get('resolved', False)),
                 'kind': str(value.get('kind') or '').strip().lower(),
+                **({'scouted': bool(value.get('scouted', False))} if DESKTOP_MODE else {}),
             }
     completed: Dict[str, Dict[str, object]] = {}
     for tile_y in range(safe_size):
@@ -16426,6 +16427,7 @@ def _labyrinth_complete_tile_states(
                 'visited': visited,
                 'resolved': resolved,
                 'kind': kind or 'free',
+                **({'scouted': bool(existing.get('scouted', False))} if DESKTOP_MODE else {}),
             }
     return completed
 
@@ -18492,6 +18494,9 @@ def _labyrinth_pending_run_gold(session_row: object) -> int:
 def _labyrinth_pending_payload(session_row: object, payload: Optional[Dict[str, object]] = None) -> Dict[str, object]:
     data = dict(payload) if isinstance(payload, dict) else {}
     data['run_gold_earned'] = max(0, int(data.get('run_gold_earned', _labyrinth_pending_run_gold(session_row)) or 0))
+    if DESKTOP_MODE and isinstance(session_row, dict):
+        from steam_client.labyrinth import preserve_discovery
+        preserve_discovery(session_row, data)
     return data
 
 
@@ -19862,6 +19867,9 @@ def labyrinth_reset_after_defeat(self) -> bool:
 
 def labyrinth_move_party(self, direction: str) -> bool:
     ensure_labyrinth_state(self)
+    if DESKTOP_MODE and not getattr(self, '_desktop_maze_transaction', False):
+        from steam_client.labyrinth import travel
+        return travel(self, sys.modules[__name__], direction, lambda: _desktop_labyrinth_move(self, direction))
     if not labyrinth_is_controller(self):
         self.labyrinth_status = 'Only the current controller can move the party through the Labyrinth of Light.'
         return False
@@ -19883,6 +19891,11 @@ def labyrinth_move_party(self, direction: str) -> bool:
     if next_x == current_x and next_y == current_y:
         self.labyrinth_status = 'The prism wall rejects that step.'
         return False
+    if DESKTOP_MODE:
+        from steam_client.labyrinth import allows
+        if not allows(session_row, direction):
+            self.labyrinth_status = 'A prism wall blocks that passage.'
+            return False
     tile_states = _labyrinth_complete_tile_states(session_row.get('tile_states', {}), grid_size, session_row)
     tile_key = _labyrinth_tile_key(next_x, next_y)
     party_state = _labyrinth_party_state_for_session(self, session_row, [dict(row) for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict)], full_heal=False)
@@ -19913,6 +19926,9 @@ def labyrinth_move_party(self, direction: str) -> bool:
             tile_entry['resolved'] = True
             clear_probe_states[tile_key] = dict(tile_entry)
             payload['pending_encounter'] = _labyrinth_pending_payload(payload, {'party_state': party_state})
+            if DESKTOP_MODE:
+                from steam_client.labyrinth import discover
+                party_state = discover(sys.modules[__name__], payload, party_state, tile_states, tile_key)
             if _labyrinth_floor_fully_cleared(clear_probe_states, grid_size):
                 active_members = [row for row in list(getattr(self, 'labyrinth_member_rows', []) or []) if isinstance(row, dict) and not bool(_labyrinth_project_member_row(row, party_state).get('is_downed', False))]
                 if active_members:
@@ -19961,6 +19977,10 @@ def labyrinth_move_party(self, direction: str) -> bool:
                 event_text = 'The party regroups and keeps moving through the light.'
     tile_states[tile_key] = tile_entry
     payload['tile_states'] = tile_states
+    if DESKTOP_MODE and first_visit and tile_kind != 'encounter':
+        discovery = payload.get('pending_encounter', {}).get('discovery', {})
+        if discovery.get('kind') not in {None, 'quiet'}:
+            event_text = f"{discovery['title']}. {discovery['detail']}" + (' The guardian arrives.' if payload.get('status') == 'boss' else '')
     payload['recent_events'] = _labyrinth_append_event(payload.get('recent_events', []), event_text)
     if not _labyrinth_upsert_session_row(self, payload):
         return False
@@ -19972,6 +19992,15 @@ def labyrinth_move_party(self, direction: str) -> bool:
     )
     self.labyrinth_status = event_text
     return True
+
+
+def _desktop_labyrinth_move(self, direction: str) -> bool:
+    # Re-enter validation without recursively opening another transaction.
+    self._desktop_maze_transaction = True
+    try:
+        return labyrinth_move_party(self, direction)
+    finally:
+        self._desktop_maze_transaction = False
 
 
 def labyrinth_start_boss_encounter(self) -> bool:
@@ -26066,6 +26095,10 @@ window.mqScheduleLabRound && window.mqScheduleLabRound({int(next_round_delay_ms)
 """)
                         else:
                             ui.run_javascript("window.clearTimeout(window.__mqLabAdvanceTimer); window.__mqLabAdvanceTimer = null;")
+                        if DESKTOP_MODE:
+                            from steam_client.labyrinth_ui import render_labyrinth
+                            render_labyrinth(state, sys.modules[__name__], experience_actions())
+                            return
                         with ui.column().classes('w-full gap-4'):
                             with ui.card().classes('mq-card w-full p-5'):
                                 if DESKTOP_MODE and session_row:

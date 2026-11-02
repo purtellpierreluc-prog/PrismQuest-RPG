@@ -50,6 +50,19 @@ Save format 3 adds protected escrow ownership. Upgrading keeps a separate
 To revert to 0.14 or earlier, use the old executable and matching pre-upgrade
 save. Older builds deliberately refuse format 3 rather than dropping listings.
 
+## The Labyrinth Light Table
+
+The Labyrinth now has actual passages and walls. Use arrows/WASD or the dock's
+enabled direction buttons. Explore every room to wake the guardian; cleared
+routes stay safe. Health/mana fonts, scouting mirrors and rare recovery
+sanctuaries can appear once in new noncombat rooms. Journal records discoveries.
+Scouting reveals information but does not count as exploration. Backtracking
+does not repeat payouts or advance ability cooldowns.
+
+Roster opens in the center, never above the party. Save companion names explicitly;
+equipment and permanent companion rules are unchanged. Inventory does not abandon
+the run. On small windows, long party/roster lists scroll inside their pane.
+
 ## Your Build and the Well
 
 Hold **Ctrl** while hovering to inspect equipment, abilities and stat formulas.

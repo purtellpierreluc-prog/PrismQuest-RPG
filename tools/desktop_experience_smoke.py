@@ -143,23 +143,24 @@ def main():
         if args.seeded:
             menu('Return to Chronicle Slots')
             page.get_by_role('button', name='Open SSF', exact=True).click()
-            page.locator('.mq-lab-grid').wait_for()
+            page.locator('.pl-maze').wait_for()
             for width, height in sizes[:4]:
                 page.set_viewport_size({'width': width, 'height': height})
-                check('labyrinth', ['Return to Town'], ['.mq-lab-grid', '.pd-expedition-brief'])
-                assert page.locator('.mq-lab-member-card').count() == 5
+                check('labyrinth', ['Return to Town'], ['.pl-maze', '.pl-header'])
+                assert page.locator('.pl-member').count() == 5
             page.set_viewport_size({'width': 1280, 'height': 720})
-            tank = page.locator('.mq-lab-member-card').first.locator('.mq-lab-tank-btn')
+            tank = page.locator('.pl-member').first.locator('.mq-lab-tank-btn')
             tank.click()
             expect(tank).to_have_attribute('aria-pressed', 'true')
             assert tank.evaluate('e=>getComputedStyle(e).borderTopColor') == 'rgb(128, 228, 172)'
             page.get_by_role('button', name='Inventory', exact=True).first.click()
             check('lab-armory', ['Close'])
             page.get_by_role('button', name='Close', exact=True).click()
-            page.locator('.mq-lab-grid').wait_for()
-            before = page.locator('.mq-lab-tile').all_inner_texts().index('P')
-            page.keyboard.press('ArrowRight')
-            page.wait_for_function('before=>!document.querySelector(".mq-lab-grid")||[...document.querySelectorAll(".mq-lab-tile")].findIndex(e=>e.textContent.trim()==="P")!==before', arg=before)
+            page.locator('.pl-maze').wait_for()
+            before = page.locator('.pl-coordinate').inner_text()
+            direction = next(d for d in ['up','left','down','right'] if page.get_by_role('button',name=f'Move {d}',exact=True).is_enabled())
+            page.keyboard.press('Arrow'+direction.capitalize())
+            page.wait_for_function('before=>!document.querySelector(".pl-coordinate")||document.querySelector(".pl-coordinate").textContent!==before',arg=before)
         assert not external and not errors, (external, errors)
         print(json.dumps({'external_requests': external, 'page_errors': errors, 'passed': True}), flush=True)
         browser.close()

@@ -4,8 +4,8 @@ import copy
 import html
 
 CORE_NOTES = {
-    'strength':('Strength','Weapon damage / favors axes'),
-    'dexterity':('Dexterity','Weapon damage / initiative, not attack rate'),
+    'strength':('Strength','Weapon damage'),
+    'dexterity':('Dexterity','Weapon damage'),
     'intelligence':('Intelligence','Charm damage / mana / magic resistance'),
     'vitality':('Vitality','Health / physical armor'),
 }

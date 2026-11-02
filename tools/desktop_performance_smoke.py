@@ -66,8 +66,8 @@ def main():
         sample('title-idle')
         page.get_by_role('button', name='Play', exact=True).click()
         page.get_by_role('button', name='Open HC', exact=True).click()
-        page.locator('.mq-lab-member-card').first.wait_for()
-        assert page.locator('.mq-lab-member-card').count() == 5
+        page.locator('.pl-member').first.wait_for()
+        assert page.locator('.pl-member').count() == 5
         sample('five-member-lab-automatic-combat')
         page.screenshot(path=str(out / 'performance-lab.png'))
         report = {'samples': samples, 'page_errors': errors, 'external_requests': external,

@@ -173,15 +173,27 @@ def test_complete_seven_by_seven_lab_floor_and_boss_reward_loop(game, monkeypatc
         assert state.labyrinth_move_party(direction)
         resolve()
 
-    for _ in range(3):
-        move('left')
-    for _ in range(3):
-        move('up')
-    for row in range(7):
-        for _ in range(6):
-            move('right' if row % 2 == 0 else 'left')
-        if row < 6:
-            move('down')
+    from steam_client.labyrinth import DIRECTIONS, passages
+    graph = passages(state.labyrinth_session_row)
+    seen = {'3,3'}
+    reverse = {'up':'down','down':'up','left':'right','right':'left'}
+    def explore(key):
+        x,y = map(int,key.split(','))
+        for neighbor in graph[key]:
+            if neighbor in seen or state.labyrinth_session_row['status']=='reward':
+                continue
+            nx,ny = map(int,neighbor.split(','))
+            direction = next(d for d,delta in DIRECTIONS.items() if delta==(nx-x,ny-y))
+            seen.add(neighbor)
+            move(direction)
+            if state.labyrinth_session_row['status']=='reward':
+                return
+            explore(neighbor)
+            if state.labyrinth_session_row['status']=='reward':
+                return
+            move(reverse[direction])
+    explore('3,3')
+    assert len(seen)==49
     assert state.labyrinth_session_row['status'] == 'reward'
     assert state.player.level == start_level + 1
     assert 100 <= state.player.gold - start_gold <= 150

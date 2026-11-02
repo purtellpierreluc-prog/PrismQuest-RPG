@@ -75,14 +75,14 @@ with sync_playwright() as p:
     page.get_by_role('button', name='Return to Chronicle Slots', exact=True).click()
     page.get_by_text('Chronicle Slots', exact=True).wait_for()
     page.get_by_role('button', name='Open SSF', exact=True).click()
-    page.locator('.mq-lab-grid').wait_for()
+    page.locator('.pl-maze').wait_for()
     for width, height in [(1280, 720), (960, 600), (1920, 1080)]:
         page.set_viewport_size({'width': width, 'height': height})
         check(page, 'labyrinth', ['Return to Town'])
-        frame = page.locator('.mq-lab-grid').bounding_box()
+        frame = page.locator('.pl-maze').bounding_box()
         assert frame['y'] + frame['height'] <= height and frame['height'] > 150, frame
-        assert page.locator('.mq-lab-member-card').count() == 5
-        assert page.locator('.mq-lab-member-card').evaluate_all('''cards => cards.every(card => {
+        assert page.locator('.pl-member').count() == 5
+        assert page.locator('.pl-member').evaluate_all('''cards => cards.every(card => {
           const c = card.getBoundingClientRect();
           return [...card.querySelectorAll('.mq-meter-track')].every(meter => {
             const m = meter.getBoundingClientRect();
@@ -90,19 +90,19 @@ with sync_playwright() as p:
           });
         })''')
     page.set_viewport_size({'width': 1280, 'height': 720})
-    tank = page.locator('.mq-lab-member-card').first.locator('.mq-lab-tank-btn')
+    tank = page.locator('.pl-member').first.locator('.mq-lab-tank-btn')
     if tank.inner_text().strip() == 'T OFF':
         tank.click()
     expect(tank).to_have_attribute('aria-pressed', 'true')
     assert tank.evaluate('(e) => getComputedStyle(e).borderTopColor') == 'rgb(128, 228, 172)'
-    page.get_by_text('Movement & Companions', exact=True).click()
     page.get_by_role('button', name='Open Inventory', exact=True).click()
     check(page, 'lab-inventory', ['Close'])
     page.get_by_role('button', name='Close', exact=True).click()
-    page.locator('.mq-lab-grid').wait_for()
-    before = page.locator('.mq-lab-tile').all_inner_texts().index('P')
-    page.keyboard.press('ArrowRight')
-    page.wait_for_function('before => !document.querySelector(".mq-lab-grid") || [...document.querySelectorAll(".mq-lab-tile")].findIndex(e=>e.textContent.trim()==="P") !== before', arg=before)
+    page.locator('.pl-maze').wait_for()
+    before = page.locator('.pl-coordinate').inner_text()
+    direction = next(d for d in ['up','left','down','right'] if page.get_by_role('button',name=f'Move {d}',exact=True).is_enabled())
+    page.keyboard.press('Arrow'+direction.capitalize())
+    page.wait_for_function('before=>!document.querySelector(".pl-coordinate")||document.querySelector(".pl-coordinate").textContent!==before',arg=before)
     print('KEYBOARD_MOVE passed')
     print('EXTERNAL_REQUESTS', external, 'PAGE_ERRORS', errors)
     assert not external and not errors

@@ -5,6 +5,7 @@ import copy
 import logging
 import os
 import sys
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +20,7 @@ parser.add_argument('--visual-cues', action='store_true', help='Include multiple
 parser.add_argument('--well-audit', action='store_true', help='Disposable overpowered hero for quick real-engine Well settlement checks.')
 parser.add_argument('--level', type=int, choices=[45,60], default=45, help='Use level 60 for Prismatic Quest acceptance checks.')
 parser.add_argument('--town-audit', action='store_true', help='Normal damaged Warlock and a chain for Inn/town acceptance checks.')
+parser.add_argument('--labyrinth-scene', choices=['boss','reward','defeated','lobby'], help='Disposable SSF scene fixture for Labyrinth layout acceptance only.')
 args = parser.parse_args()
 directory = Path(args.directory).resolve()
 if not directory.is_relative_to(ROOT / '.local-test'):
@@ -76,6 +78,17 @@ for index in (1, 2):
     for companion in ['Shadow Mage', 'Night Angel', 'Night Assassin', 'Prismatic Templar']:
         assert state.labyrinth_hire_companion(companion)
     assert state.labyrinth_start_floor()
+    if index == 1 and args.labyrinth_scene:
+        row = copy.deepcopy(state.labyrinth_session_row)
+        row['status'] = args.labyrinth_scene
+        if args.labyrinth_scene=='boss':
+            row['pending_encounter'] = game._labyrinth_build_shared_encounter(state,row,state.labyrinth_member_rows,'Lamia',args.level,boss=True,tile_key='0,0')
+            row['pending_encounter']['next_step_at'] = (datetime.now(UTC)+timedelta(minutes=5)).isoformat()
+        elif args.labyrinth_scene=='reward':
+            row['reward_options'] = game._labyrinth_build_reward_choices(1)
+            # Freeze only these disposable layout fixtures; real combat/vote timers are untouched.
+            row['pending_encounter'].update(reward_vote_started_at=(datetime.now(UTC)+timedelta(minutes=5)).isoformat(),reward_gold_gain=125)
+        game._labyrinth_apply_local_session_update(state,row)
     if index == 2:
         row = copy.deepcopy(state.labyrinth_session_row)
         row['status'] = 'encounter'

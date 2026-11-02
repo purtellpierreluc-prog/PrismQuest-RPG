@@ -1,10 +1,27 @@
-# PrismQuest Reimagined 0.15.0
+# PrismQuest Reimagined 0.16.0
 
 This is an experience-design fork of the Windows/offline Steam conversion, isolated on `codex/steam-experience-redesign`. It is not a Steam release yet. Nocturne 0.4.0 remains in `SteamEditionVisual`, with rollback tag `steam-nocturne-v0.4.0` at `af00de2`. The original 0.3.0 edition remains in `SteamEdition`. Neither preserved executable nor the hosted web game is replaced.
 
 Reimagined changes the information architecture, not just the skin: a battle-first Arena with live rounds and a dedicated reward phase, contextual town goals, an equipment workbench with real recalculated stat trade-offs, click-locked selection, a separate character-build workspace, global navigation, and expedition objectives. Artwork, combat rolls, item ownership, economy and save-format rules are preserved. See `docs/experience-redesign.md` for design, verification and rollback notes.
 
 Screenshots of the new decision loop are included in `docs/experience-redesign.md`.
+
+## The Light Table
+
+The Labyrinth is now a connected 7x7 maze with real walls, branching passages,
+dead ends and a few loops. New floors get a new deterministic layout; reloading
+does not reroll it or remove progress. Party cards, the maze/combat stage and a
+navigation dock occupy separate bounded columns. Roster management no longer
+opens above or across the party. Five members fit at 720p and up; compact windows
+scroll long lists internally. Boss rewards, combat pacing and progression stay
+with the existing engine.
+
+Previously empty first-visit rooms can now contain health/mana fonts, scouting
+mirrors or a rare recovery sanctuary. They resolve immediately, only once; no
+new gold, item or XP faucet is introduced. Journal records actual discoveries.
+See `docs/labyrinth-of-light-0.16.md` for the complete event log, odds, rules,
+verification and rollback notes. The requested Arena, Stats and Town explanatory
+copy has been removed without removing the underlying formulas or color cues.
 
 ## A Town Worth Returning To
 

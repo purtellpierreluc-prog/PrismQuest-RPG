@@ -232,13 +232,14 @@ def _journey(state):
                        lab_active=bool(getattr(state, 'labyrinth_session_row', {})))
 
 
-def render_journey(state, game, *, compact=False):
+def render_journey(state, game, *, compact=False, show_title=True):
     p = state.player
     goal = _journey(state)
     with ui.element('div').classes('pd-journey compact' if compact else 'pd-journey'):
         with ui.element('div').classes('pd-journey-copy'):
             eyebrow(goal.milestone)
-            ui.label(goal.title).classes('pd-journey-title')
+            if show_title:
+                ui.label(goal.title).classes('pd-journey-title')
         ui.html(game.animated_meter_html('player-xp', f'LEVEL {p.level}', p.xp, max(1, p.xp_to_next), 'exp', 4200, cycle=p.level, rollover=True))
         with ui.element('div').classes('pd-milestone-track'):
             for level, label in [(1, 'AWAKEN'), (45, 'LABYRINTH'), (60, 'ASCEND')]:
@@ -253,7 +254,8 @@ def render_town(state, game, actions):
         with ui.element('div').classes('pd-town-main'):
             with ui.element('section').classes('pd-purpose-card'):
                 eyebrow('YOUR NEXT CHAPTER')
-                ui.label(goal.title).classes('pd-purpose-title')
+                if goal.destination != 'masterquest':
+                    ui.label(goal.title).classes('pd-purpose-title')
                 ui.label(goal.detail).classes('pd-purpose-detail')
                 ui.button(goal.action, icon='arrow_forward', on_click=lambda: actions['route'](goal.destination)).classes('mq-btn-gold pd-purpose-action')
                 with ui.element('div').classes('pd-town-hero'):
@@ -263,11 +265,10 @@ def render_town(state, game, actions):
                         ui.label(f'{p.player_class} / Level {p.level}').classes('pd-subtle')
                         ui.html(game.animated_meter_html('town-hp', 'HEALTH', p.hp, p.max_hp, 'hp', 800))
                         ui.html(game.animated_meter_html('town-mana', 'MANA', p.mana, max(1, p.max_mana), 'mana', 800))
-                render_journey(state, game)
+                render_journey(state, game, show_title=goal.destination != 'masterquest')
             with ui.element('section').classes('pd-crossroads'):
                 with ui.element('div').classes('pd-world-label'):
                     eyebrow('BETWEEN DARKNESS AND THE PRISM')
-                    ui.label('Choose your road.').classes('pd-world-title')
                 image_plate(game.get_town_scene_data_uri(), 'The town crossroads', 'pd-town-map')
                 with ui.element('div').classes('pd-destination-deck'):
                     destinations = [
@@ -282,19 +283,19 @@ def render_town(state, game, actions):
                             button = ui.button(title, icon='lock' if blocker else 'north_east', on_click=lambda route=destination: actions['route'](route)).classes('mq-btn-secondary pd-destination-btn')
                             if blocker:
                                 button.disable()
-                            ui.label(str(blocker) if blocker else 'READY TO ENTER').classes('pd-destination-lock')
+                            if blocker:
+                                ui.label(str(blocker)).classes('pd-destination-lock')
         with ui.element('section').classes('pd-services'):
             eyebrow('PREPARE FOR THE NEXT ROAD')
             with ui.element('div').classes('pd-service-deck'):
-                for title, detail, icon, route in [
-                    ('Inn', 'Recover / Vault', 'local_fire_department', 'inn'),
-                    ('Inventory', 'Inspect / Equip', 'inventory_2', 'inventory'),
-                    ('Marketplace', 'Find new equipment', 'storefront', 'marketplace'),
-                    ('Transmutation', 'Combine your finds', 'auto_fix_high', 'transmute'),
-                    ('Well of Evil', 'Offer / Risk / Discover', 'water_drop', 'well')]:
+                for title, icon, route in [
+                    ('Inn', 'local_fire_department', 'inn'),
+                    ('Inventory', 'inventory_2', 'inventory'),
+                    ('Marketplace', 'storefront', 'marketplace'),
+                    ('Transmutation', 'auto_fix_high', 'transmute'),
+                    ('Well of Evil', 'water_drop', 'well')]:
                     with ui.element('div').classes('pd-service'):
                         ui.button(title, icon=icon, on_click=lambda dest=route: actions['route'](dest)).classes('mq-btn-secondary pd-service-btn').props('aria-label=' + ('Inventory' if route == 'inventory' else '"' + title + '"'))
-                        ui.label(detail).classes('pd-service-description')
         with ui.element('footer').classes('pd-town-footer'):
             ui.label(f'{p.wins} victories / {p.losses} defeats / {len(p.inventory)} items in pack').classes('pd-subtle')
             bazaar = ui.button('Bazaar', icon='storefront', on_click=lambda: actions['route']('bazaar')).classes('mq-btn-secondary pd-text-btn')
@@ -336,8 +337,7 @@ def render_arena(state, game, actions):
     active = state.fight_in_progress
     result = current_result(state)
     with ui.element('div').classes('pd-arena-workspace'):
-        with ui.element('div').classes('pd-duel-heading'):
-            eyebrow('AUTOMATIC COMBAT / YOUR BUILD MAKES THE DIFFERENCE')
+        with ui.element('div').classes('pd-duel-heading'):  # noqa: SIM117 - retain the stable heading frame
             with ui.element('div').classes('pd-encounter-tools'):
                 ui.label(f'CHAIN x{state.monster_chain_combo}  /  +{game.get_monster_chain_bonus_fraction(state.monster_chain_combo):.0%} XP').classes('pd-chain')
                 ui.html(last_find_html(state, game))
@@ -347,7 +347,7 @@ def render_arena(state, game, actions):
             ui.element('div').classes('pd-encounter-trace').props('aria-hidden=true')
             with ui.element('article').classes('pd-combatant pd-hero'):
                 with ui.element('div').classes('pd-actor-heading'):
-                    eyebrow(f'YOUR CHAMPION / LEVEL {p.level}')
+                    eyebrow(f'LEVEL {p.level}')
                     ui.label(p.name).classes('pd-actor-name')
                     ui.label(p.player_class).classes('pd-actor-subtitle')
                 image_plate(game._hero_data_uri(p.player_class), p.player_class, 'pd-hero-art')
@@ -361,12 +361,10 @@ def render_arena(state, game, actions):
                     render_combat_stats(p)
             with ui.element('section').classes('pd-battle-focus'):
                 if active:
-                    eyebrow('LIVE ENCOUNTER')
                     ui.label(_battle_round(state) if not state.monster_page_turn_active else 'CHALLENGER APPROACHING').classes('pd-round')
                     ui.html('<div class="pd-versus-mark" aria-hidden="true"><span>VS</span></div>')
                     live = next((event for event in reversed(state.log[-10:]) if event.tag != 'round'), None)
                     ui.label(live.text if live else 'Your build is put to the test.').classes('pd-live-event')
-                    ui.label('You and your opponent act automatically.').classes('pd-focus-note')
                 elif result:
                     outcome = result.outcome
                     eyebrow('ENCOUNTER RESOLVED')
@@ -394,7 +392,7 @@ def render_arena(state, game, actions):
                                 else:
                                     ui.label('Already moved or equipped.').classes('pd-subtle')
                         else:
-                            note = 'No equipment this time. Your experience still counts.' if result.xp > 0 else 'No equipment this time. Prepare for the prism, or continue into the Labyrinth.'
+                            note = 'No equipment this time.'
                             ui.label(note if outcome == 'victory' else 'Recover, adjust your build, and return stronger.').classes('pd-no-drop')
                     _reveal_once('pd-battle-receipt', f'{state.active_slot_index}:{result.serial}', bool(state.disable_last_drop_animation))
                     if outcome == 'defeat' or p.hp < p.max_hp * .3:
@@ -409,7 +407,7 @@ def render_arena(state, game, actions):
                     ui.html('<div class="pd-versus-mark" aria-hidden="true"><span>VS</span></div>')
                     ui.label('Choose your difficulty, call a challenger, and let your build speak.').classes('pd-focus-note')
             cue = monster_defense_cue(monster, game.monster_late_game_scale)
-            signature, texture = monster_signature(monster.monster_type if monster else '')
+            _, texture = monster_signature(monster.monster_type if monster else '')
             with ui.element('article').classes('pd-combatant pd-enemy').style(game.monster_theme_style(monster.monster_type if monster else '')).props(f'data-defense={cue.kind} data-species-texture={texture}'):
                 if monster:
                     ui.element('div').classes('pd-species-texture').props('aria-hidden=true')
@@ -417,10 +415,6 @@ def render_arena(state, game, actions):
                     eyebrow(('LAST CHALLENGER' if not active else 'YOUR OPPONENT') + (f' / LEVEL {monster.level}' if monster else ''))
                     ui.label(game.monster_species_name(monster.monster_type) if monster else 'The unknown').classes('pd-actor-name')
                     ui.label(getattr(monster, 'monster_personal_name', '') or 'Beyond the next gate').classes('pd-actor-subtitle')
-                    if monster:
-                        ui.label(signature).classes('pd-monster-signature').props('title="Species atmosphere only. Armor and resistance are identified separately."')
-                    if cue.label:
-                        ui.label(cue.label).classes('pd-defense-cue').props(f'title="{text(cue.description)}"')
                 image_plate(state.arena_monster_uri(monster) if monster else '', monster.monster_type if monster else 'Call a challenger', 'pd-enemy-art')
                 with ui.element('div').classes('pd-actor-resources'):
                     if monster:
@@ -453,15 +447,12 @@ def render_arena(state, game, actions):
                         ui.number('Auto level offset', value=int(state.arena_level_offset), min=0, max=limit-1, step=1,
                                   on_change=lambda e: (setattr(state, 'arena_level_offset', max(0, min(limit-1, int(e.value or 0)))), actions['refresh']())).props('outlined dense')
                 tactics.set_enabled(not active)
-                ui.label('Automatic rounds. Deliberate preparation.').classes('pd-command-hint')
             with ui.element('div').classes('pd-command-primary'):
                 fight = ui.button('In Combat' if active else 'Next Challenger' if result else 'Call Challenger', icon='flash_on', on_click=actions['fight']).classes('mq-btn-gold pd-fight-btn').props('aria-label=Fight')
                 fight.set_enabled(not active)
                 if active:
                     flee = ui.button('Flee', on_click=lambda: (state.request_arena_flee(), actions['refresh']())).classes('mq-btn-secondary pd-text-btn')
                     flee.set_enabled(state.current_monster is not None and not state.arena_flee_requested and not state.monster_page_turn_active)
-                else:
-                    ui.label('Your next decision is yours. No automatic restart.').classes('pd-command-hint')
             with ui.element('div').classes('pd-command-right'):
                 build = ui.button(f'Build / {p.unspent_stat_points} points' if p.unspent_stat_points else 'Character & Stats', icon='person', on_click=lambda: actions['route']('stats')).classes('mq-btn-secondary pd-build-btn')
                 build.set_enabled(not active)
@@ -528,9 +519,7 @@ def render_character(state, game, actions):
     p = state.player
     with ui.element('div').classes('pd-character-workspace'):
         with ui.element('section').classes('pd-character-build'):
-            eyebrow('BUILD YOUR CHAMPION')
             ui.label(p.player_class).classes('pd-character-title')
-            ui.label(game.CLASS_DESCRIPTIONS[p.player_class]).classes('pd-subtle')
             ui.label(f'{p.unspent_stat_points} points to allocate').classes('pd-points-available')
             with ui.element('div').classes('pd-stat-allocation-grid'):
                 for key, (label,note) in CORE_NOTES.items():
@@ -543,7 +532,6 @@ def render_character(state, game, actions):
                             for amount, caption in [(1, '+1'), (p.unspent_stat_points, 'All')]:
                                 button = ui.button(caption, on_click=lambda stat=key, n=amount: (state.allocate_multiple(stat, n), actions['refresh']())).classes('mq-btn-secondary').props(f'aria-label="{caption} {label}"')
                                 button.set_enabled(not state.fight_in_progress and p.unspent_stat_points > 0)
-            ui.label('Allocation affects future level-up resource growth. Choose deliberately.').classes('pd-comparison-note')
         with ui.element('section').classes('pd-character-readout'):
             eyebrow('YOUR BUILD IN PRACTICE')
             with ui.element('div').classes('pd-character-totals'):
