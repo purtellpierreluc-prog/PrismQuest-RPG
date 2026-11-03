@@ -20,7 +20,8 @@ parser.add_argument('--visual-cues', action='store_true', help='Include multiple
 parser.add_argument('--well-audit', action='store_true', help='Disposable overpowered hero for quick real-engine Well settlement checks.')
 parser.add_argument('--level', type=int, choices=[45,60], default=45, help='Use level 60 for Prismatic Quest acceptance checks.')
 parser.add_argument('--town-audit', action='store_true', help='Normal damaged Warlock and a chain for Inn/town acceptance checks.')
-parser.add_argument('--labyrinth-scene', choices=['boss','reward','defeated','lobby'], help='Disposable SSF scene fixture for Labyrinth layout acceptance only.')
+parser.add_argument('--labyrinth-scene', choices=['boss','swarm','reward','defeated','lobby'], help='Disposable SSF scene fixture for Labyrinth layout acceptance only.')
+parser.add_argument('--insight-audit',action='store_true',help='Disposable stat points, proficiency and class PQ history for hover/filter checks.')
 args = parser.parse_args()
 directory = Path(args.directory).resolve()
 if not directory.is_relative_to(ROOT / '.local-test'):
@@ -67,6 +68,15 @@ for index, slot in enumerate(slots):
             tier = game.ITEM_BUCKETS[n]
             item = game.generate_specific_item(tier, family, subtype, 'Epic' if n % 2 else 'Rare')
             slot['saved_item_sets'][game.get_saved_item_category(item)] = {str(tier): item.to_dict()}
+    if args.insight_audit and index == 0:
+        slot['player']['unspent_stat_points'] = 3
+        slot['player']['proficiency_levels']['Axe'] = 7
+        slot['player']['proficiency_progress']['Axe'] = 23
+        slot['pq_ledger_entries'] = [game.normalize_pq_ledger_entry({
+            'id':f'fixture-{hero}','character_name':'Earlier Hero','player_class':hero,'level':60,'mode':'Core',
+            'slot_index':1,'season_id':1,'passed':True,'elapsed_seconds':seconds,
+            'completed_at':game._labyrinth_now_iso(),
+        }) for hero,seconds in [('Black Guard',90),('Shadow Mage',30)]]
 store = AtomicSaveStore(paths.save_file, paths.backups)
 store.save(slots)
 state = game.SessionState()
@@ -80,9 +90,10 @@ for index in (1, 2):
     assert state.labyrinth_start_floor()
     if index == 1 and args.labyrinth_scene:
         row = copy.deepcopy(state.labyrinth_session_row)
-        row['status'] = args.labyrinth_scene
-        if args.labyrinth_scene=='boss':
-            row['pending_encounter'] = game._labyrinth_build_shared_encounter(state,row,state.labyrinth_member_rows,'Lamia',args.level,boss=True,tile_key='0,0')
+        row['status'] = 'encounter' if args.labyrinth_scene=='swarm' else args.labyrinth_scene
+        if args.labyrinth_scene in {'boss','swarm'}:
+            boss = args.labyrinth_scene=='boss'
+            row['pending_encounter'] = game._labyrinth_build_shared_encounter(state,row,state.labyrinth_member_rows,'Lamia' if boss else 'Bandit',args.level,boss=boss,tile_key='0,0')
             row['pending_encounter']['next_step_at'] = (datetime.now(UTC)+timedelta(minutes=5)).isoformat()
         elif args.labyrinth_scene=='reward':
             row['reward_options'] = game._labyrinth_build_reward_choices(1)

@@ -112,8 +112,11 @@ def main():
         assert owned_items(profile) == initial, 'Save/restore/equip must not duplicate or lose items.'
         page.get_by_role('button', name='Close', exact=True).click()
         page.get_by_role('button', name='Arena', exact=True).first.click()
-        page.locator('.pd-combat-stats').wait_for()
-        assert len(page.locator('.pd-combat-stats dd').all_text_contents()) == 6
+        page.get_by_role('button',name='Inspect combat stats',exact=True).wait_for()
+        page.keyboard.down('Control')
+        page.get_by_role('button',name='Inspect combat stats',exact=True).hover()
+        expect(page.locator('#pd-item-inspection')).to_be_visible()
+        assert len(page.locator('#pd-item-inspection dd').all_text_contents())==6
         weapon = page.get_by_role('button', name='Inspect equipped Weapon', exact=True)
         page.keyboard.down('Control')
         weapon.hover()

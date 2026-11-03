@@ -71,6 +71,14 @@
 .pl-monster { display:flex;flex-direction:column;min-height:0;min-width:0;gap:12px;justify-content:center; }
 .pl-monsters:has(> :only-child) { grid-template-columns:1fr; }
 .pl-monsters:has(> :nth-child(2):last-child) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.pl-monsters:has(> :nth-child(4)) { grid-template-rows:repeat(2,minmax(0,1fr));gap:10px; }
+.pl-monsters:has(> :nth-child(4):last-child) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.pl-monsters:not(.is-boss) .pl-monster-name { font-size:13px; }
+.pl-monsters:not(.is-boss) .mq-meter-track { height:12px!important;min-height:12px; }
+.pl-monsters:not(.is-boss) .mq-meter-row { font-size:9px; }
+.pl-monsters:has(> :nth-child(4)) .pl-monster { gap:6px; }
+.pl-monsters:has(> :nth-child(4)) .pl-monster-info { gap:5px; }
+.pl-monsters:has(> :nth-child(4)) img { filter:none; }
 .pl-monster-art { flex:1;min-height:0;width:100%;max-height:380px; }
 .pl-monster-art .pd-art-plate,.pl-monster-art img { width:100%;height:100%;max-height:100%;object-fit:contain;min-height:0; }
 .pl-monster-art { position:relative;background:radial-gradient(ellipse at 50% 65%,rgba(var(--mq-monster-rgb,121,144,116),.13),transparent 70%); }

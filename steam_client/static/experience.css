@@ -1,4 +1,19 @@
 /* Experience architecture: the focus changes with the player's current decision. */
+.pd-arena-insights { display:flex;justify-content:flex-end;gap:7px;padding-top:3px; }
+.pd-arena-insight { display:grid;place-items:center;width:25px;height:25px;padding:4px;border:1px solid #657c7166;border-radius:4px;color:#a6b9ad;background:#14212780;cursor:help; }
+.pd-arena-insight svg { width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round; }
+.pd-arena-insight:hover,.pd-arena-insight:focus-visible { border-color:#c7c398;color:#e2dbb8;outline:1px solid #d3c38b44;outline-offset:2px; }
+.pd-item-inspection:has(.pd-insight-sheet) { width:320px;min-width:0;max-width:calc(100vw - 24px); }
+.pd-insight-sheet { width:100%;padding:16px;color:#d3dfd6;background:#102027;font:400 12px/1.5 var(--pq-sans); }
+.pd-insight-sheet h3 { margin:0 0 14px;font:400 23px var(--pq-serif);color:#e2d5ad; }
+.pd-insight-sheet dl { margin:0;display:grid;gap:8px; }
+.pd-insight-sheet dl > div { display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #526c5d44;padding:3px 0 8px; }
+.pd-insight-sheet dt { color:#92aea5; }.pd-insight-sheet dd { margin:0;color:#e2e5ce;font-variant-numeric:tabular-nums; }
+.pd-insight-prof { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:6px 0;color:#a8bdb3; }
+.pd-insight-prof b { color:#d4dabf;font-weight:500; }.pd-insight-prof small { grid-column:1/-1;font-size:10px;font-variant-numeric:tabular-nums;color:#91a9a8; }
+.pd-insight-prof i { grid-column:1/-1;height:3px;background:linear-gradient(90deg,#a6bb93 var(--prof-progress),#283e43 var(--prof-progress));border-radius:2px;margin:3px 0; }
+.pd-insight-prof.active > span { color:#e7d49e; }
+.pd-character-readout > .q-btn:last-child { margin-top:auto;flex-shrink:0; }
 .mq-desktop .mq-desktop-scene-header { display: none !important; }
 .mq-desktop .pd-navigation { display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 54px; padding-bottom: 10px; border-bottom: 1px solid #3a4347; flex: 0 0 auto; }
 .pd-nav-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }

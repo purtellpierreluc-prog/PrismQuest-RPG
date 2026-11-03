@@ -102,7 +102,7 @@ def _monsters(state,game,row):
     monsters = game._labyrinth_monster_snapshots_from_pending(pending)
     boss = bool(pending.get('boss'))
     eyebrow('THE FLOOR GUARDIAN' if boss else 'ACTIVE ENCOUNTER')
-    ui.label(f'Round {pending.get("round",1)} / Party, then monsters').classes('pl-round').props('id=mq-lab-round-note')
+    ui.label(f'Round {pending.get("round",1)} / Group volley').classes('pl-round').props('id=mq-lab-round-note')
     with ui.element('div').classes('pl-monsters'+(' is-boss' if boss else '')):
         for index,monster in enumerate(monsters):
             with ui.element('article').classes('pl-monster').style(game.monster_theme_style(monster['monster_type'])):

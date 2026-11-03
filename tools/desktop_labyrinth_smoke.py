@@ -148,8 +148,8 @@ def main():
         assert (current['current_x'],current['current_y'])==(nx,ny)
         assert current['tile_states'][target]['visited']
         if current['status'] in {'encounter','boss'}:
-            expect(page.locator('.pl-monster')).to_have_count(3)
-            sizes('combat-three')
+            expect(page.locator('.pl-monster')).to_have_count(6)
+            sizes('combat-six')
             assert abs(page.locator('.pl-stage').bounding_box()['height']-before['height'])<2
             expect(button('Roster')).to_be_disabled()
             page.wait_for_function('document.querySelector(".pl-maze") || document.querySelector(".pl-prism-choices")',timeout=120000)

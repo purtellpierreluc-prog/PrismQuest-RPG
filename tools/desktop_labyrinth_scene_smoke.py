@@ -12,7 +12,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--port',type=int,required=True)
     parser.add_argument('--output',type=Path,required=True)
-    parser.add_argument('--scene',choices=['boss','reward','lobby','defeated'],required=True)
+    parser.add_argument('--scene',choices=['boss','swarm','reward','lobby','defeated'],required=True)
     args = parser.parse_args()
     if '.local-test' not in args.output.resolve().parts:
         raise SystemExit('Disposable test output only.')
@@ -42,6 +42,11 @@ def main():
                 expect(page.locator('.pl-boss-stats')).to_contain_text('Resistance')
                 bounds = page.locator('#mq-meter-labyrinth-monster-hp').bounding_box()
                 assert bounds and bounds['width']>0 and bounds['y']+bounds['height']<=h
+            elif args.scene=='swarm':
+                expect(page.locator('.pl-monster')).to_have_count(6)
+                stage = page.locator('.pl-stage').bounding_box()
+                for bounds in page.locator('.pl-monsters .mq-meter').evaluate_all('els=>els.map(e=>{const r=e.getBoundingClientRect();return {bottom:r.bottom,right:r.right,h:r.height}})'):
+                    assert bounds['h']>0 and bounds['bottom']<=stage['y']+stage['height'] and bounds['right']<=stage['x']+stage['width']
             elif args.scene=='reward':
                 expect(page.locator('.pl-prism-choice')).to_have_count(3)
                 expect(page.locator('.pl-vote-clock')).to_contain_text('to choose')

@@ -1,10 +1,28 @@
-# PrismQuest Reimagined 0.16.0
+# PrismQuest Reimagined 0.17.0
 
 This is an experience-design fork of the Windows/offline Steam conversion, isolated on `codex/steam-experience-redesign`. It is not a Steam release yet. Nocturne 0.4.0 remains in `SteamEditionVisual`, with rollback tag `steam-nocturne-v0.4.0` at `af00de2`. The original 0.3.0 edition remains in `SteamEdition`. Neither preserved executable nor the hosted web game is replaced.
 
-Reimagined changes the information architecture, not just the skin: a battle-first Arena with live rounds and a dedicated reward phase, contextual town goals, an equipment workbench with real recalculated stat trade-offs, click-locked selection, a separate character-build workspace, global navigation, and expedition objectives. Artwork, combat rolls, item ownership, economy and save-format rules are preserved. See `docs/experience-redesign.md` for design, verification and rollback notes.
+Reimagined changes the information architecture, not just the skin: a battle-first Arena with live rounds and a dedicated reward phase, contextual town goals, an equipment workbench with real recalculated stat trade-offs, click-locked selection, a separate character-build workspace, global navigation, and expedition objectives. Item ownership, existing economy and save-format rules remain in place; release-specific artwork and Lab balance changes are documented below. See `docs/experience-redesign.md` for the original design and rollback notes.
 
 Screenshots of the new decision loop are included in `docs/experience-redesign.md`.
+
+## A Clearer Arena, a Livelier Lab
+
+Arena combat stats and proficiencies now live behind two small Ctrl-hover/focus
+icons. Proficiency inspection shows levels and progress, and no longer occupies
+the build screen. Arena's BUILD DECISION copy is removed. Realm Ladder filters
+by class and sorts matching successful PQ times, retaining genuine legacy class
+bests and the current chronicle's level/victory information.
+
+New normal Lab packs contain 2-6 enemies with half HP, damage and defenses.
+Bosses and hit/crit chances stay unchanged. Whole-party volleys resolve without
+per-character waits, with a faster default round cadence and summed per-target
+damage feedback. The separate slower-combat option remains available. New floors
+have 40% encounter chance, down from 50%; existing saved rooms do not reroll.
+
+The town now uses a new transparent, hand-inked WebP illustration, preserving
+the original landmarks and old asset files. See `docs/arena-and-swarms-0.17.md`
+for exact scope, art provenance/prompt, verification and rollback.
 
 ## The Light Table
 

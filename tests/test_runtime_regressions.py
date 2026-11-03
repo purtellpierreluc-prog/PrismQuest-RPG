@@ -225,7 +225,7 @@ def test_boss_rewards_are_awarded_once_and_saved(game):
     assert state.slots[0]['player'] == saved
 
 
-def test_five_player_three_monster_round_keeps_turn_order(game):
+def test_five_player_pack_round_keeps_turn_order(game):
     state = state_for(game)
     assert state.create_labyrinth_solo_session()
     for player_class in ['Black Guard', 'Night Angel', 'Warlock', 'Shadow Mage']:
@@ -250,9 +250,10 @@ def test_five_player_three_monster_round_keeps_turn_order(game):
         return original(attacker, defender, context)
     with patch.object(game, '_labyrinth_resolve_turn', side_effect=record_turn):
         assert state.run_labyrinth_encounter(ignore_timing=True)
-    assert len(order) == 8
+    monster_count = len(row['pending_encounter']['monster_snapshots'])
+    assert len(order) == 5+monster_count
     assert order[:5] == row['pending_encounter']['participants']
-    assert order[5:] == ['monster-0', 'monster-1', 'monster-2']
+    assert order[5:] == [f'monster-{index}' for index in range(monster_count)]
 
 
 def test_vault_round_trip_keeps_item_ownership(game):

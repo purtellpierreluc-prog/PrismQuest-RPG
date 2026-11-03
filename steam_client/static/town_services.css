@@ -1,4 +1,5 @@
 /* Town destinations share a frame, not an interchangeable layout. */
+.nl-class-filter { margin-left:auto;width:230px;max-width:42%;min-width:0; }
 .nt-scene-header { display:flex;align-items:center;justify-content:space-between;gap:20px;padding:5px 0 14px;border-bottom:1px solid #65716666;flex-shrink:0; }
 .nt-display { color:#e4dcc3;font:400 clamp(24px,2.7vw,36px)/1.15 var(--pq-serif);margin-top:7px; }
 .nt-header-note { color:#a7b9af;font:400 12px/1.5 var(--pq-sans);max-width:260px; }

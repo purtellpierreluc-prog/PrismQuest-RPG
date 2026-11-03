@@ -40,6 +40,9 @@ charter without refunding its fee. Input fields have no polling refresh.
 Realm Ladder shows actual local chronicle levels, wins and fastest recorded PQ
 attempts. Filter by mode or explicitly compare all local chronicles; My Ascents
 keeps the current chronicle's real PQ history. Beyond-60 levels are retained.
+The Class menu shows matching successful PQ bests and switches to Fastest Ascent;
+genuine class bests from older builds are retained too. Current level/victory
+information stays visible, and no missing attempts are invented.
 This screen never resets the ladder, replaces heroes or uploads editable saves.
 Steam player trading, public guilds and global standings still require the App
 ID, native authentication and an authoritative hosted backend. Upload alone
@@ -51,6 +54,12 @@ To revert to 0.14 or earlier, use the old executable and matching pre-upgrade
 save. Older builds deliberately refuse format 3 rather than dropping listings.
 
 ## The Labyrinth Light Table
+
+New floors have a 40% encounter chance per new room. Normal packs now contain
+2-6 weaker monsters, with half health, damage and defenses; bosses stay unchanged.
+The whole party acts in a group volley, then the surviving monsters answer in the
+same round update. Default round pacing is faster; the separate slow-combat
+setting is still respected. Low-load mode still removes pop-ups and bar animation.
 
 The Labyrinth now has actual passages and walls. Use arrows/WASD or the dock's
 enabled direction buttons. Explore every room to wake the guardian; cleared
@@ -67,6 +76,8 @@ the run. On small windows, long party/roster lists scroll inside their pane.
 
 Hold **Ctrl** while hovering to inspect equipment, abilities and stat formulas.
 Releasing Ctrl closes inspection. Ctrl plus keyboard focus also works.
+Two small icons under the Arena hero bars show combat stats and proficiency
+levels/progress. Proficiencies no longer repeat on the build screen.
 
 Open Character & Stats from the Arena or Chronicle menu. Ctrl-hover or Ctrl-focus a core
 stat to see its actual formula and the rounded changes from allocating one more

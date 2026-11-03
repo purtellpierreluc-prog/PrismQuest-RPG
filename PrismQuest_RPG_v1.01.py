@@ -5854,7 +5854,7 @@ window.mqUpdateLabCombat = function(payload) {
     if (heading) heading.textContent = row[3];
   });
   const round = document.getElementById('mq-lab-round-note');
-  if (round) round.textContent = 'Round ' + payload.round + ' - Party, then monsters';
+  if (round) round.textContent = 'Round ' + payload.round + ' - Group volley';
   if (payload.delay !== null) window.mqScheduleLabRound(payload.delay);
 };
 document.addEventListener('DOMContentLoaded', function() {
@@ -6805,6 +6805,10 @@ def _hero_data_uri(player_class: str) -> str:
 HERO_DATA_URIS: Dict[str, str] = {}
 def _find_town_scene_path() -> Optional[str]:
     base_dir = os.path.dirname(os.path.abspath(__file__))
+    if DESKTOP_MODE:
+        reimagined = os.path.join(base_dir, 'Assets', 'TownScene', 'Town_Reimagined.webp')
+        if os.path.isfile(reimagined):
+            return reimagined
     search_dirs = [
         os.path.join(base_dir, 'Assets', 'TownScene'),
         os.path.join(base_dir, 'Assets'),
@@ -16384,6 +16388,8 @@ def _labyrinth_tile_kind_for_coords(
         ])
     basis = '|'.join(part for part in seed_parts if part)
     digest = hashlib.sha1(f'{basis}:{safe_x},{safe_y}'.encode('utf-8')).hexdigest()
+    if DESKTOP_MODE:
+        return 'encounter' if int(digest[:8], 16) % 100 < 40 else 'free'
     return 'encounter' if int(digest[:8], 16) % 2 == 0 else 'free'
 
 
@@ -16918,14 +16924,16 @@ def _labyrinth_encounter_monster_count(party_size: object, boss: bool = False) -
     except Exception:
         size = 1
     if size <= 1:
-        return 1
-    if size == 2:
-        return 1 if random.random() < 0.50 else 2
-    if size == 3:
-        return 2
-    if size == 4:
-        return 2 if random.random() < 0.50 else 3
-    return 3
+        count = 1
+    elif size == 2:
+        count = 1 if random.random() < 0.50 else 2
+    elif size == 3:
+        count = 2
+    elif size == 4:
+        count = 2 if random.random() < 0.50 else 3
+    else:
+        count = 3
+    return count * (2 if DESKTOP_MODE else 1)
 
 
 def _labyrinth_allowed_companion_subtypes(player_class: str, slot: str) -> List[str]:
@@ -18021,9 +18029,9 @@ def _labyrinth_pick_monster_target(party_state: Dict[str, Dict[str, object]], pa
 def _labyrinth_step_delay_seconds(self) -> float:
     try:
         base_delay = float(getattr(self, 'log_delay_ms', 1000) or 1000) / 1000.0
-        delay = max(1.0, base_delay * 1.5)
+        delay = max(0.9, base_delay) if DESKTOP_MODE else max(1.0, base_delay * 1.5)
     except Exception:
-        delay = 1.5
+        delay = 1.0 if DESKTOP_MODE else 1.5
     if bool(getattr(self, 'labyrinth_slow_cadence_mode', False)):
         return max(2.25, delay * 1.45)
     return delay
@@ -18322,6 +18330,9 @@ def _generate_labyrinth_monster(monster_type: object, target_level: object, floo
         monster_profile=str(archetype.get('profile') or ''),
         monster_dialogue=build_monster_dialogue(str(archetype.get('type') or species)),
     )
+    if DESKTOP_MODE and not boss:
+        from steam_client.swarm import halve_normal_monster
+        halve_normal_monster(monster)
     xp_reward = int(round(base_monster_xp(requested_level) * random.uniform(0.94, 1.06) * (1.32 if boss else 1.05) * archetype_power_mult))
     return monster, xp_reward
 
@@ -20466,9 +20477,8 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False, expected_step: Op
             party_state[actor_id] = _labyrinth_store_entry_from_player(actor_entry, actor)
             monsters[target_index] = target_monster
             if int(player_event.damage_amount or 0) > 0:
-                popup = _labyrinth_damage_popup_payload(player_event.damage_amount, player_event.crit, enabled=not low_load_mode)
-                if popup:
-                    damage_popups[f'monster-{target_index}'] = popup
+                from steam_client.swarm import volley_popup
+                volley_popup(sys.modules[__name__], damage_popups, f'monster-{target_index}', player_event.damage_amount, player_event.crit, enabled=not low_load_mode)
             updated_monster_snapshots = [asdict(monster) for monster in monsters]
             active_text = player_event.text
             turn_index += 1
@@ -20500,9 +20510,8 @@ def run_labyrinth_encounter(self, ignore_timing: bool = False, expected_step: Op
                 party_state[target_id] = _labyrinth_store_entry_from_player(target_entry, target_player)
                 monsters[monster_phase_index] = current_monster
                 if int(monster_event.damage_amount or 0) > 0:
-                    popup = _labyrinth_damage_popup_payload(monster_event.damage_amount, monster_event.crit, enabled=not low_load_mode)
-                    if popup:
-                        damage_popups[str(target_id or '').strip()] = popup
+                    from steam_client.swarm import volley_popup
+                    volley_popup(sys.modules[__name__], damage_popups, str(target_id or '').strip(), monster_event.damage_amount, monster_event.crit, enabled=not low_load_mode)
                 updated_monster_snapshots = [asdict(monster) for monster in monsters]
                 active_text = monster_event.text
                 turn_index = party_turn_count + monster_phase_index + 1

@@ -5,6 +5,7 @@ No second character, test kit, fabricated buyer, background poll or cloud upload
 """
 
 import copy
+import math
 import re
 import uuid
 from datetime import UTC, datetime
@@ -278,20 +279,45 @@ class Town:
             charter['messages'] = charter['messages'][:80]
         return self._commit(apply)
 
-    def ladder(self):
+    def ladder(self,player_class=None):
         rows = []
         for index,slot in enumerate(self.state.slots):
             player = self.state.player if index == self.index else None
             raw = slot.get('player') or {}
             entries = slot.get('pq_ledger_entries',[])
-            if not raw and not player and not entries:
+            legacy = []
+            stats_by_class = self.state.ladder_stats if player else slot.get('ladder_stats',{})
+            for class_name,stats in stats_by_class.items():
+                if player_class and class_name!=player_class:
+                    continue
+                try:
+                    seconds = float(stats.get('fastest_masterquest_seconds') or 0)
+                except (TypeError,ValueError):
+                    continue
+                if math.isfinite(seconds) and seconds>0:
+                    legacy.append((seconds,{}))
+            if not raw and not player and not entries and not legacy:
                 continue
-            successful = [float(row['elapsed_seconds']) for row in entries if row.get('passed') and row.get('elapsed_seconds',0)>0]
             current_class = player.player_class if player else raw.get('player_class') or self.game.slot_highest_class(slot) or ''
-            rows.append({'index':index,'name':self._name(index),'class':current_class,'level':player.level if player else int(raw.get('level',0)),
+            matching = [entry for entry in entries if not player_class or entry.get('player_class')==player_class]
+            if player_class and current_class!=player_class and not matching and not legacy:
+                continue
+            successful = []
+            for entry in matching:
+                try:
+                    seconds = float(entry.get('elapsed_seconds') or 0)
+                except (ValueError,TypeError):
+                    continue
+                if entry.get('passed') and math.isfinite(seconds) and seconds>0:
+                    successful.append((seconds,entry))
+            successful.extend(legacy)
+            best = min(successful,key=lambda pair:pair[0]) if successful else None
+            rows.append({'index':index,'name':self._name(index),'class':player_class or current_class,'current_class':current_class,
+                         'pq_name':str(best[1].get('character_name') or '') if best else '',
+                         'level':player.level if player else int(raw.get('level',0)),
                          'wins':player.wins if player else int(raw.get('wins',0)), 'losses':player.losses if player else int(raw.get('losses',0)),
-                         'mode':self.game.slot_mode_for_index(index),'fastest':min(successful) if successful else None,'attempts':len(entries),
-                         'ascensions':sum(bool(row.get('passed')) for row in entries),'current':index == self.index,'active':bool(player or raw)})
+                         'mode':self.game.slot_mode_for_index(index),'fastest':best[0] if best else None,'attempts':len(matching),
+                         'ascensions':sum(bool(row.get('passed')) for row in matching),'current':index == self.index,'active':bool(player or raw)})
         return sorted(rows,key=lambda row:(-row['level'],-row['wins'],row['name'].casefold(),row['index']))
 
 

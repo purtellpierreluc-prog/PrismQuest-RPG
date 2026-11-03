@@ -348,16 +348,19 @@ def render_ladder(state,game,actions):
     mode = town.drafts.get('ladder-mode',state.current_slot_mode())
     order = town.drafts.get('ladder-sort','Highest Level')
     tab = town.drafts.get('ladder-tab','Standings')
+    selected_class = town.drafts.get('ladder-class','All classes')
     def changed(key,value):
         town.drafts[key] = value
-        board.refresh()
+        if key=='ladder-class' and value!='All classes':
+            town.drafts['ladder-sort'] = 'Fastest Ascent'
+        actions['refresh']()
     def switch(value):
         town.drafts['ladder-tab'] = value
         actions['refresh']()
 
     @ui.refreshable
     def board():
-        rows = [row for row in town.ladder() if town.drafts.get('ladder-mode',mode) in {'All Local Chronicles',row['mode']}]
+        rows = [row for row in town.ladder(None if selected_class=='All classes' else selected_class) if town.drafts.get('ladder-mode',mode) in {'All Local Chronicles',row['mode']}]
         sort = town.drafts.get('ladder-sort',order)
         if sort == 'Victories':
             rows.sort(key=lambda row:(-row['wins'],-row['level'],row['index']))
@@ -374,7 +377,9 @@ def render_ladder(state,game,actions):
                     image_plate(game._hero_data_uri(row['class']),row['class'],'nl-portrait')
                     with ui.element('div').classes('nl-identity'):
                         ui.label(row['name']).classes('nl-name')
-                        ui.label(row['class'] if row['active'] else 'Between climbs').classes('pd-subtle')
+                        ui.label(row['class'] if row['active'] or selected_class!='All classes' else 'Between climbs').classes('pd-subtle')
+                        if selected_class!='All classes' and row['pq_name'] and row['pq_name']!=row['name']:
+                            ui.label('PQ by '+row['pq_name']).classes('pd-comparison-note')
                         ui.label(row['mode']+(' / YOU' if row['current'] else '')).classes('pd-comparison-note')
                     with ui.element('div').classes('nl-value'):
                         ui.label(str(row['level']) if row['active'] else '--')
@@ -391,6 +396,7 @@ def render_ladder(state,game,actions):
         with ui.element('nav').classes('nt-tabs').props('aria-label="Ladder sections"'):
             for title in ['Standings','My Ascents']:
                 ui.button(title,on_click=lambda t=title:switch(t)).classes('mq-btn-secondary nt-tab'+(' selected' if title == tab else '')).props('aria-pressed='+str(title == tab).lower())
+            ui.select(['All classes',*game.ALL_CLASS_ORDER],label='Class',value=selected_class,on_change=lambda e:changed('ladder-class',e.value)).classes('nl-class-filter').props('outlined dense')
         with ui.element('div').classes('nl-layout'):
             with ui.element('aside').classes('nl-your-climb'):
                 with ui.element('div').classes('nl-your-summary'):
@@ -409,7 +415,7 @@ def render_ladder(state,game,actions):
                     with ui.element('div').classes('nl-filters'):
                         ui.select([state.current_slot_mode(),*filter(lambda x:x != state.current_slot_mode(),['Core','SSF','HC']),'All Local Chronicles'],label='Chronicle mode',value=mode,on_change=lambda e:changed('ladder-mode',e.value)).props('dense outlined')
                         ui.select(['Highest Level','Victories','Fastest Ascent'],label='Rank by',value=order,on_change=lambda e:changed('ladder-sort',e.value)).props('dense outlined')
-                    ui.label('Levels above 60 are retained. Modes stay separate unless you choose All Local Chronicles. Ties use the existing wins/name order.').classes('pd-comparison-note')
+                    ui.label('Class filters rank successful PQ times for that class. Level and victories remain your current chronicle stats. Modes stay separate unless you choose All Local Chronicles.').classes('pd-comparison-note')
                     board()
                 else:
                     eyebrow('YOUR PRISMATIC QUEST RECORD / THIS CHRONICLE')
@@ -418,7 +424,10 @@ def render_ladder(state,game,actions):
                             with ui.element('div').classes('nt-empty'):
                                 ui.label('Your first ascension is ahead.').classes('nt-section-display')
                                 ui.label('Reach level 60 and approach the Prism. Every real attempt will be recorded here.').classes('pd-subtle')
-                        for entry in reversed(attempts):
+                        matching_attempts = [entry for entry in reversed(attempts) if selected_class=='All classes' or entry.get('player_class')==selected_class]
+                        if attempts and not matching_attempts:
+                            ui.label('No recorded ascents for this class yet.').classes('pd-subtle')
+                        for entry in matching_attempts:
                             with ui.element('article').classes('nl-ascent '+('passed' if entry.get('passed') else 'failed')):
                                 ui.label('ASCENDED' if entry.get('passed') else 'THE PRISM REFUSED').classes('pd-eyebrow')
                                 ui.label(entry.get('player_class','Adventurer')).classes('nt-section-title')

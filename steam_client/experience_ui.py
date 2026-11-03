@@ -5,6 +5,7 @@ import json
 
 from nicegui import ui
 
+from .arena_inspection import arena_insights_html
 from .experience import (
     ITEM_TYPE_COLORS,
     arena_opponent,
@@ -236,10 +237,11 @@ def render_journey(state, game, *, compact=False, show_title=True):
     p = state.player
     goal = _journey(state)
     with ui.element('div').classes('pd-journey compact' if compact else 'pd-journey'):
-        with ui.element('div').classes('pd-journey-copy'):
-            eyebrow(goal.milestone)
-            if show_title:
-                ui.label(goal.title).classes('pd-journey-title')
+        if not (compact and goal.destination == 'stats'):
+            with ui.element('div').classes('pd-journey-copy'):
+                eyebrow(goal.milestone)
+                if show_title:
+                    ui.label(goal.title).classes('pd-journey-title')
         ui.html(game.animated_meter_html('player-xp', f'LEVEL {p.level}', p.xp, max(1, p.xp_to_next), 'exp', 4200, cycle=p.level, rollover=True))
         with ui.element('div').classes('pd-milestone-track'):
             for level, label in [(1, 'AWAKEN'), (45, 'LABYRINTH'), (60, 'ASCEND')]:
@@ -358,7 +360,7 @@ def render_arena(state, game, actions):
                         if popup:
                             ui.html(popup)
                     ui.html(game.animated_meter_html('player-mana', 'MANA', p.mana, max(1, p.max_mana), 'mana', 2600))
-                    render_combat_stats(p)
+                    ui.html(arena_insights_html(p,game,state.active_slot_index))
             with ui.element('section').classes('pd-battle-focus'):
                 if active:
                     ui.label(_battle_round(state) if not state.monster_page_turn_active else 'CHALLENGER APPROACHING').classes('pd-round')
@@ -542,6 +544,4 @@ def render_character(state, game, actions):
                                         ('accuracy','Accuracy',f'{p.accuracy:.0%}'),('initiative','Initiative',str(p.speed))]:
                     ui.html(f'<div class="pd-total-formula" tabindex="0" data-pd-inspect-key="total-{state.active_slot_index}-{key}" aria-label="{text(label)} formula"><span>{text(label)} <small>?</small></span><b>{text(value)}</b>'
                             '<span class="pd-inspect-content" hidden>'+tooltip_html(p,key,game,label)+'</span></div>')
-            with ui.element('div').classes('pd-proficiency-sheet'):
-                ui.html(game.build_proficiency_tooltip_html(p))
             ui.button('Return to Arena', icon='arrow_forward', on_click=lambda: actions['route']('arena')).classes('mq-btn-gold')
